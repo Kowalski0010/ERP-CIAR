@@ -1,5 +1,14 @@
 export type Role = 'Admin' | 'Academico' | 'Financeiro' | 'Comercial'
 
+export type Address = {
+  zipCode: string
+  street: string
+  number: string
+  neighborhood: string
+  city: string
+  state: string
+}
+
 export type Observation = {
   id: string
   date: string
@@ -16,10 +25,42 @@ export type Student = {
   course: string
   avatar?: string
   phone?: string
-  address?: string
-  rg?: string
   cpf?: string
+  rg?: string
+  address?: Address
   observations?: Observation[]
+}
+
+export type Teacher = {
+  id: string
+  name: string
+  email: string
+  phone: string
+  cpf: string
+  rg: string
+  address?: Address
+  subjects: string[]
+  workload: number
+  status: 'Ativo' | 'Inativo'
+  avatar?: string
+}
+
+export type ClassRoom = {
+  id: string
+  name: string
+  course: string
+  semester: string
+}
+
+export type Schedule = {
+  id: string
+  classId: string
+  subject: string
+  teacherId: string
+  room: string
+  dayOfWeek: string
+  startTime: string
+  endTime: string
 }
 
 export type Lead = {
@@ -38,6 +79,14 @@ export type Payment = {
   amount: number
   dueDate: string
   status: 'Pago' | 'Pendente' | 'Atrasado'
+  installmentNumber?: number
+  totalInstallments?: number
+}
+
+export type FinancialPlan = {
+  installments: number
+  value: number
+  firstDueDate: string
 }
 
 export type AppState = {
@@ -45,4 +94,7 @@ export type AppState = {
   students: Student[]
   leads: Lead[]
   payments: Payment[]
+  teachers: Teacher[]
+  classes: ClassRoom[]
+  schedules: Schedule[]
 }

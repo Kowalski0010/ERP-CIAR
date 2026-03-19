@@ -9,6 +9,7 @@ import Index from './pages/Index'
 import Students from './pages/academic/Students'
 import Teachers from './pages/academic/Teachers'
 import Classes from './pages/academic/Classes'
+import Schedules from './pages/academic/Schedules'
 import Grades from './pages/academic/Grades'
 import Payments from './pages/financial/Payments'
 import CashFlow from './pages/financial/CashFlow'
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/academic/students" element={<Students />} />
             <Route path="/academic/teachers" element={<Teachers />} />
             <Route path="/academic/classes" element={<Classes />} />
+            <Route path="/academic/schedules" element={<Schedules />} />
             <Route path="/academic/grades" element={<Grades />} />
 
             {/* Financial */}

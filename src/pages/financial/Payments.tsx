@@ -34,25 +34,18 @@ export default function Payments() {
     }
   }
 
-  const handleSimulateInvoice = () => {
-    toast({
-      title: 'Fatura Gerada',
-      description: 'Um boleto simulado foi enviado para o email do aluno.',
-    })
-  }
-
   return (
     <div className="space-y-6 animate-fade-in-up">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Controle de Mensalidades</h1>
-          <p className="text-muted-foreground">Acompanhe pagamentos e faturas dos alunos.</p>
+          <p className="text-muted-foreground">
+            Acompanhe contratos, pagamentos e faturas dos alunos.
+          </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" /> Exportar Relatório
-          </Button>
-        </div>
+        <Button variant="outline">
+          <Download className="mr-2 h-4 w-4" /> Exportar Relatório
+        </Button>
       </div>
 
       <div className="bg-card border rounded-xl shadow-subtle p-4">
@@ -68,6 +61,7 @@ export default function Payments() {
             <TableRow>
               <TableHead>Fatura #</TableHead>
               <TableHead>Aluno</TableHead>
+              <TableHead>Parcela</TableHead>
               <TableHead>Vencimento</TableHead>
               <TableHead>Valor</TableHead>
               <TableHead>Status</TableHead>
@@ -81,6 +75,11 @@ export default function Payments() {
                   FT-{payment.id.padStart(4, '0')}
                 </TableCell>
                 <TableCell className="font-medium">{payment.studentName}</TableCell>
+                <TableCell className="text-muted-foreground text-sm">
+                  {payment.installmentNumber && payment.totalInstallments
+                    ? `${payment.installmentNumber}/${payment.totalInstallments}`
+                    : '-'}
+                </TableCell>
                 <TableCell>{new Date(payment.dueDate).toLocaleDateString('pt-BR')}</TableCell>
                 <TableCell className="font-semibold text-foreground">
                   R$ {payment.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -90,7 +89,7 @@ export default function Payments() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={handleSimulateInvoice}
+                    onClick={() => toast({ title: 'Boleto', description: 'Enviado!' })}
                     className="text-primary hover:text-primary hover:bg-primary/10"
                   >
                     <FileText className="mr-2 h-4 w-4" /> Gerar Boleto

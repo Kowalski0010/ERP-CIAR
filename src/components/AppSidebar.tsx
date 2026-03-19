@@ -9,6 +9,7 @@ import {
   PieChart,
   Target,
   Building,
+  Clock,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -33,7 +34,8 @@ const navGroups = [
     items: [
       { title: 'Alunos', icon: Users, url: '/academic/students' },
       { title: 'Professores', icon: GraduationCap, url: '/academic/teachers' },
-      { title: 'Turmas e Horários', icon: CalendarDays, url: '/academic/classes' },
+      { title: 'Turmas', icon: CalendarDays, url: '/academic/classes' },
+      { title: 'Cronogramas', icon: Clock, url: '/academic/schedules' },
       { title: 'Lançar Notas', icon: FileSpreadsheet, url: '/academic/grades' },
     ],
   },

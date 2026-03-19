@@ -15,7 +15,7 @@ const columns = [
 ]
 
 export default function Leads() {
-  const { leads, updateLeadStatus, addStudent } = useAppStore()
+  const { leads, updateLeadStatus, enrollStudent } = useAppStore()
   const { toast } = useToast()
   const [convertingLead, setConvertingLead] = useState<Lead | null>(null)
 
@@ -25,18 +25,16 @@ export default function Leads() {
       updateLeadStatus(lead.id, columns[currentIndex + 1].id as Lead['status'])
       toast({ title: 'Lead Movido', description: `${lead.name} avançou no funil.` })
     } else {
-      // Trigger conversion dialog
       setConvertingLead(lead)
     }
   }
 
-  const handleConvertSuccess = (student: any) => {
+  const handleConvertSuccess = (student: any, plan: any) => {
     if (convertingLead) {
-      addStudent(student)
-      updateLeadStatus(convertingLead.id, 'Ganho')
+      enrollStudent(student, plan, convertingLead.id)
       toast({
         title: 'Lead Convertido!',
-        description: `${student.name} agora é um aluno matriculado.`,
+        description: `${student.name} foi matriculado e o plano financeiro gerado.`,
         variant: 'default',
       })
       setConvertingLead(null)
