@@ -14,6 +14,14 @@ import Grades from './pages/academic/Grades'
 import Payments from './pages/financial/Payments'
 import CashFlow from './pages/financial/CashFlow'
 import Leads from './pages/commercial/Leads'
+import AuditLogs from './pages/admin/AuditLogs'
+import Reports from './pages/admin/Reports'
+import Notifications from './pages/admin/Notifications'
+import StudentDashboard from './pages/student/StudentDashboard'
+import StudentSchedule from './pages/student/StudentSchedule'
+import StudentAttendance from './pages/student/StudentAttendance'
+import StudentFinancial from './pages/student/StudentFinancial'
+import StudentProfile from './pages/student/StudentProfile'
 import NotFound from './pages/NotFound'
 
 const App = () => (
@@ -39,6 +47,18 @@ const App = () => (
 
             {/* Commercial */}
             <Route path="/commercial/leads" element={<Leads />} />
+
+            {/* Admin Features */}
+            <Route path="/admin/logs" element={<AuditLogs />} />
+            <Route path="/admin/reports" element={<Reports />} />
+            <Route path="/admin/notifications" element={<Notifications />} />
+
+            {/* Student Portal */}
+            <Route path="/student-area" element={<StudentDashboard />} />
+            <Route path="/student-area/schedule" element={<StudentSchedule />} />
+            <Route path="/student-area/attendance" element={<StudentAttendance />} />
+            <Route path="/student-area/financial" element={<StudentFinancial />} />
+            <Route path="/student-area/profile" element={<StudentProfile />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

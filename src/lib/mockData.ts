@@ -1,4 +1,14 @@
-import { Student, Lead, Payment, Teacher, Schedule, ClassRoom } from './types'
+import {
+  Student,
+  Lead,
+  Payment,
+  Teacher,
+  Schedule,
+  ClassRoom,
+  AuditLog,
+  SystemNotification,
+  AttendanceRecord,
+} from './types'
 
 const defaultAddress = {
   zipCode: '01001-000',
@@ -106,6 +116,16 @@ export const mockSchedules: Schedule[] = [
     startTime: '10:00',
     endTime: '11:40',
   },
+  {
+    id: 's3',
+    classId: 'T01',
+    subject: 'Lógica de Programação',
+    teacherId: 't1',
+    room: 'Lab Info 3',
+    dayOfWeek: 'Terça',
+    startTime: '10:00',
+    endTime: '11:40',
+  },
 ]
 
 export const mockLeads: Lead[] = [
@@ -139,6 +159,16 @@ export const mockPayments: Payment[] = [
     totalInstallments: 12,
   },
   {
+    id: 'p3',
+    studentId: '1',
+    studentName: 'Ana Silva',
+    amount: 850.0,
+    dueDate: '2023-11-05',
+    status: 'Pendente',
+    installmentNumber: 2,
+    totalInstallments: 12,
+  },
+  {
     id: 'p2',
     studentId: '2',
     studentName: 'Carlos Oliveira',
@@ -153,4 +183,57 @@ export const mockPayments: Payment[] = [
 export const mockFinancialChart = [
   { month: 'Jan', receitas: 45000, despesas: 32000 },
   { month: 'Fev', receitas: 52000, despesas: 34000 },
+  { month: 'Mar', receitas: 60000, despesas: 36000 },
+  { month: 'Abr', receitas: 58000, despesas: 35000 },
+]
+
+export const mockLogs: AuditLog[] = [
+  {
+    id: 'log1',
+    timestamp: new Date(Date.now() - 3600000).toISOString(),
+    user: 'Admin Master',
+    action: 'Atualizou Status',
+    entity: 'Lead: João Pedro',
+  },
+  {
+    id: 'log2',
+    timestamp: new Date(Date.now() - 7200000).toISOString(),
+    user: 'Gestor Acadêmico',
+    action: 'Criou Turma',
+    entity: 'Turma: T03 - Administração',
+  },
+  {
+    id: 'log3',
+    timestamp: new Date(Date.now() - 86400000).toISOString(),
+    user: 'Analista Financeiro',
+    action: 'Confirmou Pagamento',
+    entity: 'Fatura: INV-8829',
+  },
+]
+
+export const mockNotifications: SystemNotification[] = [
+  {
+    id: 'n1',
+    title: 'Manutenção Programada',
+    message: 'O sistema ficará indisponível no domingo das 02h às 04h.',
+    type: 'Warning',
+    date: new Date().toISOString(),
+    target: 'Todos',
+    read: false,
+  },
+  {
+    id: 'n2',
+    title: 'Boletos Liberados',
+    message: 'As faturas do mês vigente já estão disponíveis no portal.',
+    type: 'Info',
+    date: new Date(Date.now() - 86400000).toISOString(),
+    target: 'Alunos',
+    read: true,
+  },
+]
+
+export const mockAttendance: AttendanceRecord[] = [
+  { id: 'a1', studentId: '1', subject: 'Cálculo I', totalClasses: 40, absences: 2 },
+  { id: 'a2', studentId: '1', subject: 'Física', totalClasses: 40, absences: 8 },
+  { id: 'a3', studentId: '1', subject: 'Lógica de Programação', totalClasses: 60, absences: 0 },
 ]

@@ -9,6 +9,7 @@ import {
   GraduationCap,
   AlertCircle,
   Users,
+  FileText,
 } from 'lucide-react'
 import {
   Table,
@@ -35,7 +36,7 @@ import { AddStudentDialog } from '@/components/AddStudentDialog'
 import { useToast } from '@/hooks/use-toast'
 
 export default function Students() {
-  const { students, payments, enrollStudent } = useAppStore()
+  const { students, payments, enrollStudent, generateInvoice } = useAppStore()
   const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState<string>('Todos')
@@ -57,6 +58,14 @@ export default function Students() {
     const matchesStatus = filterStatus === 'Todos' || s.status === filterStatus
     return matchesSearch && matchesStatus
   })
+
+  const handleGenerateInvoice = (studentId: string, name: string) => {
+    generateInvoice(studentId, 850) // Default amount for mock
+    toast({
+      title: 'Fatura Gerada',
+      description: `Um novo boleto foi emitido para ${name} e adicionado ao financeiro.`,
+    })
+  }
 
   const totalActive = students.filter((s) => s.status === 'Ativo').length
   const totalGraduated = students.filter((s) => s.status === 'Formado').length
@@ -157,7 +166,7 @@ export default function Students() {
         {filteredStudents.length > 0 ? (
           <Table className="table-compact">
             <TableHeader>
-              <TableRow className="hover:bg-transparent">
+              <TableRow className="hover:bg-transparent bg-zinc-50/50">
                 <TableHead className="w-[280px]">Aluno / Contato</TableHead>
                 <TableHead className="w-[140px]">Documento (CPF)</TableHead>
                 <TableHead>Curso Vinculado</TableHead>
@@ -194,10 +203,10 @@ export default function Students() {
                       variant="outline"
                       className={
                         student.status === 'Ativo'
-                          ? 'status-success'
+                          ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
                           : student.status === 'Inativo'
-                            ? 'status-danger'
-                            : 'status-neutral'
+                            ? 'border-rose-200 bg-rose-50 text-rose-700'
+                            : 'border-zinc-200 bg-zinc-50 text-zinc-700'
                       }
                     >
                       {student.status}
@@ -208,8 +217,8 @@ export default function Students() {
                       variant="outline"
                       className={
                         student.financialStatus === 'Regular'
-                          ? 'status-success bg-transparent'
-                          : 'status-warning'
+                          ? 'border-transparent bg-transparent text-emerald-600'
+                          : 'border-amber-200 bg-amber-50 text-amber-700'
                       }
                     >
                       {student.financialStatus}
@@ -226,11 +235,17 @@ export default function Students() {
                           <MoreHorizontal className="h-4 w-4 text-zinc-400" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-[160px]">
+                      <DropdownMenuContent align="end" className="w-[180px]">
                         <DropdownMenuLabel className="text-xs">Opções</DropdownMenuLabel>
                         <DropdownMenuItem className="text-xs">Ficha Completa</DropdownMenuItem>
                         <DropdownMenuItem className="text-xs">Histórico Escolar</DropdownMenuItem>
-                        <DropdownMenuItem className="text-xs">Posição Financeira</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-xs font-medium text-blue-600 focus:text-blue-700 cursor-pointer flex items-center gap-2"
+                          onClick={() => handleGenerateInvoice(student.id, student.name)}
+                        >
+                          <FileText className="w-3.5 h-3.5" /> Gerar Fatura / Boleto
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="text-xs text-destructive focus:text-destructive">
                           Bloquear Matrícula

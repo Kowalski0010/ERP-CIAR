@@ -1,4 +1,4 @@
-export type Role = 'Admin' | 'Academico' | 'Financeiro' | 'Comercial'
+export type Role = 'Admin' | 'Academico' | 'Financeiro' | 'Comercial' | 'Aluno'
 
 export type Address = {
   zipCode: string
@@ -89,6 +89,32 @@ export type FinancialPlan = {
   firstDueDate: string
 }
 
+export type AuditLog = {
+  id: string
+  timestamp: string
+  user: string
+  action: string
+  entity: string
+}
+
+export type SystemNotification = {
+  id: string
+  title: string
+  message: string
+  type: 'Success' | 'Warning' | 'Info'
+  date: string
+  target: 'Todos' | 'Alunos' | 'Professores' | 'Staff'
+  read: boolean
+}
+
+export type AttendanceRecord = {
+  id: string
+  studentId: string
+  subject: string
+  totalClasses: number
+  absences: number
+}
+
 export type AppState = {
   currentUserRole: Role
   students: Student[]
@@ -97,4 +123,7 @@ export type AppState = {
   teachers: Teacher[]
   classes: ClassRoom[]
   schedules: Schedule[]
+  logs: AuditLog[]
+  notifications: SystemNotification[]
+  attendances: AttendanceRecord[]
 }
