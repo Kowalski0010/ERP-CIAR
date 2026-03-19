@@ -77,30 +77,30 @@ export function AppSidebar() {
   })
 
   return (
-    <Sidebar className="border-r border-sidebar-border shadow-sm">
+    <Sidebar className="border-r border-sidebar-border shadow-md">
       <SidebarHeader className="p-4 border-b border-sidebar-border/50">
         <div className="flex items-center gap-3 px-2 py-1">
-          <div className="bg-primary flex items-center justify-center p-2 rounded text-primary-foreground shadow-sm">
+          <div className="bg-zinc-100 flex items-center justify-center p-2 rounded text-zinc-900 shadow-sm">
             <Building2 className="h-5 w-5" />
           </div>
           <div className="flex flex-col">
-            <span className="font-bold text-[15px] leading-tight text-sidebar-foreground">
+            <span className="font-bold text-[15px] leading-tight text-sidebar-foreground tracking-tight">
               TOTVS Edu
             </span>
-            <span className="text-[11px] font-medium text-sidebar-foreground/60 uppercase tracking-wider">
-              ERP System
+            <span className="text-[10px] font-semibold text-sidebar-foreground/60 uppercase tracking-widest mt-0.5">
+              ERP Enterprise
             </span>
           </div>
         </div>
       </SidebarHeader>
-      <SidebarContent className="p-2 gap-4">
+      <SidebarContent className="p-3 gap-6 pt-6">
         {filteredGroups.map((group) => (
-          <SidebarGroup key={group.label} className="px-0">
-            <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] font-bold uppercase tracking-wider mb-1 px-3">
+          <SidebarGroup key={group.label} className="px-0 py-0">
+            <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] font-bold uppercase tracking-widest mb-2 px-3">
               {group.label}
             </SidebarGroupLabel>
             <SidebarGroupContent>
-              <SidebarMenu>
+              <SidebarMenu className="gap-1">
                 {group.items.map((item) => {
                   const isActive = location.pathname === item.url
                   return (
@@ -108,15 +108,15 @@ export function AppSidebar() {
                       <SidebarMenuButton
                         asChild
                         isActive={isActive}
-                        className={`transition-colors duration-200 h-9 rounded-md px-3 ${
+                        className={`transition-all duration-200 h-9 rounded-md px-3 border-l-2 ${
                           isActive
-                            ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-                            : 'text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                            ? 'bg-sidebar-accent border-sidebar-primary text-sidebar-foreground font-medium'
+                            : 'border-transparent text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
                         }`}
                       >
                         <Link to={item.url} className="flex items-center gap-3">
                           <item.icon
-                            className={`h-[18px] w-[18px] ${isActive ? 'text-primary' : 'opacity-70'}`}
+                            className={`h-[16px] w-[16px] ${isActive ? 'text-sidebar-primary' : 'opacity-70'}`}
                           />
                           <span className="text-[13px]">{item.title}</span>
                         </Link>

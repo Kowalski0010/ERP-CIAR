@@ -1,15 +1,14 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useAppStore } from '@/contexts/AppContext'
 import {
   Search,
   Plus,
   MoreHorizontal,
-  GraduationCap,
-  Edit,
-  Eye,
-  Trash2,
   SlidersHorizontal,
   UserX,
+  GraduationCap,
+  AlertCircle,
+  Users,
 } from 'lucide-react'
 import {
   Table,
@@ -22,6 +21,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,28 +30,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from '@/components/ui/sheet'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Student } from '@/lib/types'
 import { AddStudentDialog } from '@/components/AddStudentDialog'
 import { useToast } from '@/hooks/use-toast'
 
 export default function Students() {
-  const { students, enrollStudent, updateStudent } = useAppStore()
+  const { students, payments, enrollStudent } = useAppStore()
   const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState<string>('Todos')
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
-  const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
 
-  const filteredStudents = students.filter((s) => {
+  const studentsWithFinance = useMemo(() => {
+    return students.map((s) => {
+      const studentPayments = payments.filter((p) => p.studentId === s.id)
+      const hasLate = studentPayments.some((p) => p.status === 'Atrasado')
+      return { ...s, financialStatus: hasLate ? 'Inadimplente' : 'Regular' }
+    })
+  }, [students, payments])
+
+  const filteredStudents = studentsWithFinance.filter((s) => {
     const matchesSearch =
       s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -60,42 +58,93 @@ export default function Students() {
     return matchesSearch && matchesStatus
   })
 
+  const totalActive = students.filter((s) => s.status === 'Ativo').length
+  const totalGraduated = students.filter((s) => s.status === 'Formado').length
+  const totalLate = studentsWithFinance.filter((s) => s.financialStatus === 'Inadimplente').length
+
   return (
     <div className="space-y-6 animate-fade-in-up pb-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-2">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Alunos</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Gestão de matrículas e histórico de discentes.
+          <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Alunos</h1>
+          <p className="text-sm text-zinc-500 mt-1">
+            Gestão de matrículas, documentação e histórico de discentes.
           </p>
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)} className="shadow-sm">
+        <Button onClick={() => setIsAddDialogOpen(true)} className="shadow-sm h-9 px-4">
           <Plus className="mr-2 h-4 w-4" /> Nova Matrícula
         </Button>
       </div>
 
-      <div className="bg-card border border-border/50 rounded-lg shadow-sm p-3 flex flex-col sm:flex-row gap-3 items-center justify-between">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <Card className="shadow-sm border-zinc-200">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">
+                Matrículas Ativas
+              </p>
+              <p className="text-2xl font-bold text-zinc-900">{totalActive}</p>
+            </div>
+            <div className="p-2 rounded-md bg-zinc-100 text-zinc-700">
+              <Users className="h-5 w-5" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="shadow-sm border-zinc-200">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">
+                Egressos (Formados)
+              </p>
+              <p className="text-2xl font-bold text-zinc-900">{totalGraduated}</p>
+            </div>
+            <div className="p-2 rounded-md bg-zinc-100 text-zinc-700">
+              <GraduationCap className="h-5 w-5" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="shadow-sm border-zinc-200">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">
+                Inadimplência
+              </p>
+              <p className="text-2xl font-bold text-zinc-900">{totalLate}</p>
+            </div>
+            <div className="p-2 rounded-md bg-rose-50 text-rose-600">
+              <AlertCircle className="h-5 w-5" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-2 flex flex-col sm:flex-row gap-3 items-center justify-between">
         <div className="relative flex-1 w-full max-w-md">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
           <Input
             placeholder="Buscar por nome, email ou CPF..."
-            className="pl-9 bg-background w-full"
+            className="pl-9 h-9 bg-zinc-50/50 border-transparent focus-visible:border-zinc-300 w-full text-xs"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="flex gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-          <Button variant="outline" size="icon" className="shrink-0" title="Filtros Avançados">
+        <div className="flex gap-2 w-full sm:w-auto overflow-x-auto">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-9 w-9 shrink-0"
+            title="Filtros Avançados"
+          >
             <SlidersHorizontal className="h-4 w-4" />
           </Button>
-          <div className="flex bg-muted/50 p-1 rounded-md shrink-0">
+          <div className="flex bg-zinc-100 p-1 rounded-md shrink-0">
             {['Todos', 'Ativo', 'Inativo', 'Formado'].map((status) => (
               <Button
                 key={status}
                 variant={filterStatus === status ? 'secondary' : 'ghost'}
                 size="sm"
                 onClick={() => setFilterStatus(status)}
-                className={`text-xs h-7 px-3 ${filterStatus === status ? 'shadow-sm bg-background' : ''}`}
+                className={`text-[11px] h-7 px-3 font-medium ${filterStatus === status ? 'shadow-sm bg-white' : 'text-zinc-500'}`}
               >
                 {status}
               </Button>
@@ -104,37 +153,42 @@ export default function Students() {
         </div>
       </div>
 
-      <div className="bg-card border border-border/50 rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-white border border-zinc-200 rounded-lg shadow-sm overflow-hidden">
         {filteredStudents.length > 0 ? (
           <Table className="table-compact">
-            <TableHeader className="bg-muted/30">
+            <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[300px]">Nome do Aluno</TableHead>
-                <TableHead>Curso</TableHead>
-                <TableHead>Contato</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+                <TableHead className="w-[280px]">Aluno / Contato</TableHead>
+                <TableHead className="w-[140px]">Documento (CPF)</TableHead>
+                <TableHead>Curso Vinculado</TableHead>
+                <TableHead className="w-[120px]">Status Acadêmico</TableHead>
+                <TableHead className="w-[140px]">Situação Financeira</TableHead>
+                <TableHead className="text-right w-[60px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredStudents.map((student) => (
-                <TableRow key={student.id} className="group hover:bg-muted/20">
+                <TableRow key={student.id} className="group hover:bg-zinc-50/80 transition-colors">
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
+                      <Avatar className="h-7 w-7 rounded-sm border border-zinc-200">
                         <AvatarImage src={student.avatar} />
-                        <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                        <AvatarFallback className="bg-zinc-100 text-zinc-900 text-[10px] font-semibold rounded-sm">
                           {student.name.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex flex-col">
-                        <span className="font-medium text-foreground">{student.name}</span>
-                        <span className="text-xs text-muted-foreground">{student.email}</span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-semibold text-zinc-900 truncate">{student.name}</span>
+                        <span className="text-[10px] text-zinc-500 truncate">{student.email}</span>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{student.course}</TableCell>
-                  <TableCell className="text-muted-foreground">{student.phone || '-'}</TableCell>
+                  <TableCell className="font-mono text-[11px] text-zinc-600">
+                    {student.cpf || 'Não informado'}
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-xs font-medium text-zinc-700">{student.course}</span>
+                  </TableCell>
                   <TableCell>
                     <Badge
                       variant="outline"
@@ -143,40 +197,43 @@ export default function Students() {
                           ? 'status-success'
                           : student.status === 'Inativo'
                             ? 'status-danger'
-                            : 'status-info'
+                            : 'status-neutral'
                       }
                     >
                       {student.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      className={
+                        student.financialStatus === 'Regular'
+                          ? 'status-success bg-transparent'
+                          : 'status-warning'
+                      }
+                    >
+                      {student.financialStatus}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right p-1">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Menu</span>
+                          <MoreHorizontal className="h-4 w-4 text-zinc-400" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-[160px]">
-                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setSelectedStudent(student)
-                            setIsSheetOpen(true)
-                          }}
-                        >
-                          <Eye className="mr-2 h-4 w-4 text-muted-foreground" /> Ver Detalhes
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Edit className="mr-2 h-4 w-4 text-muted-foreground" /> Editar Registro
-                        </DropdownMenuItem>
+                        <DropdownMenuLabel className="text-xs">Opções</DropdownMenuLabel>
+                        <DropdownMenuItem className="text-xs">Ficha Completa</DropdownMenuItem>
+                        <DropdownMenuItem className="text-xs">Histórico Escolar</DropdownMenuItem>
+                        <DropdownMenuItem className="text-xs">Posição Financeira</DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive focus:text-destructive">
-                          <Trash2 className="mr-2 h-4 w-4" /> Desativar Aluno
+                        <DropdownMenuItem className="text-xs text-destructive focus:text-destructive">
+                          Bloquear Matrícula
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -186,17 +243,21 @@ export default function Students() {
             </TableBody>
           </Table>
         ) : (
-          <div className="flex flex-col items-center justify-center p-12 text-center">
-            <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mb-4">
-              <UserX className="h-8 w-8 text-muted-foreground/50" />
+          <div className="flex flex-col items-center justify-center p-12 text-center bg-zinc-50/50">
+            <div className="h-12 w-12 bg-white border border-zinc-200 rounded-lg flex items-center justify-center mb-3 shadow-sm">
+              <UserX className="h-6 w-6 text-zinc-400" />
             </div>
-            <h3 className="text-lg font-medium text-foreground">Nenhum aluno encontrado</h3>
-            <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-              Não encontramos resultados para sua busca. Tente ajustar os filtros ou cadastrar um
-              novo aluno.
+            <h3 className="text-sm font-semibold text-zinc-900">Nenhum registro encontrado</h3>
+            <p className="text-xs text-zinc-500 mt-1 max-w-sm">
+              Não encontramos alunos para os filtros aplicados. Tente ajustar a busca.
             </p>
-            <Button variant="outline" className="mt-4" onClick={() => setSearchTerm('')}>
-              Limpar Busca
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-4 h-8 text-xs"
+              onClick={() => setSearchTerm('')}
+            >
+              Limpar Filtros
             </Button>
           </div>
         )}
@@ -213,82 +274,6 @@ export default function Students() {
           })
         }}
       />
-
-      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className="sm:max-w-md w-full p-0 overflow-hidden flex flex-col">
-          {selectedStudent && (
-            <>
-              <div className="bg-muted/30 p-6 border-b shrink-0 flex items-start gap-4">
-                <Avatar className="h-16 w-16 border bg-background shadow-sm">
-                  <AvatarImage src={selectedStudent.avatar} />
-                  <AvatarFallback className="text-lg">
-                    {selectedStudent.name.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="text-xl font-bold text-foreground">{selectedStudent.name}</h3>
-                  <p className="text-sm text-muted-foreground">{selectedStudent.email}</p>
-                  <Badge
-                    variant="outline"
-                    className={`mt-2 ${selectedStudent.status === 'Ativo' ? 'status-success' : 'status-danger'}`}
-                  >
-                    {selectedStudent.status}
-                  </Badge>
-                </div>
-              </div>
-
-              <div className="p-6 flex-1 overflow-y-auto space-y-6">
-                <div>
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                    Informações Acadêmicas
-                  </h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-muted-foreground mb-1">Curso</p>
-                      <p className="font-medium">{selectedStudent.course}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground mb-1">Data de Matrícula</p>
-                      <p className="font-medium">
-                        {new Date(selectedStudent.enrollmentDate).toLocaleDateString('pt-BR')}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                    Documentação e Contato
-                  </h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm bg-muted/20 p-4 rounded-lg border border-border/50">
-                    <div>
-                      <p className="text-muted-foreground mb-1">CPF</p>
-                      <p className="font-medium">{selectedStudent.cpf || '-'}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground mb-1">Telefone</p>
-                      <p className="font-medium">{selectedStudent.phone || '-'}</p>
-                    </div>
-                    <div className="col-span-2 mt-2">
-                      <p className="text-muted-foreground mb-1">Endereço Principal</p>
-                      <p className="font-medium">
-                        {selectedStudent.address
-                          ? `${selectedStudent.address.street}, ${selectedStudent.address.number} - ${selectedStudent.address.city}/${selectedStudent.address.state}`
-                          : 'Não cadastrado'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="p-4 border-t bg-muted/10 shrink-0">
-                <Button className="w-full" variant="outline">
-                  Ver Histórico Completo
-                </Button>
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
     </div>
   )
 }
