@@ -1,4 +1,4 @@
-import { ArrowUpRight, ArrowDownRight, Activity } from 'lucide-react'
+import { ArrowUpRight, ArrowDownRight, Activity, Calendar as CalIcon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
@@ -9,6 +9,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 
 const mockTransactions = [
   {
@@ -18,7 +19,13 @@ const mockTransactions = [
     type: 'Entrada',
     amount: 850.0,
   },
-  { id: 2, date: '2023-10-24', description: 'Pagamento de Luz/Água', type: 'Saída', amount: 450.0 },
+  {
+    id: 2,
+    date: '2023-10-24',
+    description: 'Pagamento Fornecedor (Luz/Água)',
+    type: 'Saída',
+    amount: 450.0,
+  },
   {
     id: 3,
     date: '2023-10-22',
@@ -26,7 +33,7 @@ const mockTransactions = [
     type: 'Entrada',
     amount: 720.0,
   },
-  { id: 4, date: '2023-10-20', description: 'Material de Limpeza', type: 'Saída', amount: 150.0 },
+  { id: 4, date: '2023-10-20', description: 'Manutenção Predial', type: 'Saída', amount: 150.0 },
 ]
 
 export default function CashFlow() {
@@ -39,63 +46,71 @@ export default function CashFlow() {
   const balance = totalIn - totalOut
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Fluxo de Caixa</h1>
-        <p className="text-muted-foreground mt-1">
-          Controle de receitas e despesas administrativas.
-        </p>
+    <div className="space-y-6 animate-fade-in-up pb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-2">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Fluxo de Caixa</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Análise de entradas, saídas e resultado operacional.
+          </p>
+        </div>
+        <Button variant="outline" className="shadow-sm">
+          <CalIcon className="mr-2 h-4 w-4" /> Selecionar Período
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="border-emerald-200 bg-emerald-50 dark:bg-emerald-950/20 dark:border-emerald-900 shadow-none">
+        <Card className="shadow-sm border-border/50 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500" />
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-emerald-800 dark:text-emerald-400 uppercase">
-                  Entradas (Mês)
+              <div className="space-y-1">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Receitas Operacionais
                 </p>
-                <p className="text-3xl font-bold text-emerald-900 dark:text-emerald-300">
-                  R$ {totalIn.toFixed(2)}
+                <p className="text-3xl font-bold text-foreground">
+                  R$ {totalIn.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </div>
-              <div className="p-2 bg-emerald-200/50 rounded-full text-emerald-700 dark:text-emerald-400">
+              <div className="p-2.5 bg-emerald-500/10 rounded-lg text-emerald-600">
                 <ArrowUpRight className="h-5 w-5" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-rose-200 bg-rose-50 dark:bg-rose-950/20 dark:border-rose-900 shadow-none">
+        <Card className="shadow-sm border-border/50 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-1 h-full bg-rose-500" />
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-rose-800 dark:text-rose-400 uppercase">
-                  Saídas (Mês)
+              <div className="space-y-1">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Despesas Operacionais
                 </p>
-                <p className="text-3xl font-bold text-rose-900 dark:text-rose-300">
-                  R$ {totalOut.toFixed(2)}
+                <p className="text-3xl font-bold text-foreground">
+                  R$ {totalOut.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </div>
-              <div className="p-2 bg-rose-200/50 rounded-full text-rose-700 dark:text-rose-400">
+              <div className="p-2.5 bg-rose-500/10 rounded-lg text-rose-600">
                 <ArrowDownRight className="h-5 w-5" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-900 shadow-none">
+        <Card className="shadow-sm border-border/50 relative overflow-hidden bg-primary/5 border-primary/20">
+          <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-blue-800 dark:text-blue-400 uppercase">
-                  Saldo Parcial
+              <div className="space-y-1">
+                <p className="text-xs font-semibold text-primary uppercase tracking-wider">
+                  Resultado Líquido
                 </p>
-                <p className="text-3xl font-bold text-blue-900 dark:text-blue-300">
-                  R$ {balance.toFixed(2)}
+                <p className="text-3xl font-bold text-primary">
+                  R$ {balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </div>
-              <div className="p-2 bg-blue-200/50 rounded-full text-blue-700 dark:text-blue-400">
+              <div className="p-2.5 bg-primary/10 rounded-lg text-primary">
                 <Activity className="h-5 w-5" />
               </div>
             </div>
@@ -103,34 +118,36 @@ export default function CashFlow() {
         </Card>
       </div>
 
-      <Card className="shadow-subtle border-border">
-        <CardHeader>
-          <CardTitle className="text-lg">Transações Recentes</CardTitle>
+      <Card className="shadow-sm border-border/50">
+        <CardHeader className="border-b border-border/50 bg-muted/10 py-4">
+          <CardTitle className="text-sm font-semibold text-foreground">
+            Extrato de Movimentações
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          <Table className="table-compact">
             <TableHeader className="bg-muted/30">
-              <TableRow>
-                <TableHead className="pl-6">Data</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead className="text-right pr-6">Valor</TableHead>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="pl-6 w-[120px]">Data</TableHead>
+                <TableHead>Histórico</TableHead>
+                <TableHead>Natureza</TableHead>
+                <TableHead className="text-right pr-6">Valor (R$)</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {mockTransactions.map((t) => (
-                <TableRow key={t.id}>
-                  <TableCell className="pl-6 text-muted-foreground">
+                <TableRow key={t.id} className="hover:bg-muted/20">
+                  <TableCell className="pl-6 text-muted-foreground text-sm">
                     {new Date(t.date).toLocaleDateString('pt-BR')}
                   </TableCell>
-                  <TableCell className="font-medium">{t.description}</TableCell>
+                  <TableCell className="font-medium text-foreground">{t.description}</TableCell>
                   <TableCell>
                     <Badge
                       variant="outline"
                       className={
                         t.type === 'Entrada'
-                          ? 'text-emerald-600 border-emerald-200 bg-emerald-50'
-                          : 'text-rose-600 border-rose-200 bg-rose-50'
+                          ? 'status-success font-medium px-2 py-0'
+                          : 'status-danger font-medium px-2 py-0'
                       }
                     >
                       {t.type}
@@ -139,7 +156,8 @@ export default function CashFlow() {
                   <TableCell
                     className={`text-right pr-6 font-semibold ${t.type === 'Entrada' ? 'text-emerald-600' : 'text-rose-600'}`}
                   >
-                    {t.type === 'Entrada' ? '+' : '-'} R$ {t.amount.toFixed(2)}
+                    {t.type === 'Entrada' ? '+' : '-'}{' '}
+                    {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </TableCell>
                 </TableRow>
               ))}

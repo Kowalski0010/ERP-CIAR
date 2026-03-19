@@ -10,8 +10,8 @@ export default function Layout() {
         <AppSidebar />
         <div className="flex flex-col flex-1 w-full min-w-0">
           <AppHeader />
-          <main className="flex-1 overflow-y-auto p-4 md:p-8 animate-fade-in">
-            <div className="mx-auto max-w-7xl">
+          <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 animate-fade-in bg-slate-50/30 dark:bg-background">
+            <div className="mx-auto max-w-[1400px]">
               <Outlet />
             </div>
           </main>
