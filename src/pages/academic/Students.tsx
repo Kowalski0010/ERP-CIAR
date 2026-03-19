@@ -1,6 +1,18 @@
 import { useState } from 'react'
 import { useAppStore } from '@/contexts/AppContext'
-import { Search, Plus, MoreVertical, GraduationCap, Mail, Calendar, Eye } from 'lucide-react'
+import {
+  Search,
+  Plus,
+  MoreVertical,
+  GraduationCap,
+  Mail,
+  Calendar,
+  Eye,
+  Phone,
+  MapPin,
+  FileText,
+  Send,
+} from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -27,18 +39,24 @@ import {
 } from '@/components/ui/sheet'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Student } from '@/lib/types'
+import { AddStudentDialog } from '@/components/AddStudentDialog'
+import { useToast } from '@/hooks/use-toast'
 
 export default function Students() {
-  const { students } = useAppStore()
+  const { students, addStudent, updateStudent, currentUserRole } = useAppStore()
+  const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState<string>('Todos')
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [newObs, setNewObs] = useState('')
 
   const filteredStudents = students.filter((s) => {
     const matchesSearch =
       s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.email.toLowerCase().includes(searchTerm.toLowerCase())
+      s.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (s.cpf && s.cpf.includes(searchTerm))
     const matchesStatus = filterStatus === 'Todos' || s.status === filterStatus
     return matchesSearch && matchesStatus
   })
@@ -58,7 +76,29 @@ export default function Students() {
 
   const openStudentDetails = (student: Student) => {
     setSelectedStudent(student)
+    setNewObs('')
     setIsSheetOpen(true)
+  }
+
+  const handleAddObservation = () => {
+    if (!selectedStudent || !newObs.trim()) return
+
+    const obs = {
+      id: Math.random().toString(),
+      date: new Date().toISOString(),
+      author: currentUserRole,
+      text: newObs.trim(),
+    }
+
+    const updatedStudent = {
+      ...selectedStudent,
+      observations: [obs, ...(selectedStudent.observations || [])],
+    }
+
+    updateStudent(selectedStudent.id, updatedStudent)
+    setSelectedStudent(updatedStudent)
+    setNewObs('')
+    toast({ title: 'Observação adicionada com sucesso.' })
   }
 
   return (
@@ -66,9 +106,11 @@ export default function Students() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Gestão de Alunos</h1>
-          <p className="text-muted-foreground">Gerencie matrículas e o histórico acadêmico.</p>
+          <p className="text-muted-foreground">
+            Gerencie cadastros detalhados e histórico acadêmico.
+          </p>
         </div>
-        <Button className="shrink-0">
+        <Button className="shrink-0" onClick={() => setIsAddDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" /> Matricular Aluno
         </Button>
       </div>
@@ -77,7 +119,7 @@ export default function Students() {
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por nome ou email..."
+            placeholder="Buscar por nome, email ou CPF..."
             className="pl-9 w-full"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -103,7 +145,7 @@ export default function Students() {
             <TableRow>
               <TableHead>Aluno</TableHead>
               <TableHead>Curso</TableHead>
-              <TableHead>Data Matrícula</TableHead>
+              <TableHead>Telefone</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -129,9 +171,7 @@ export default function Students() {
                     </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground">{student.course}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {new Date(student.enrollmentDate).toLocaleDateString('pt-BR')}
-                  </TableCell>
+                  <TableCell className="text-muted-foreground">{student.phone || '-'}</TableCell>
                   <TableCell>{getStatusBadge(student.status)}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -151,9 +191,6 @@ export default function Students() {
                         <DropdownMenuItem>
                           <Mail className="mr-2 h-4 w-4" /> Enviar Email
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
-                          Inativar Matrícula
-                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -170,11 +207,23 @@ export default function Students() {
         </Table>
       </div>
 
+      <AddStudentDialog
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        onSuccess={(student) => {
+          addStudent(student)
+          toast({
+            title: 'Aluno Matriculado',
+            description: `${student.name} foi cadastrado com sucesso.`,
+          })
+        }}
+      />
+
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className="sm:max-w-md overflow-y-auto">
+        <SheetContent className="sm:max-w-lg overflow-y-auto">
           <SheetHeader className="text-left">
             <SheetTitle>Perfil do Aluno</SheetTitle>
-            <SheetDescription>Detalhes completos e histórico acadêmico.</SheetDescription>
+            <SheetDescription>Detalhes completos, dados pessoais e observações.</SheetDescription>
           </SheetHeader>
 
           {selectedStudent && (
@@ -187,7 +236,10 @@ export default function Students() {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h3 className="text-xl font-bold">{selectedStudent.name}</h3>
+                  <h3 className="text-xl font-bold flex items-center gap-2">
+                    {selectedStudent.name}
+                    {getStatusBadge(selectedStudent.status)}
+                  </h3>
                   <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
                     <Mail className="h-3 w-3" /> {selectedStudent.email}
                   </p>
@@ -199,7 +251,7 @@ export default function Students() {
                   <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
                     <GraduationCap className="h-3 w-3" /> Curso
                   </p>
-                  <p className="font-semibold text-sm">{selectedStudent.course}</p>
+                  <p className="font-semibold text-sm truncate">{selectedStudent.course}</p>
                 </div>
                 <div className="bg-muted/40 p-3 rounded-lg border">
                   <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
@@ -209,24 +261,72 @@ export default function Students() {
                     {new Date(selectedStudent.enrollmentDate).toLocaleDateString('pt-BR')}
                   </p>
                 </div>
-              </div>
-
-              <div className="space-y-3">
-                <h4 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
-                  Status Atual
-                </h4>
-                <div>{getStatusBadge(selectedStudent.status)}</div>
-              </div>
-
-              <div className="space-y-3 border-t pt-4">
-                <h4 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
-                  Observações Recentes
-                </h4>
-                <div className="bg-blue-50 dark:bg-blue-900/10 p-3 rounded-lg border border-blue-100 dark:border-blue-900/30 text-sm">
-                  <p className="text-blue-800 dark:text-blue-300 font-medium">Bom desempenho</p>
-                  <p className="text-blue-600/80 dark:text-blue-400/80 text-xs mt-1">
-                    Aluno tem participado ativamente das aulas práticas. - Prof. Marcos
+                <div className="bg-muted/40 p-3 rounded-lg border">
+                  <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                    <Phone className="h-3 w-3" /> Telefone
                   </p>
+                  <p className="font-semibold text-sm">
+                    {selectedStudent.phone || 'Não informado'}
+                  </p>
+                </div>
+                <div className="bg-muted/40 p-3 rounded-lg border">
+                  <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                    <FileText className="h-3 w-3" /> CPF / RG
+                  </p>
+                  <p className="font-semibold text-sm">
+                    {selectedStudent.cpf || '-'} / {selectedStudent.rg || '-'}
+                  </p>
+                </div>
+                <div className="bg-muted/40 p-3 rounded-lg border col-span-2">
+                  <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                    <MapPin className="h-3 w-3" /> Endereço
+                  </p>
+                  <p className="font-semibold text-sm">
+                    {selectedStudent.address || 'Não informado'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4 border-t pt-6">
+                <h4 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
+                  Observações Acadêmicas e Comportamentais
+                </h4>
+
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Adicionar nova observação..."
+                    value={newObs}
+                    onChange={(e) => setNewObs(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddObservation()}
+                  />
+                  <Button size="icon" onClick={handleAddObservation} disabled={!newObs.trim()}>
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <div className="space-y-3 mt-4">
+                  {selectedStudent.observations && selectedStudent.observations.length > 0 ? (
+                    selectedStudent.observations.map((obs) => (
+                      <div
+                        key={obs.id}
+                        className="bg-blue-50 dark:bg-blue-900/10 p-3 rounded-lg border border-blue-100 dark:border-blue-900/30 text-sm"
+                      >
+                        <div className="flex justify-between items-start mb-1">
+                          <p className="text-blue-800 dark:text-blue-300 font-medium text-xs">
+                            {obs.author}
+                          </p>
+                          <span className="text-[10px] text-blue-600/70 dark:text-blue-400/70">
+                            {new Date(obs.date).toLocaleDateString('pt-BR')}
+                          </span>
+                        </div>
+                        <p className="text-foreground/90 text-sm">{obs.text}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4 bg-muted/20 rounded-lg border border-dashed">
+                      Nenhuma observação registrada.
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

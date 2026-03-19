@@ -21,6 +21,7 @@ import {
   SidebarMenuButton,
   SidebarHeader,
 } from '@/components/ui/sidebar'
+import { useAppStore } from '@/contexts/AppContext'
 
 const navGroups = [
   {
@@ -51,6 +52,27 @@ const navGroups = [
 
 export function AppSidebar() {
   const location = useLocation()
+  const { currentUserRole } = useAppStore()
+
+  const filteredGroups = navGroups.filter((group) => {
+    if (currentUserRole === 'Admin') return true
+    if (
+      currentUserRole === 'Academico' &&
+      (group.label === 'Visão Geral' || group.label === 'Acadêmico')
+    )
+      return true
+    if (
+      currentUserRole === 'Financeiro' &&
+      (group.label === 'Visão Geral' || group.label === 'Financeiro')
+    )
+      return true
+    if (
+      currentUserRole === 'Comercial' &&
+      (group.label === 'Visão Geral' || group.label === 'Comercial')
+    )
+      return true
+    return false
+  })
 
   return (
     <Sidebar className="border-r border-sidebar-border shadow-sm">
@@ -68,7 +90,7 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {navGroups.map((group) => (
+        {filteredGroups.map((group) => (
           <SidebarGroup key={group.label}>
             <SidebarGroupLabel className="text-sidebar-foreground/50 text-xs font-semibold uppercase tracking-wider">
               {group.label}

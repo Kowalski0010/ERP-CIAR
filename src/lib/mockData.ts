@@ -9,6 +9,18 @@ export const mockStudents: Student[] = [
     enrollmentDate: '2023-02-15',
     course: 'Engenharia de Software',
     avatar: 'https://img.usecurling.com/ppl/thumbnail?gender=female&seed=1',
+    phone: '(11) 98765-4321',
+    address: 'Rua das Flores, 123, São Paulo - SP',
+    rg: '12.345.678-9',
+    cpf: '123.456.789-00',
+    observations: [
+      {
+        id: 'obs1',
+        date: '2023-10-20T10:00:00Z',
+        author: 'Prof. Thiago',
+        text: 'Aluna muito participativa nas aulas de laboratório.',
+      },
+    ],
   },
   {
     id: '2',
@@ -18,6 +30,10 @@ export const mockStudents: Student[] = [
     enrollmentDate: '2023-03-01',
     course: 'Administração',
     avatar: 'https://img.usecurling.com/ppl/thumbnail?gender=male&seed=2',
+    phone: '(21) 91234-5678',
+    address: 'Av. Brasil, 456, Rio de Janeiro - RJ',
+    rg: '98.765.432-1',
+    cpf: '098.765.432-11',
   },
   {
     id: '3',
@@ -27,6 +43,8 @@ export const mockStudents: Student[] = [
     enrollmentDate: '2022-08-10',
     course: 'Direito',
     avatar: 'https://img.usecurling.com/ppl/thumbnail?gender=female&seed=3',
+    phone: '(31) 99999-8888',
+    address: 'Rua da Paz, 789, Belo Horizonte - MG',
   },
   {
     id: '4',

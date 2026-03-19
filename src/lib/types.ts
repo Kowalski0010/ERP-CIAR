@@ -1,3 +1,12 @@
+export type Role = 'Admin' | 'Academico' | 'Financeiro' | 'Comercial'
+
+export type Observation = {
+  id: string
+  date: string
+  author: string
+  text: string
+}
+
 export type Student = {
   id: string
   name: string
@@ -6,6 +15,11 @@ export type Student = {
   enrollmentDate: string
   course: string
   avatar?: string
+  phone?: string
+  address?: string
+  rg?: string
+  cpf?: string
+  observations?: Observation[]
 }
 
 export type Lead = {
@@ -27,6 +41,7 @@ export type Payment = {
 }
 
 export type AppState = {
+  currentUserRole: Role
   students: Student[]
   leads: Lead[]
   payments: Payment[]
