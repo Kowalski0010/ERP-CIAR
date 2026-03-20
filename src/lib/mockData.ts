@@ -8,6 +8,11 @@ import {
   AuditLog,
   SystemNotification,
   AttendanceRecord,
+  Employee,
+  Product,
+  StockMovement,
+  Supplier,
+  PurchaseOrder,
 } from './types'
 
 const defaultAddress = {
@@ -236,4 +241,140 @@ export const mockAttendance: AttendanceRecord[] = [
   { id: 'a1', studentId: '1', subject: 'Cálculo I', totalClasses: 40, absences: 2 },
   { id: 'a2', studentId: '1', subject: 'Física', totalClasses: 40, absences: 8 },
   { id: 'a3', studentId: '1', subject: 'Lógica de Programação', totalClasses: 60, absences: 0 },
+]
+
+export const mockEmployees: Employee[] = [
+  {
+    id: 'e1',
+    name: 'Márcia Ferreira',
+    department: 'Secretaria Acadêmica',
+    position: 'Coordenadora',
+    status: 'Ativo',
+    email: 'marcia@edusync.com',
+    phone: '(11) 98888-1111',
+    admissionDate: '2019-05-10',
+    salary: 5500.0,
+    avatar: 'https://img.usecurling.com/ppl/thumbnail?gender=female&seed=20',
+  },
+  {
+    id: 'e2',
+    name: 'Jorge Martins',
+    department: 'TI & Suporte',
+    position: 'Analista de Sistemas',
+    status: 'Ativo',
+    email: 'jorge@edusync.com',
+    phone: '(11) 97777-2222',
+    admissionDate: '2021-08-15',
+    salary: 4800.0,
+    avatar: 'https://img.usecurling.com/ppl/thumbnail?gender=male&seed=21',
+  },
+]
+
+export const mockProducts: Product[] = [
+  {
+    id: 'pr1',
+    sku: 'MAT-001',
+    name: 'Resma de Papel A4',
+    category: 'Material de Escritório',
+    currentQuantity: 15,
+    minQuantity: 20,
+    unit: 'Caixa',
+    price: 18.5,
+  },
+  {
+    id: 'pr2',
+    sku: 'INF-102',
+    name: 'Toner Impressora LaserJet',
+    category: 'Informática',
+    currentQuantity: 8,
+    minQuantity: 5,
+    unit: 'Unidade',
+    price: 120.0,
+  },
+  {
+    id: 'pr3',
+    sku: 'LMP-050',
+    name: 'Desinfetante Hospitalar 5L',
+    category: 'Limpeza',
+    currentQuantity: 2,
+    minQuantity: 10,
+    unit: 'Galão',
+    price: 45.0,
+  },
+]
+
+export const mockMovements: StockMovement[] = [
+  {
+    id: 'm1',
+    productId: 'pr1',
+    productName: 'Resma de Papel A4',
+    type: 'Saída',
+    quantity: 5,
+    date: '2023-10-25T14:30:00Z',
+    user: 'Márcia Ferreira',
+    reason: 'Uso na Secretaria',
+  },
+  {
+    id: 'm2',
+    productId: 'pr2',
+    productName: 'Toner Impressora LaserJet',
+    type: 'Entrada',
+    quantity: 10,
+    date: '2023-10-24T10:00:00Z',
+    user: 'Jorge Martins',
+    reason: 'Recebimento de Pedido #102',
+  },
+]
+
+export const mockSuppliers: Supplier[] = [
+  {
+    id: 'sp1',
+    name: 'Kalunga Materiais',
+    taxId: '43.283.811/0001-50',
+    contact: 'Vendas Corporativas',
+    email: 'vendas@kalunga.com.br',
+    phone: '(11) 3333-4444',
+    rating: 5,
+    status: 'Ativo',
+  },
+  {
+    id: 'sp2',
+    name: 'LimpBem Distribuidora',
+    taxId: '12.345.678/0001-99',
+    contact: 'Carlos Silva',
+    email: 'carlos@limpbem.com.br',
+    phone: '(11) 5555-6666',
+    rating: 3,
+    status: 'Ativo',
+  },
+]
+
+export const mockOrders: PurchaseOrder[] = [
+  {
+    id: 'PO-1001',
+    supplierId: 'sp1',
+    supplierName: 'Kalunga Materiais',
+    date: '2023-10-20',
+    expectedDelivery: '2023-10-27',
+    totalAmount: 1540.0,
+    status: 'Recebido',
+  },
+  {
+    id: 'PO-1002',
+    supplierId: 'sp2',
+    supplierName: 'LimpBem Distribuidora',
+    date: '2023-10-26',
+    expectedDelivery: '2023-11-02',
+    totalAmount: 850.5,
+    status: 'Enviado',
+  },
+  {
+    id: 'PO-1003',
+    supplierId: 'sp1',
+    supplierName: 'Kalunga Materiais',
+    date: '2023-10-28',
+    expectedDelivery: '2023-11-05',
+    totalAmount: 320.0,
+    status: 'Rascunho',
+  },
 ]

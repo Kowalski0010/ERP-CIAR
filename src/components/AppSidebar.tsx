@@ -17,6 +17,11 @@ import {
   ClipboardList,
   Wallet,
   UserCircle,
+  Briefcase,
+  Package,
+  ArrowRightLeft,
+  Truck,
+  ShoppingCart,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -58,6 +63,16 @@ const navGroups = [
     items: [{ title: 'CRM de Captação', icon: Target, url: '/commercial/leads' }],
   },
   {
+    label: 'Módulo Operacional',
+    items: [
+      { title: 'Recursos Humanos', icon: Briefcase, url: '/hr/employees' },
+      { title: 'Estoque', icon: Package, url: '/inventory/stock' },
+      { title: 'Movimentações', icon: ArrowRightLeft, url: '/inventory/movements' },
+      { title: 'Fornecedores', icon: Truck, url: '/purchasing/suppliers' },
+      { title: 'Pedidos de Compra', icon: ShoppingCart, url: '/purchasing/orders' },
+    ],
+  },
+  {
     label: 'Administração',
     items: [
       { title: 'Central de Alertas', icon: BellRing, url: '/admin/notifications' },
@@ -94,7 +109,6 @@ export function AppSidebar() {
       currentUserRole === 'Academico' &&
       ['Visão Geral', 'Módulo Acadêmico', 'Administração'].includes(group.label)
     ) {
-      // Academico sees notifications and some reports
       return true
     }
     if (
@@ -111,7 +125,6 @@ export function AppSidebar() {
     return false
   })
 
-  // Filter specific admin items if not Admin
   const finalGroups = filteredGroups.map((group) => {
     if (group.label === 'Administração' && currentUserRole !== 'Admin') {
       return {

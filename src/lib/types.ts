@@ -115,6 +115,62 @@ export type AttendanceRecord = {
   absences: number
 }
 
+export type Employee = {
+  id: string
+  name: string
+  department: string
+  position: string
+  status: 'Ativo' | 'Inativo'
+  email: string
+  phone: string
+  admissionDate: string
+  salary: number
+  avatar?: string
+}
+
+export type Product = {
+  id: string
+  sku: string
+  name: string
+  category: string
+  currentQuantity: number
+  minQuantity: number
+  unit: string
+  price: number
+}
+
+export type StockMovement = {
+  id: string
+  productId: string
+  productName: string
+  type: 'Entrada' | 'Saída'
+  quantity: number
+  date: string
+  user: string
+  reason: string
+}
+
+export type Supplier = {
+  id: string
+  name: string
+  taxId: string
+  contact: string
+  email: string
+  phone: string
+  rating: number
+  status: 'Ativo' | 'Inativo'
+}
+
+export type PurchaseOrder = {
+  id: string
+  supplierId: string
+  supplierName: string
+  date: string
+  expectedDelivery: string
+  totalAmount: number
+  status: 'Rascunho' | 'Enviado' | 'Recebido' | 'Cancelado'
+}
+
 export type AppState = {
   currentUserRole: Role
   students: Student[]
@@ -126,4 +182,9 @@ export type AppState = {
   logs: AuditLog[]
   notifications: SystemNotification[]
   attendances: AttendanceRecord[]
+  employees: Employee[]
+  products: Product[]
+  stockMovements: StockMovement[]
+  suppliers: Supplier[]
+  purchaseOrders: PurchaseOrder[]
 }

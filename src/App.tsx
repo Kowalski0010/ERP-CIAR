@@ -22,6 +22,11 @@ import StudentSchedule from './pages/student/StudentSchedule'
 import StudentAttendance from './pages/student/StudentAttendance'
 import StudentFinancial from './pages/student/StudentFinancial'
 import StudentProfile from './pages/student/StudentProfile'
+import Employees from './pages/hr/Employees'
+import Stock from './pages/inventory/Stock'
+import Movements from './pages/inventory/Movements'
+import Suppliers from './pages/purchasing/Suppliers'
+import Orders from './pages/purchasing/Orders'
 import NotFound from './pages/NotFound'
 
 const App = () => (
@@ -47,6 +52,13 @@ const App = () => (
 
             {/* Commercial */}
             <Route path="/commercial/leads" element={<Leads />} />
+
+            {/* Operational (Matheus Legacy Modules) */}
+            <Route path="/hr/employees" element={<Employees />} />
+            <Route path="/inventory/stock" element={<Stock />} />
+            <Route path="/inventory/movements" element={<Movements />} />
+            <Route path="/purchasing/suppliers" element={<Suppliers />} />
+            <Route path="/purchasing/orders" element={<Orders />} />
 
             {/* Admin Features */}
             <Route path="/admin/logs" element={<AuditLogs />} />

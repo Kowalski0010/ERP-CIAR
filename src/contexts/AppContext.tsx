@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
+import React, { createContext, useContext, useState, ReactNode } from 'react'
 import {
   AppState,
   Student,
@@ -12,6 +12,11 @@ import {
   AuditLog,
   SystemNotification,
   AttendanceRecord,
+  Employee,
+  Product,
+  StockMovement,
+  Supplier,
+  PurchaseOrder,
 } from '@/lib/types'
 import {
   mockStudents,
@@ -23,6 +28,11 @@ import {
   mockLogs,
   mockNotifications,
   mockAttendance,
+  mockEmployees,
+  mockProducts,
+  mockMovements,
+  mockSuppliers,
+  mockOrders,
 } from '@/lib/mockData'
 
 interface AppContextType extends AppState {
@@ -53,6 +63,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [logs, setLogs] = useState<AuditLog[]>(mockLogs)
   const [notifications, setNotifications] = useState<SystemNotification[]>(mockNotifications)
   const [attendances] = useState<AttendanceRecord[]>(mockAttendance)
+
+  const [employees] = useState<Employee[]>(mockEmployees)
+  const [products] = useState<Product[]>(mockProducts)
+  const [stockMovements] = useState<StockMovement[]>(mockMovements)
+  const [suppliers] = useState<Supplier[]>(mockSuppliers)
+  const [purchaseOrders] = useState<PurchaseOrder[]>(mockOrders)
 
   const addLog = (log: Omit<AuditLog, 'id' | 'timestamp'>) => {
     const newLog: AuditLog = {
@@ -179,6 +195,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         logs,
         notifications,
         attendances,
+        employees,
+        products,
+        stockMovements,
+        suppliers,
+        purchaseOrders,
         addLead,
         updateLeadStatus,
         updateStudent,
