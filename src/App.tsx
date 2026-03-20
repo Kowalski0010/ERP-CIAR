@@ -19,6 +19,12 @@ import Leads from './pages/commercial/Leads'
 import AuditLogs from './pages/admin/AuditLogs'
 import Reports from './pages/admin/Reports'
 import Notifications from './pages/admin/Notifications'
+import DocumentManagement from './pages/admin/DocumentManagement'
+import Workflows from './pages/admin/Workflows'
+import AccessControl from './pages/admin/AccessControl'
+import Settings from './pages/admin/Settings'
+import CommunicationLogs from './pages/admin/CommunicationLogs'
+
 import StudentDashboard from './pages/student/StudentDashboard'
 import StudentSchedule from './pages/student/StudentSchedule'
 import StudentAttendance from './pages/student/StudentAttendance'
@@ -72,6 +78,11 @@ const App = () => (
             <Route path="/admin/logs" element={<AuditLogs />} />
             <Route path="/admin/reports" element={<Reports />} />
             <Route path="/admin/notifications" element={<Notifications />} />
+            <Route path="/admin/documents" element={<DocumentManagement />} />
+            <Route path="/admin/workflows" element={<Workflows />} />
+            <Route path="/admin/rbac" element={<AccessControl />} />
+            <Route path="/admin/settings" element={<Settings />} />
+            <Route path="/admin/communications" element={<CommunicationLogs />} />
 
             {/* Student Portal */}
             <Route path="/student-area" element={<StudentDashboard />} />

@@ -1,60 +1,37 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    /* Background: Pure white with light zinc for enterprise feel */
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
-
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-
-    /* Brand/Action: Professional Zinc 900 (almost black) */
     --primary: 240 5.9% 10%;
     --primary-foreground: 0 0% 98%;
-
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
-
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-
     --accent: 240 4.8% 95.9%;
     --accent-foreground: 240 5.9% 10%;
-
-    /* Danger: Sharp Red */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
     --ring: 240 5.9% 10%;
-
-    --radius: 0.35rem; /* Sharp, professional corners */
-
-    /* Sidebar: Deep Zinc 950 */
-    --sidebar-background: 240 10% 3.9%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 0 0% 98%;
-    --sidebar-primary-foreground: 240 5.9% 10%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 240 4.8% 95.9%;
-
-    /* Charts */
-    --chart-1: 240 5.9% 10%;
-    --chart-2: 240 3.8% 46.1%;
-    --chart-3: 240 4.8% 95.9%;
-    --chart-4: 0 84.2% 60.2%;
-    --chart-5: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
@@ -77,8 +54,7 @@
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
-
-    --sidebar-background: 240 10% 3.9%;
+    --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
@@ -88,66 +64,65 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
-  body {
-    font-family: 'Inter', sans-serif;
-    @apply bg-zinc-50 text-foreground antialiased;
+  * {
+    @apply border-border;
   }
-
-  section[aria-label='Notifications alt+T'] {
-    padding: 0 !important;
-    margin: 0 !important;
+  body {
+    @apply bg-background text-foreground;
   }
 }
 
 @layer utilities {
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
+  .shadow-subtle {
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   }
-  @keyframes fade-in-up {
-    from {
-      transform: translateY(10px);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
+
+  .table-compact th,
+  .table-compact td {
+    @apply py-2 px-3;
+  }
+
+  .status-success {
+    @apply border-emerald-200 bg-emerald-50 text-emerald-700;
+  }
+
+  .status-warning {
+    @apply border-amber-200 bg-amber-50 text-amber-700;
+  }
+
+  .status-danger {
+    @apply border-rose-200 bg-rose-50 text-rose-700;
+  }
+
+  .status-neutral {
+    @apply border-zinc-200 bg-zinc-50 text-zinc-700;
   }
 
   .animate-fade-in {
-    animation: fade-in 0.3s ease-out;
+    animation: fadeIn 0.3s ease-out;
   }
+
   .animate-fade-in-up {
-    animation: fade-in-up 0.4s ease-out forwards;
+    animation: fadeInUp 0.4s ease-out;
   }
 
-  /* Status Colors Utility - Refined for dense enterprise look */
-  .status-success {
-    @apply bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 border;
-  }
-  .status-warning {
-    @apply bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 border;
-  }
-  .status-danger {
-    @apply bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20 border;
-  }
-  .status-info {
-    @apply bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20 border;
-  }
-  .status-neutral {
-    @apply bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700 border;
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 
-  /* High density table utilities */
-  .table-compact th {
-    @apply py-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground bg-zinc-50/50 border-b border-border;
-  }
-  .table-compact td {
-    @apply py-2 px-3 text-xs border-b border-border/50 align-middle;
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }

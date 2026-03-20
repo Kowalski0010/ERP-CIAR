@@ -22,6 +22,10 @@ import {
   Settings,
   FileText,
   BookOpen,
+  Files,
+  Columns,
+  Key,
+  Mail,
 } from 'lucide-react'
 
 export const slugify = (text: string) =>
@@ -139,9 +143,14 @@ export const navGroups = [
   {
     label: 'Administração',
     items: [
+      { title: 'Fluxos de Trabalho', icon: Columns, url: '/admin/workflows' },
+      { title: 'Documentos (GED)', icon: Files, url: '/admin/documents' },
       { title: 'Central de Alertas', icon: BellRing, url: '/admin/notifications' },
+      { title: 'Histórico de Envios', icon: Mail, url: '/admin/communications' },
       { title: 'Relatórios Gerenciais', icon: BarChart3, url: '/admin/reports' },
+      { title: 'Controle de Acessos', icon: Key, url: '/admin/rbac' },
       { title: 'Auditoria (Logs)', icon: ShieldAlert, url: '/admin/logs' },
+      { title: 'Configurações', icon: Settings, url: '/admin/settings' },
     ],
   },
   {

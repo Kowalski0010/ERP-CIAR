@@ -58,7 +58,10 @@ export function AppSidebar() {
     if (group.label === 'Administração' && currentUserRole !== 'Admin') {
       return {
         ...group,
-        items: group.items.filter((item) => item.title !== 'Auditoria (Logs)'),
+        items: group.items.filter(
+          (item) =>
+            !['Auditoria (Logs)', 'Controle de Acessos', 'Configurações'].includes(item.title),
+        ),
       }
     }
     return group
