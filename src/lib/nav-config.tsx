@@ -2,174 +2,173 @@ import {
   LayoutDashboard,
   Users,
   GraduationCap,
-  CalendarDays,
-  FileSpreadsheet,
-  DollarSign,
-  PieChart,
-  Target,
-  Briefcase,
-  Package,
-  ArrowRightLeft,
-  Truck,
-  ShoppingCart,
-  BellRing,
-  BarChart3,
-  ShieldAlert,
-  Home,
-  ClipboardList,
-  Wallet,
-  UserCircle,
-  Settings,
-  FileText,
   BookOpen,
-  Files,
-  Columns,
-  Key,
+  Calendar,
+  Wallet,
+  Settings,
+  Shield,
+  FileText,
   Mail,
+  PieChart,
+  HardHat,
+  Bell,
+  Activity,
+  Package,
+  ShoppingCart,
+  TrendingUp,
+  CreditCard,
+  Building,
+  UserCheck,
+  CheckSquare,
+  Lock,
+  Clock,
+  Search,
+  DivideCircle,
+  UserPlus,
+  Printer,
+  Wrench,
+  AlertCircle,
+  RotateCcw,
+  Box,
+  FileSpreadsheet,
+  ArrowRightLeft,
+  FileSearch,
+  HelpCircle,
+  BookCopy,
 } from 'lucide-react'
 
-export const slugify = (text: string) =>
-  text
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '')
+export interface NavItem {
+  title: string
+  href: string
+  icon: React.ElementType
+}
 
-export const academicList = [
-  'Acompanhamento Pedagógico',
-  'Aprovar Atividade Compl.',
-  'Consultar Notas',
-  'Controle TCC',
-  'Dispensar Disciplina',
-  'Histórico Escolar',
-  'Lançar Afastamento',
-  'Lançar Atividade Compl.',
-  'Lançar Estágios',
-  'Lançar Forma Ingresso',
-  'Lançar Frequência',
-  'Lançar Notas',
-  'Lançar Planejamento',
-  'Logística Docente',
-  'Ocorrência do docente',
-]
+export interface NavGroup {
+  title: string
+  items: NavItem[]
+}
 
-export const reportsList = [
-  'Alunos Ingressantes',
-  'Dcto Integralização Curricular',
-  'Diário de Classe',
-  'Documentos Pendentes',
-  'Edital de Notas',
-  'Ficha de Equivalência',
-  'Fichas de Cadastro',
-  'Forma de Ingresso',
-  'Pendência Docente (Frequência)',
-  'Pendência Docente (Nota/Freq.)',
-  'Performance Frequência',
-  'Planilha Acadêmico',
-  'Relação Alunos p/ Resultado',
-  'Relação de Alunos com Faltas',
-  'Relação de Alunos',
-  'Relação de Alunos Bloqueados',
-  'Relação de Alunos Concluintes',
-  'Relação de Atividades Complementares',
-  'Relação de Cancelamentos',
-  'Relação de Disciplinas por Aluno',
-  'Relação de Dispensa',
-  'Relação de Notas por Avaliação',
-  'Relação de Ocorrências',
-  'Relação de Pré-Matrículas',
-  'Relação de Turma por Professor',
-  'Relação de Turmas',
-  'Resumo Acad./Financeiro',
-  'Resumo de Notas',
-  'Saldo de Hora Aula a Ministrar',
-  'Situação Geral do Aluno',
-  'Transferências de Turma/Curso',
-]
-
-export const navGroups = [
+export const navGroups: NavGroup[] = [
   {
-    label: 'Visão Geral',
-    items: [{ title: 'Dashboard', icon: LayoutDashboard, url: '/' }],
+    title: 'Dashboard',
+    items: [{ title: 'Visão Geral', href: '/', icon: LayoutDashboard }],
   },
   {
-    label: 'Módulo Acadêmico',
+    title: 'Acadêmico',
     items: [
-      { title: 'Alunos', icon: Users, url: '/academic/students' },
-      { title: 'Professores', icon: GraduationCap, url: '/academic/teachers' },
-      { title: 'Turmas', icon: CalendarDays, url: '/academic/classes' },
-      { title: 'Cronogramas', icon: ClockIcon, url: '/academic/schedules' },
-      { title: 'Notas e Frequência', icon: FileSpreadsheet, url: '/academic/grades' },
+      { title: 'Alunos', href: '/academic/students', icon: Users },
+      { title: 'Professores', href: '/academic/teachers', icon: GraduationCap },
+      { title: 'Turmas', href: '/academic/classes', icon: BookOpen },
+      { title: 'Horários', href: '/academic/schedules', icon: Calendar },
+      { title: 'Notas e Frequência', href: '/academic/grades', icon: CheckSquare },
     ],
   },
   {
-    label: 'Controle Acadêmico',
-    items: academicList.map((title) => ({
-      title,
-      icon: BookOpen,
-      url: `/academic-control/${slugify(title)}`,
-    })),
-  },
-  {
-    label: 'Módulo Financeiro',
+    title: 'Secretaria',
     items: [
-      { title: 'Gestão de Faturas', icon: DollarSign, url: '/financial/payments' },
-      { title: 'Fluxo de Caixa', icon: PieChart, url: '/financial/cash-flow' },
+      { title: '2ª via do Contrato', href: '/secretaria/2a-via-contrato', icon: FileText },
+      { title: 'Bloquear Matrícula', href: '/secretaria/bloquear-matricula', icon: Lock },
+      { title: 'Cadastrar Horário', href: '/secretaria/cadastrar-horario', icon: Clock },
+      { title: 'Compartilhar Turma', href: '/secretaria/compartilhar-turma', icon: Users },
+      { title: 'Consultar Aluno', href: '/secretaria/consultar-aluno', icon: Search },
+      { title: 'Consultar Curso', href: '/secretaria/consultar-curso', icon: BookOpen },
+      {
+        title: 'Consultar Horário Curso',
+        href: '/secretaria/consultar-horario-curso',
+        icon: Calendar,
+      },
+      {
+        title: 'Consultar Horário Prof.',
+        href: '/secretaria/consultar-horario-prof',
+        icon: Calendar,
+      },
+      { title: 'Consultar Matrícula', href: '/secretaria/consultar-matricula', icon: FileSearch },
+      { title: 'Consultar Responsável', href: '/secretaria/consultar-responsavel', icon: Search },
+      { title: 'Dividir Turma', href: '/secretaria/dividir-turma', icon: DivideCircle },
+      {
+        title: 'Efetivar Pré-Matrícula',
+        href: '/secretaria/efetivar-pre-matricula',
+        icon: UserCheck,
+      },
+      { title: 'Efetuar Matrícula', href: '/secretaria/efetuar-matricula', icon: UserPlus },
+      {
+        title: 'Efetuar Matrícula/Disciplina',
+        href: '/secretaria/efetuar-matricula-disciplina',
+        icon: BookCopy,
+      },
+      { title: 'Efetuar Pré-Matrícula', href: '/secretaria/efetuar-pre-matricula', icon: UserPlus },
+      { title: 'Imprimir Documentos', href: '/secretaria/imprimir-documentos', icon: Printer },
+      { title: 'Manutenção Matrícula', href: '/secretaria/manutencao-matricula', icon: Wrench },
+      { title: 'Ocorrências do Aluno', href: '/secretaria/ocorrencias-aluno', icon: AlertCircle },
+      { title: 'Reabertura de Período', href: '/secretaria/reabertura-periodo', icon: RotateCcw },
+      { title: 'Recursos de Aula', href: '/secretaria/recursos-aula', icon: Box },
+      { title: 'Requerimentos', href: '/secretaria/requerimentos', icon: HelpCircle },
+      {
+        title: 'Trocar Aluno de Curso',
+        href: '/secretaria/trocar-aluno-curso',
+        icon: ArrowRightLeft,
+      },
+      {
+        title: 'Trocar Aluno de Turma',
+        href: '/secretaria/trocar-aluno-turma',
+        icon: ArrowRightLeft,
+      },
     ],
   },
   {
-    label: 'Módulo Comercial',
-    items: [{ title: 'CRM de Captação', icon: Target, url: '/commercial/leads' }],
-  },
-  {
-    label: 'Módulo Operacional',
+    title: 'Secretaria Educação',
     items: [
-      { title: 'Recursos Humanos', icon: Briefcase, url: '/hr/employees' },
-      { title: 'Estoque', icon: Package, url: '/inventory/stock' },
-      { title: 'Movimentações', icon: ArrowRightLeft, url: '/inventory/movements' },
-      { title: 'Fornecedores', icon: Truck, url: '/purchasing/suppliers' },
-      { title: 'Pedidos de Compra', icon: ShoppingCart, url: '/purchasing/orders' },
+      {
+        title: 'Relatório Final',
+        href: '/secretaria-educacao/relatorio-final',
+        icon: FileSpreadsheet,
+      },
     ],
   },
   {
-    label: 'Relatórios',
-    items: reportsList.map((title) => ({
-      title,
-      icon: FileText,
-      url: `/reports/${slugify(title)}`,
-    })),
-  },
-  {
-    label: 'Administração',
+    title: 'Financeiro',
     items: [
-      { title: 'Fluxos de Trabalho', icon: Columns, url: '/admin/workflows' },
-      { title: 'Documentos (GED)', icon: Files, url: '/admin/documents' },
-      { title: 'Central de Alertas', icon: BellRing, url: '/admin/notifications' },
-      { title: 'Histórico de Envios', icon: Mail, url: '/admin/communications' },
-      { title: 'Relatórios Gerenciais', icon: BarChart3, url: '/admin/reports' },
-      { title: 'Controle de Acessos', icon: Key, url: '/admin/rbac' },
-      { title: 'Auditoria (Logs)', icon: ShieldAlert, url: '/admin/logs' },
-      { title: 'Configurações', icon: Settings, url: '/admin/settings' },
+      { title: 'Pagamentos', href: '/financial/payments', icon: Wallet },
+      { title: 'Fluxo de Caixa', href: '/financial/cash-flow', icon: TrendingUp },
     ],
   },
   {
-    label: 'Portal do Aluno',
+    title: 'Comercial / CRM',
+    items: [{ title: 'Leads e Oportunidades', href: '/commercial/leads', icon: Target }],
+  },
+  {
+    title: 'Recursos Humanos',
+    items: [{ title: 'Funcionários', href: '/hr/employees', icon: Building }],
+  },
+  {
+    title: 'Estoque e Compras',
     items: [
-      { title: 'Meu Painel', icon: Home, url: '/student-area' },
-      { title: 'Minha Agenda', icon: CalendarDays, url: '/student-area/schedule' },
-      { title: 'Frequência', icon: ClipboardList, url: '/student-area/attendance' },
-      { title: 'Financeiro', icon: Wallet, url: '/student-area/financial' },
-      { title: 'Meu Perfil', icon: UserCircle, url: '/student-area/profile' },
+      { title: 'Controle de Estoque', href: '/inventory/stock', icon: Package },
+      { title: 'Movimentações', href: '/inventory/movements', icon: ArrowRightLeft },
+      { title: 'Pedidos de Compra', href: '/purchasing/orders', icon: ShoppingCart },
+      { title: 'Fornecedores', href: '/purchasing/suppliers', icon: Building },
+    ],
+  },
+  {
+    title: 'Administração',
+    items: [
+      { title: 'Controle de Acessos', href: '/admin/access-control', icon: Shield },
+      { title: 'Configurações', href: '/admin/settings', icon: Settings },
+      { title: 'Logs de Auditoria', href: '/admin/audit-logs', icon: Activity },
+      { title: 'Gestão de Documentos', href: '/admin/documents', icon: FileText },
+      { title: 'Notificações', href: '/admin/notifications', icon: Bell },
+      { title: 'Relatórios Gerenciais', href: '/admin/reports', icon: PieChart },
+      { title: 'Workflows', href: '/admin/workflows', icon: HardHat },
+      { title: 'Logs de Comunicação', href: '/admin/communication-logs', icon: Mail },
     ],
   },
 ]
 
-function ClockIcon(props: any) {
+function Target(props: any) {
   return (
     <svg
       {...props}
-      xmlns="http://www.w3.org/2000/svg"
+      xmlns="http://www.w3.org/rem"
       width="24"
       height="24"
       viewBox="0 0 24 24"
@@ -180,7 +179,8 @@ function ClockIcon(props: any) {
       strokeLinejoin="round"
     >
       <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
+      <circle cx="12" cy="12" r="6" />
+      <circle cx="12" cy="12" r="2" />
     </svg>
   )
 }
