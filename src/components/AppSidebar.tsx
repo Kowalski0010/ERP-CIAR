@@ -1,28 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import {
-  LayoutDashboard,
-  Users,
-  GraduationCap,
-  CalendarDays,
-  FileSpreadsheet,
-  DollarSign,
-  PieChart,
-  Target,
-  Building2,
-  Clock,
-  ShieldAlert,
-  BarChart3,
-  BellRing,
-  Home,
-  ClipboardList,
-  Wallet,
-  UserCircle,
-  Briefcase,
-  Package,
-  ArrowRightLeft,
-  Truck,
-  ShoppingCart,
-} from 'lucide-react'
+import { Building2, ChevronDown } from 'lucide-react'
 import {
   Sidebar,
   SidebarContent,
@@ -35,62 +12,8 @@ import {
   SidebarHeader,
 } from '@/components/ui/sidebar'
 import { useAppStore } from '@/contexts/AppContext'
-
-const navGroups = [
-  {
-    label: 'Visão Geral',
-    items: [{ title: 'Dashboard', icon: LayoutDashboard, url: '/' }],
-  },
-  {
-    label: 'Módulo Acadêmico',
-    items: [
-      { title: 'Alunos', icon: Users, url: '/academic/students' },
-      { title: 'Professores', icon: GraduationCap, url: '/academic/teachers' },
-      { title: 'Turmas', icon: CalendarDays, url: '/academic/classes' },
-      { title: 'Cronogramas', icon: Clock, url: '/academic/schedules' },
-      { title: 'Notas e Frequência', icon: FileSpreadsheet, url: '/academic/grades' },
-    ],
-  },
-  {
-    label: 'Módulo Financeiro',
-    items: [
-      { title: 'Gestão de Faturas', icon: DollarSign, url: '/financial/payments' },
-      { title: 'Fluxo de Caixa', icon: PieChart, url: '/financial/cash-flow' },
-    ],
-  },
-  {
-    label: 'Módulo Comercial',
-    items: [{ title: 'CRM de Captação', icon: Target, url: '/commercial/leads' }],
-  },
-  {
-    label: 'Módulo Operacional',
-    items: [
-      { title: 'Recursos Humanos', icon: Briefcase, url: '/hr/employees' },
-      { title: 'Estoque', icon: Package, url: '/inventory/stock' },
-      { title: 'Movimentações', icon: ArrowRightLeft, url: '/inventory/movements' },
-      { title: 'Fornecedores', icon: Truck, url: '/purchasing/suppliers' },
-      { title: 'Pedidos de Compra', icon: ShoppingCart, url: '/purchasing/orders' },
-    ],
-  },
-  {
-    label: 'Administração',
-    items: [
-      { title: 'Central de Alertas', icon: BellRing, url: '/admin/notifications' },
-      { title: 'Relatórios (BI)', icon: BarChart3, url: '/admin/reports' },
-      { title: 'Auditoria (Logs)', icon: ShieldAlert, url: '/admin/logs' },
-    ],
-  },
-  {
-    label: 'Portal do Aluno',
-    items: [
-      { title: 'Meu Painel', icon: Home, url: '/student-area' },
-      { title: 'Minha Agenda', icon: CalendarDays, url: '/student-area/schedule' },
-      { title: 'Frequência', icon: ClipboardList, url: '/student-area/attendance' },
-      { title: 'Financeiro', icon: Wallet, url: '/student-area/financial' },
-      { title: 'Meu Perfil', icon: UserCircle, url: '/student-area/profile' },
-    ],
-  },
-]
+import { navGroups } from '@/lib/nav-config'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 
 export function AppSidebar() {
   const location = useLocation()
@@ -101,24 +24,30 @@ export function AppSidebar() {
       return group.label === 'Portal do Aluno'
     }
 
-    if (group.label === 'Portal do Aluno') return false // Hide portal from staff
+    if (group.label === 'Portal do Aluno') return false
 
     if (currentUserRole === 'Admin') return true
 
     if (
       currentUserRole === 'Academico' &&
-      ['Visão Geral', 'Módulo Acadêmico', 'Administração'].includes(group.label)
+      [
+        'Visão Geral',
+        'Módulo Acadêmico',
+        'Controle Acadêmico',
+        'Relatórios',
+        'Administração',
+      ].includes(group.label)
     ) {
       return true
     }
     if (
       currentUserRole === 'Financeiro' &&
-      ['Visão Geral', 'Módulo Financeiro', 'Administração'].includes(group.label)
+      ['Visão Geral', 'Módulo Financeiro', 'Relatórios', 'Administração'].includes(group.label)
     )
       return true
     if (
       currentUserRole === 'Comercial' &&
-      ['Visão Geral', 'Módulo Comercial'].includes(group.label)
+      ['Visão Geral', 'Módulo Comercial', 'Relatórios'].includes(group.label)
     )
       return true
 
@@ -152,41 +81,62 @@ export function AppSidebar() {
           </div>
         </div>
       </SidebarHeader>
-      <SidebarContent className="p-3 gap-6 pt-6">
-        {finalGroups.map((group) => (
-          <SidebarGroup key={group.label} className="px-0 py-0">
-            <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] font-bold uppercase tracking-widest mb-2 px-3">
-              {group.label}
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu className="gap-1">
-                {group.items.map((item) => {
-                  const isActive = location.pathname === item.url
-                  return (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={isActive}
-                        className={`transition-all duration-200 h-9 rounded-md px-3 border-l-2 ${
-                          isActive
-                            ? 'bg-zinc-200/50 border-zinc-900 text-zinc-900 font-medium'
-                            : 'border-transparent text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'
-                        }`}
-                      >
-                        <Link to={item.url} className="flex items-center gap-3">
-                          <item.icon
-                            className={`h-[16px] w-[16px] ${isActive ? 'text-zinc-900' : 'opacity-70'}`}
-                          />
-                          <span className="text-[13px]">{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
+      <SidebarContent className="p-3 gap-2 pt-4">
+        {finalGroups.map((group) => {
+          const isLargeGroup = group.label === 'Controle Acadêmico' || group.label === 'Relatórios'
+          const isGroupActive = group.items.some((item) => location.pathname.startsWith(item.url))
+
+          return (
+            <Collapsible
+              key={group.label}
+              defaultOpen={!isLargeGroup || isGroupActive}
+              className="group/collapsible"
+            >
+              <SidebarGroup className="px-0 py-1">
+                <SidebarGroupLabel
+                  asChild
+                  className="px-3 mb-1 cursor-pointer hover:bg-zinc-200/50"
+                >
+                  <CollapsibleTrigger className="w-full flex items-center justify-between text-sidebar-foreground/50 text-[10px] font-bold uppercase tracking-widest">
+                    {group.label}
+                    <ChevronDown className="h-3.5 w-3.5 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
+                  </CollapsibleTrigger>
+                </SidebarGroupLabel>
+                <CollapsibleContent className="data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down overflow-hidden">
+                  <SidebarGroupContent>
+                    <SidebarMenu className="gap-0.5">
+                      {group.items.map((item) => {
+                        const isActive = location.pathname === item.url
+                        return (
+                          <SidebarMenuItem key={item.title}>
+                            <SidebarMenuButton
+                              asChild
+                              isActive={isActive}
+                              className={`transition-all duration-200 h-8 rounded-md px-3 border-l-2 ${
+                                isActive
+                                  ? 'bg-zinc-200/50 border-zinc-900 text-zinc-900 font-medium'
+                                  : 'border-transparent text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'
+                              }`}
+                            >
+                              <Link to={item.url} className="flex items-center gap-3">
+                                <item.icon
+                                  className={`h-[14px] w-[14px] ${isActive ? 'text-zinc-900' : 'opacity-70'}`}
+                                />
+                                <span className={isLargeGroup ? 'text-xs' : 'text-[13px]'}>
+                                  {item.title}
+                                </span>
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        )
+                      })}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </CollapsibleContent>
+              </SidebarGroup>
+            </Collapsible>
+          )
+        })}
       </SidebarContent>
     </Sidebar>
   )

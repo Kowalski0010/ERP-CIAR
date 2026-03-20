@@ -11,6 +11,8 @@ import Teachers from './pages/academic/Teachers'
 import Classes from './pages/academic/Classes'
 import Schedules from './pages/academic/Schedules'
 import Grades from './pages/academic/Grades'
+import AcademicControlView from './pages/academic-control/AcademicControlView'
+import ReportView from './pages/reports/ReportView'
 import Payments from './pages/financial/Payments'
 import CashFlow from './pages/financial/CashFlow'
 import Leads from './pages/commercial/Leads'
@@ -39,12 +41,18 @@ const App = () => (
           <Route element={<Layout />}>
             <Route path="/" element={<Index />} />
 
-            {/* Academic */}
+            {/* Academic Core */}
             <Route path="/academic/students" element={<Students />} />
             <Route path="/academic/teachers" element={<Teachers />} />
             <Route path="/academic/classes" element={<Classes />} />
             <Route path="/academic/schedules" element={<Schedules />} />
             <Route path="/academic/grades" element={<Grades />} />
+
+            {/* Academic Control (Dynamic Views) */}
+            <Route path="/academic-control/:id" element={<AcademicControlView />} />
+
+            {/* Reports Suite (Dynamic Views) */}
+            <Route path="/reports/:id" element={<ReportView />} />
 
             {/* Financial */}
             <Route path="/financial/payments" element={<Payments />} />
@@ -53,7 +61,7 @@ const App = () => (
             {/* Commercial */}
             <Route path="/commercial/leads" element={<Leads />} />
 
-            {/* Operational (Matheus Legacy Modules) */}
+            {/* Operational */}
             <Route path="/hr/employees" element={<Employees />} />
             <Route path="/inventory/stock" element={<Stock />} />
             <Route path="/inventory/movements" element={<Movements />} />
