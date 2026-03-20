@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useAppStore } from '@/contexts/AppContext'
 import {
   Mail,
   Search,
@@ -7,6 +8,7 @@ import {
   XCircle,
   Smartphone,
   ExternalLink,
+  Clock,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -28,54 +30,28 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 
-const mockLogs = [
-  {
-    id: 'EV-001',
-    recipient: 'Ana Silva',
-    channel: 'Email',
-    subject: 'Aviso de Matrícula',
-    status: 'Entregue',
-    date: '2023-10-25 10:30',
-    body: 'Olá Ana, sua rematrícula foi processada com sucesso. Acesse o portal...',
-  },
-  {
-    id: 'EV-002',
-    recipient: 'Carlos Oliveira',
-    channel: 'SMS',
-    subject: 'Alerta de Boleto',
-    status: 'Falha',
-    date: '2023-10-24 08:15',
-    body: 'TOTVS Edu: Boleto com vencimento em 10/11 disponivel no portal.',
-  },
-  {
-    id: 'EV-003',
-    recipient: 'Todos Alunos',
-    channel: 'Email',
-    subject: 'Manutenção no Sistema',
-    status: 'Entregue',
-    date: '2023-10-20 14:00',
-    body: 'Aviso geral de manutenção no domingo. O portal ficará inativo...',
-  },
-  {
-    id: 'EV-004',
-    recipient: 'Jorge Martins',
-    channel: 'Email',
-    subject: 'Recibo de Pagamento',
-    status: 'Entregue',
-    date: '2023-10-18 09:22',
-    body: 'Prezado, segue em anexo o recibo ref. ao mes de Outubro.',
-  },
-]
-
 export default function CommunicationLogs() {
+  const { communicationLogs } = useAppStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedLog, setSelectedLog] = useState<any>(null)
 
-  const filteredLogs = mockLogs.filter(
+  const filteredLogs = communicationLogs.filter(
     (log) =>
       log.recipient.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.subject.toLowerCase().includes(searchTerm.toLowerCase()),
   )
+
+  const getStatusIcon = (status: string) => {
+    if (status === 'Entregue') return <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+    if (status === 'Pendente') return <Clock className="w-3.5 h-3.5 mr-1" />
+    return <XCircle className="w-3.5 h-3.5 mr-1" />
+  }
+
+  const getStatusColor = (status: string) => {
+    if (status === 'Entregue') return 'text-emerald-600'
+    if (status === 'Pendente') return 'text-amber-600'
+    return 'text-rose-600'
+  }
 
   return (
     <div className="space-y-6 animate-fade-in-up pb-8 max-w-[1200px] mx-auto">
@@ -83,10 +59,10 @@ export default function CommunicationLogs() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900 flex items-center gap-2">
             <Mail className="h-7 w-7 text-zinc-400" />
-            Histórico de Envios
+            Logs de Notificação (Email/SMS)
           </h1>
           <p className="text-sm text-zinc-500 mt-1">
-            Registro de comunicações transacionais via Email e SMS.
+            Auditoria de disparos transacionais e automáticos do sistema.
           </p>
         </div>
       </div>
@@ -105,54 +81,50 @@ export default function CommunicationLogs() {
 
       <div className="bg-white border border-zinc-200 rounded-lg shadow-sm overflow-hidden">
         <Table className="table-compact">
-          <TableHeader className="bg-zinc-50/50">
+          <TableHeader className="bg-zinc-50/80">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-[120px]">Data/Hora</TableHead>
+              <TableHead className="w-[140px]">Data/Hora</TableHead>
               <TableHead className="w-[200px]">Destinatário</TableHead>
               <TableHead className="w-[100px] text-center">Canal</TableHead>
-              <TableHead>Assunto / Resumo</TableHead>
+              <TableHead>Assunto / Disparo</TableHead>
               <TableHead className="w-[120px] text-center">Status</TableHead>
               <TableHead className="text-right w-[80px]">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredLogs.map((log) => (
-              <TableRow key={log.id} className="hover:bg-zinc-50/80 transition-colors">
+              <TableRow key={log.id} className="hover:bg-zinc-50/50 transition-colors">
                 <TableCell className="font-mono text-[11px] text-zinc-500">{log.date}</TableCell>
                 <TableCell className="font-medium text-zinc-900 text-xs">{log.recipient}</TableCell>
                 <TableCell className="text-center">
                   {log.channel === 'Email' ? (
                     <Badge
                       variant="outline"
-                      className="bg-blue-50 text-blue-700 border-blue-200 px-2 py-0"
+                      className="bg-blue-50 text-blue-700 border-blue-200 px-2 py-0 font-medium"
                     >
                       <Mail className="h-3 w-3 mr-1" /> Email
                     </Badge>
                   ) : (
                     <Badge
                       variant="outline"
-                      className="bg-purple-50 text-purple-700 border-purple-200 px-2 py-0"
+                      className="bg-purple-50 text-purple-700 border-purple-200 px-2 py-0 font-medium"
                     >
                       <Smartphone className="h-3 w-3 mr-1" /> SMS
                     </Badge>
                   )}
                 </TableCell>
                 <TableCell
-                  className="text-xs text-zinc-600 truncate max-w-[300px]"
+                  className="text-xs font-semibold text-zinc-700 truncate max-w-[300px]"
                   title={log.subject}
                 >
                   {log.subject}
                 </TableCell>
                 <TableCell className="text-center">
-                  {log.status === 'Entregue' ? (
-                    <span className="inline-flex items-center text-xs font-medium text-emerald-600">
-                      <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Entregue
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center text-xs font-medium text-rose-600">
-                      <XCircle className="w-3.5 h-3.5 mr-1" /> Falha
-                    </span>
-                  )}
+                  <span
+                    className={`inline-flex items-center text-xs font-bold ${getStatusColor(log.status)}`}
+                  >
+                    {getStatusIcon(log.status)} {log.status}
+                  </span>
                 </TableCell>
                 <TableCell className="text-right">
                   <Button
@@ -183,7 +155,7 @@ export default function CommunicationLogs() {
             <>
               <DialogHeader>
                 <DialogTitle className="text-base flex items-center gap-2">
-                  <ExternalLink className="h-4 w-4 text-zinc-400" /> Detalhes do Envio
+                  <ExternalLink className="h-4 w-4 text-zinc-400" /> Detalhes da Notificação
                 </DialogTitle>
                 <DialogDescription className="text-xs font-mono">
                   ID: {selectedLog.id} • {selectedLog.date}
@@ -199,9 +171,11 @@ export default function CommunicationLogs() {
                   </div>
                   <div>
                     <span className="block text-[10px] uppercase font-bold text-zinc-500 mb-1">
-                      Canal Utilizado
+                      Status de Entrega
                     </span>
-                    <span className="font-medium text-zinc-900">{selectedLog.channel}</span>
+                    <span className={`font-bold ${getStatusColor(selectedLog.status)}`}>
+                      {selectedLog.status}
+                    </span>
                   </div>
                 </div>
                 <div>
@@ -212,7 +186,7 @@ export default function CommunicationLogs() {
                 </div>
                 <div>
                   <span className="block text-[10px] uppercase font-bold text-zinc-500 mb-1">
-                    Conteúdo da Mensagem
+                    Conteúdo Enviado
                   </span>
                   <div className="p-3 bg-zinc-50 rounded-md border border-zinc-200 text-xs text-zinc-700 whitespace-pre-wrap min-h-[100px]">
                     {selectedLog.body}

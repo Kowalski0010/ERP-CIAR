@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom'
 
 export default function StudentDashboard() {
   const { students, payments, attendances, schedules } = useAppStore()
-  // Assuming logged in as first student
+  // Assuming logged in as first student for the mock portal
   const student = students[0]
 
   if (!student) return <div>Acesso negado.</div>
@@ -56,11 +56,14 @@ export default function StudentDashboard() {
             </div>
             {nextClass && (
               <div className="flex items-center gap-2 mt-auto">
-                <Badge variant="outline" className="bg-zinc-50 text-[10px] font-mono">
+                <Badge
+                  variant="outline"
+                  className="bg-zinc-50 text-[10px] font-mono border-zinc-200"
+                >
                   {nextClass.startTime}
                 </Badge>
-                <span className="text-xs text-zinc-500 flex items-center gap-1">
-                  <BookOpen className="w-3 h-3" /> {nextClass.room}
+                <span className="text-xs text-zinc-500 flex items-center gap-1 font-medium">
+                  <BookOpen className="w-3.5 h-3.5" /> {nextClass.room}
                 </span>
               </div>
             )}
@@ -86,13 +89,13 @@ export default function StudentDashboard() {
             <div className="mt-auto">
               {myPayments.length > 0 ? (
                 <Link
-                  to="/student-area/financial"
-                  className="text-xs text-rose-600 font-medium hover:underline"
+                  to="/student/financial"
+                  className="text-xs text-rose-600 font-semibold hover:underline"
                 >
                   Ver faturas pendentes &rarr;
                 </Link>
               ) : (
-                <span className="text-xs text-emerald-600 font-medium flex items-center gap-1">
+                <span className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
                   Tudo em dia! 🎉
                 </span>
               )}
@@ -114,7 +117,7 @@ export default function StudentDashboard() {
                 <ClipboardList className="h-4 w-4" />
               </div>
             </div>
-            <div className="mt-auto text-xs text-zinc-500">
+            <div className="mt-auto text-xs font-medium text-zinc-500">
               {totalAbsences} faltas registradas no semestre
             </div>
           </CardContent>
@@ -122,7 +125,7 @@ export default function StudentDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        <Card className="border-zinc-200 shadow-sm">
+        <Card className="border-zinc-200 shadow-sm bg-white">
           <CardHeader className="border-b border-zinc-100 bg-zinc-50/50 py-4">
             <CardTitle className="text-sm font-semibold text-zinc-900">Avisos Recentes</CardTitle>
           </CardHeader>
@@ -143,7 +146,7 @@ export default function StudentDashboard() {
         </Card>
 
         <Card className="border-zinc-200 shadow-sm flex flex-col items-center justify-center p-6 bg-zinc-50/30 text-center">
-          <div className="h-12 w-12 rounded-full bg-zinc-100 flex items-center justify-center mb-3">
+          <div className="h-12 w-12 rounded-full bg-white border border-zinc-200 shadow-sm flex items-center justify-center mb-3">
             <BookOpen className="h-5 w-5 text-zinc-400" />
           </div>
           <h3 className="text-sm font-semibold text-zinc-900">Biblioteca Virtual</h3>

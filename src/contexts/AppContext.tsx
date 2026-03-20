@@ -11,6 +11,7 @@ import {
   FinancialPlan,
   AuditLog,
   SystemNotification,
+  CommunicationLog,
   AttendanceRecord,
   Employee,
   Product,
@@ -27,6 +28,7 @@ import {
   mockSchedules,
   mockLogs,
   mockNotifications,
+  mockCommunicationLogs,
   mockAttendance,
   mockEmployees,
   mockProducts,
@@ -46,8 +48,11 @@ interface AppContextType extends AppState {
   enrollStudent: (student: Student, plan: FinancialPlan, leadId?: string) => void
   addLog: (log: Omit<AuditLog, 'id' | 'timestamp'>) => void
   sendNotification: (notification: Omit<SystemNotification, 'id' | 'date' | 'read'>) => void
+  addCommunicationLog: (log: Omit<CommunicationLog, 'id' | 'date'>) => void
   generateInvoice: (studentId: string, amount: number) => void
   markNotificationsAsRead: () => void
+  registerOccurrence: (studentId: string, text: string) => void
+  generateContract: (studentId: string) => void
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
@@ -62,6 +67,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [schedules, setSchedules] = useState<Schedule[]>(mockSchedules)
   const [logs, setLogs] = useState<AuditLog[]>(mockLogs)
   const [notifications, setNotifications] = useState<SystemNotification[]>(mockNotifications)
+  const [communicationLogs, setCommunicationLogs] =
+    useState<CommunicationLog[]>(mockCommunicationLogs)
   const [attendances] = useState<AttendanceRecord[]>(mockAttendance)
 
   const [employees] = useState<Employee[]>(mockEmployees)
@@ -77,6 +84,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       timestamp: new Date().toISOString(),
     }
     setLogs((prev) => [newLog, ...prev])
+  }
+
+  const addCommunicationLog = (log: Omit<CommunicationLog, 'id' | 'date'>) => {
+    const newLog: CommunicationLog = {
+      ...log,
+      id: `EV-${Math.floor(Math.random() * 10000)}`,
+      date: new Date().toISOString().replace('T', ' ').substring(0, 16),
+    }
+    setCommunicationLogs((prev) => [newLog, ...prev])
   }
 
   const sendNotification = (notification: Omit<SystemNotification, 'id' | 'date' | 'read'>) => {
@@ -115,6 +131,66 @@ export function AppProvider({ children }: { children: ReactNode }) {
     })
   }
 
+  const registerOccurrence = (studentId: string, text: string) => {
+    const student = students.find((s) => s.id === studentId)
+    if (!student) return
+
+    const newObs = {
+      id: Math.random().toString(36).substr(2, 9),
+      date: new Date().toISOString(),
+      author: currentUserRole,
+      text,
+    }
+
+    setStudents((prev) =>
+      prev.map((s) =>
+        s.id === studentId
+          ? {
+              ...s,
+              observations: [...(s.observations || []), newObs],
+            }
+          : s,
+      ),
+    )
+
+    addLog({
+      user: currentUserRole,
+      action: 'Registro de Ocorrência',
+      entity: `Módulo: Secretaria`,
+      targetStudent: student.name,
+      details: `Nova ocorrência registrada: "${text}"`,
+    })
+
+    addCommunicationLog({
+      recipient: student.email,
+      channel: 'Email',
+      subject: 'Nova Ocorrência Registrada',
+      status: 'Entregue',
+      body: `Prezado(a) responsável, informamos que uma nova ocorrência foi registrada para o(a) aluno(a) ${student.name}: \n\n${text}`,
+    })
+  }
+
+  const generateContract = (studentId: string) => {
+    const student = students.find((s) => s.id === studentId)
+    if (!student) return
+
+    addLog({
+      user: currentUserRole,
+      action: 'Emissão de Contrato',
+      entity: `Módulo: Secretaria`,
+      targetStudent: student.name,
+      details: `Novo contrato letivo gerado e enviado por email.`,
+    })
+
+    addCommunicationLog({
+      recipient: student.email,
+      channel: 'Email',
+      subject: 'Confirmação de Matrícula e Contrato',
+      status: 'Entregue',
+      body: `Olá ${student.name}, sua matrícula foi efetivada. Segue em anexo a cópia do seu contrato de prestação de serviços educacionais.`,
+    })
+  }
+
   const markNotificationsAsRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
   }
@@ -131,7 +207,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const updateStudent = (id: string, partial: Partial<Student>) => {
     setStudents((prev) => prev.map((s) => (s.id === id ? { ...s, ...partial } : s)))
-    addLog({ user: currentUserRole, action: 'Atualizou Aluno', entity: `Aluno ID: ${id}` })
+    const studentName = students.find((s) => s.id === id)?.name
+    addLog({
+      user: currentUserRole,
+      action: 'Atualizou Aluno',
+      entity: `Módulo: Secretaria`,
+      targetStudent: studentName,
+      details: `Campos atualizados: ${Object.keys(partial).join(', ')}`,
+    })
   }
 
   const registerPayment = (payment: Payment) => {
@@ -155,7 +238,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateLeadStatus(leadId, 'Ganho')
     }
 
-    addLog({ user: currentUserRole, action: 'Realizou Matrícula', entity: student.name })
+    addLog({
+      user: currentUserRole,
+      action: 'Realizou Matrícula',
+      entity: `Módulo: Comercial`,
+      targetStudent: student.name,
+      details: `Nova matrícula no curso: ${student.course}`,
+    })
 
     if (plan.installments > 0) {
       const newPayments: Payment[] = []
@@ -194,6 +283,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         schedules,
         logs,
         notifications,
+        communicationLogs,
         attendances,
         employees,
         products,
@@ -209,8 +299,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         enrollStudent,
         addLog,
         sendNotification,
+        addCommunicationLog,
         generateInvoice,
         markNotificationsAsRead,
+        registerOccurrence,
+        generateContract,
       }}
     >
       {children}

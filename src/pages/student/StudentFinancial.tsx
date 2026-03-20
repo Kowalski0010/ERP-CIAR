@@ -26,20 +26,26 @@ export default function StudentFinancial() {
     switch (status) {
       case 'Pago':
         return (
-          <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">
-            <CheckCircle2 className="w-3 h-3 mr-1" /> Pago
+          <Badge
+            variant="outline"
+            className="border-emerald-200 bg-emerald-50 text-emerald-700 font-medium"
+          >
+            <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> Pago
           </Badge>
         )
       case 'Pendente':
         return (
-          <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
-            <Clock className="w-3 h-3 mr-1" /> Aberto
+          <Badge
+            variant="outline"
+            className="border-amber-200 bg-amber-50 text-amber-700 font-medium"
+          >
+            <Clock className="w-3.5 h-3.5 mr-1.5" /> A Vencer
           </Badge>
         )
       case 'Atrasado':
         return (
-          <Badge variant="outline" className="border-rose-200 bg-rose-50 text-rose-700">
-            <AlertTriangle className="w-3 h-3 mr-1" /> Atrasado
+          <Badge variant="outline" className="border-rose-200 bg-rose-50 text-rose-700 font-medium">
+            <AlertTriangle className="w-3.5 h-3.5 mr-1.5" /> Atrasado
           </Badge>
         )
       default:
@@ -48,7 +54,7 @@ export default function StudentFinancial() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in-up pb-8 max-w-[1000px] mx-auto">
+    <div className="space-y-6 animate-fade-in-up pb-8 max-w-[1200px] mx-auto">
       <div className="mb-4">
         <h1 className="text-2xl font-bold tracking-tight text-zinc-900 flex items-center gap-2">
           <Wallet className="h-6 w-6 text-zinc-400" />
@@ -64,22 +70,22 @@ export default function StudentFinancial() {
           <Table className="table-compact">
             <TableHeader className="bg-zinc-50/80">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[100px]">Referência</TableHead>
+                <TableHead className="w-[120px]">Referência</TableHead>
                 <TableHead className="w-[140px]">Vencimento</TableHead>
                 <TableHead className="text-right w-[140px]">Valor (R$)</TableHead>
-                <TableHead className="w-[120px]">Situação</TableHead>
+                <TableHead className="w-[160px]">Situação</TableHead>
                 <TableHead className="text-right">Ação</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {myPayments.map((p) => (
-                <TableRow key={p.id} className="hover:bg-zinc-50/50">
+                <TableRow key={p.id} className="hover:bg-zinc-50/50 transition-colors">
                   <TableCell className="font-medium text-zinc-700 text-xs">
                     {p.installmentNumber
                       ? `Parcela ${p.installmentNumber}/${p.totalInstallments}`
                       : 'Avulsa'}
                   </TableCell>
-                  <TableCell className="text-zinc-900 font-semibold text-sm">
+                  <TableCell className="text-zinc-900 font-mono text-xs">
                     {new Date(p.dueDate).toLocaleDateString('pt-BR')}
                   </TableCell>
                   <TableCell className="text-right text-zinc-900 font-bold">
@@ -91,26 +97,26 @@ export default function StudentFinancial() {
                       <Button
                         size="sm"
                         variant="secondary"
-                        className="h-7 text-[10px] bg-zinc-900 text-white hover:bg-zinc-800"
+                        className="h-7 text-[10px] font-semibold bg-zinc-900 text-white hover:bg-zinc-800"
                         onClick={() =>
                           toast({
                             title: 'Download Iniciado',
-                            description: 'O boleto PDF foi gerado.',
+                            description: 'O boleto PDF foi gerado e o download começou.',
                           })
                         }
                       >
-                        <Download className="w-3 h-3 mr-1" /> Boleto
+                        <Download className="w-3.5 h-3.5 mr-1.5" /> Boleto
                       </Button>
                     ) : (
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-7 text-[10px]"
+                        className="h-7 text-[10px] font-medium"
                         onClick={() =>
                           toast({ title: 'Recibo', description: 'Recibo gerado com sucesso.' })
                         }
                       >
-                        Recibo
+                        Recibo PDF
                       </Button>
                     )}
                   </TableCell>
@@ -118,8 +124,12 @@ export default function StudentFinancial() {
               ))}
               {myPayments.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-zinc-500">
-                    Nenhuma cobrança registrada.
+                  <TableCell
+                    colSpan={5}
+                    className="h-32 flex-col gap-2 items-center justify-center text-center text-zinc-500"
+                  >
+                    <Wallet className="h-6 w-6 mb-2 text-zinc-300 mx-auto" />
+                    Nenhuma cobrança registrada no seu painel.
                   </TableCell>
                 </TableRow>
               )}

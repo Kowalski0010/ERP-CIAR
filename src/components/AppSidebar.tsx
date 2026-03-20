@@ -20,7 +20,13 @@ export function AppSidebar() {
   const { currentUserRole } = useAppStore()
 
   const filteredGroups = navGroups.filter((group) => {
-    if (currentUserRole === 'Admin') return true
+    if (currentUserRole === 'Admin') {
+      return group.title !== 'Portal do Aluno'
+    }
+
+    if (currentUserRole === 'Aluno') {
+      return group.title === 'Portal do Aluno'
+    }
 
     if (currentUserRole === 'Academico') {
       return ['Dashboard', 'Acadêmico', 'Secretaria', 'Secretaria Educação'].includes(group.title)
@@ -76,7 +82,9 @@ export function AppSidebar() {
           return (
             <Collapsible
               key={group.title}
-              defaultOpen={isGroupActive || group.title === 'Dashboard'}
+              defaultOpen={
+                isGroupActive || group.title === 'Dashboard' || group.title === 'Portal do Aluno'
+              }
               className="group/collapsible"
             >
               <SidebarGroup className="px-0 py-1">

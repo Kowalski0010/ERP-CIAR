@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useAppStore } from '@/contexts/AppContext'
 import { useToast } from '@/hooks/use-toast'
 import { Save, AlertCircle, FileSpreadsheet, Check } from 'lucide-react'
 import {
@@ -31,6 +32,7 @@ const initialGrades = [
 ]
 
 export default function Grades() {
+  const { addLog, currentUserRole } = useAppStore()
   const { toast } = useToast()
   const [grades, setGrades] = useState(initialGrades)
   const [isSaving, setIsSaving] = useState(false)
@@ -54,21 +56,29 @@ export default function Grades() {
   const handleSave = () => {
     setIsSaving(true)
     setTimeout(() => {
+      // Create Audit Log
+      addLog({
+        user: currentUserRole,
+        action: 'Lançamento/Alteração de Notas',
+        entity: 'Diário de Classe: T01 - Algoritmos Avançados',
+        details: 'Salvo em lote via Diário.',
+      })
+
       setIsSaving(false)
       toast({
         title: 'Diário de Classe Salvo',
-        description: 'As notas foram processadas e os históricos atualizados.',
+        description: 'As notas foram processadas, salvos no histórico e auditadas.',
       })
     }, 800)
   }
 
   return (
-    <div className="space-y-6 animate-fade-in-up pb-8">
+    <div className="space-y-6 animate-fade-in-up pb-8 max-w-[1200px] mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-2">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Diário de Classe</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Lançamento de avaliações e apuração de médias.
+          <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Diário de Classe</h1>
+          <p className="text-sm text-zinc-500 mt-1">
+            Lançamento de avaliações. Alterações são monitoradas pelo Log de Auditoria.
           </p>
         </div>
         <Button variant="outline" className="shadow-sm">
@@ -76,14 +86,14 @@ export default function Grades() {
         </Button>
       </div>
 
-      <Card className="shadow-sm border-border/50">
-        <CardContent className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 bg-muted/10">
+      <Card className="shadow-sm border-zinc-200">
+        <CardContent className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 bg-zinc-50/50">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
               Período
             </label>
             <Select defaultValue="2023-2">
-              <SelectTrigger className="bg-background">
+              <SelectTrigger className="bg-white h-9 text-xs">
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>
@@ -93,11 +103,11 @@ export default function Grades() {
             </Select>
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
               Turma
             </label>
             <Select defaultValue="t01">
-              <SelectTrigger className="bg-background">
+              <SelectTrigger className="bg-white h-9 text-xs">
                 <SelectValue placeholder="Selecione a turma" />
               </SelectTrigger>
               <SelectContent>
@@ -107,11 +117,11 @@ export default function Grades() {
             </Select>
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
               Disciplina
             </label>
             <Select defaultValue="d1">
-              <SelectTrigger className="bg-background">
+              <SelectTrigger className="bg-white h-9 text-xs">
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>
@@ -123,18 +133,18 @@ export default function Grades() {
         </CardContent>
       </Card>
 
-      <Alert className="bg-primary/5 border-primary/20 text-foreground shadow-sm">
-        <AlertCircle className="h-4 w-4 text-primary" />
-        <AlertDescription className="text-sm">
+      <Alert className="bg-blue-50 border-blue-200 text-blue-900 shadow-sm">
+        <AlertCircle className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-xs font-medium">
           Sistema parametrizado para <strong>Média 7.0</strong>. Alterações ficam em rascunho até
-          confirmação de salvamento.
+          confirmação de salvamento e geram trilha de auditoria.
         </AlertDescription>
       </Alert>
 
-      <div className="bg-card border border-border/50 rounded-lg shadow-sm overflow-hidden flex flex-col">
+      <div className="bg-white border border-zinc-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
         <div className="flex-1 overflow-auto">
           <Table className="table-compact">
-            <TableHeader className="bg-muted/30 sticky top-0 z-10 backdrop-blur-sm">
+            <TableHeader className="bg-zinc-50/80 sticky top-0 z-10 backdrop-blur-sm">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-[80px] text-center">Matrícula</TableHead>
                 <TableHead>Nome do Aluno</TableHead>
@@ -151,11 +161,13 @@ export default function Grades() {
                 const matricula = `2023${String(index + 1).padStart(4, '0')}`
 
                 return (
-                  <TableRow key={student.id} className="hover:bg-muted/20">
-                    <TableCell className="font-mono text-xs text-muted-foreground text-center">
+                  <TableRow key={student.id} className="hover:bg-zinc-50/50 transition-colors">
+                    <TableCell className="font-mono text-xs text-zinc-500 text-center font-medium">
                       {matricula}
                     </TableCell>
-                    <TableCell className="font-medium text-foreground">{student.name}</TableCell>
+                    <TableCell className="font-semibold text-zinc-900 text-xs">
+                      {student.name}
+                    </TableCell>
                     <TableCell>
                       <Input
                         type="number"
@@ -164,7 +176,7 @@ export default function Grades() {
                         step="0.5"
                         value={student.n1 || ''}
                         onChange={(e) => handleGradeChange(student.id, 'n1', e.target.value)}
-                        className="w-20 mx-auto text-center h-8 bg-background focus-visible:ring-primary/30"
+                        className="w-16 mx-auto text-center h-8 text-xs bg-zinc-50 focus-visible:ring-zinc-400 font-bold"
                       />
                     </TableCell>
                     <TableCell>
@@ -175,16 +187,19 @@ export default function Grades() {
                         step="0.5"
                         value={student.n2 || ''}
                         onChange={(e) => handleGradeChange(student.id, 'n2', e.target.value)}
-                        className="w-20 mx-auto text-center h-8 bg-background focus-visible:ring-primary/30"
+                        className="w-16 mx-auto text-center h-8 text-xs bg-zinc-50 focus-visible:ring-zinc-400 font-bold"
                       />
                     </TableCell>
                     <TableCell className="text-center">
-                      <span className="font-mono font-bold text-[15px] px-2 py-1 bg-muted/40 rounded border border-border/50">
+                      <span className="font-mono font-bold text-[14px] px-2 py-0.5 bg-zinc-100 rounded border border-zinc-200 text-zinc-800">
                         {avg}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={`${status.color} px-2.5 font-medium`}>
+                      <Badge
+                        variant="outline"
+                        className={`${status.color} px-2 py-0 text-[10px] font-bold`}
+                      >
                         {status.text}
                       </Badge>
                     </TableCell>
@@ -194,16 +209,20 @@ export default function Grades() {
             </TableBody>
           </Table>
         </div>
-        <div className="p-4 border-t border-border/50 bg-muted/10 flex justify-between items-center shrink-0">
-          <span className="text-xs text-muted-foreground font-medium flex items-center">
-            <Check className="h-3 w-3 mr-1" /> Todos os alunos processados
+        <div className="p-4 border-t border-zinc-200 bg-zinc-50/50 flex justify-between items-center shrink-0">
+          <span className="text-xs text-zinc-500 font-medium flex items-center">
+            <Check className="h-3.5 w-3.5 mr-1 text-emerald-500" /> Todos os alunos avaliados
           </span>
-          <Button onClick={handleSave} disabled={isSaving} className="shadow-sm min-w-[150px]">
+          <Button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="shadow-sm min-w-[160px] bg-zinc-900 hover:bg-zinc-800 text-white"
+          >
             {isSaving ? (
-              'Processando...'
+              'Auditando & Salvando...'
             ) : (
               <>
-                <Save className="mr-2 h-4 w-4" /> Consolidar Notas
+                <Save className="mr-2 h-4 w-4" /> Consolidar e Auditar Notas
               </>
             )}
           </Button>

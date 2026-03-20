@@ -50,6 +50,7 @@ export type ClassRoom = {
   name: string
   course: string
   semester: string
+  capacity?: number
 }
 
 export type Schedule = {
@@ -95,6 +96,8 @@ export type AuditLog = {
   user: string
   action: string
   entity: string
+  details?: string
+  targetStudent?: string
 }
 
 export type SystemNotification = {
@@ -105,6 +108,16 @@ export type SystemNotification = {
   date: string
   target: 'Todos' | 'Alunos' | 'Professores' | 'Staff'
   read: boolean
+}
+
+export type CommunicationLog = {
+  id: string
+  recipient: string
+  channel: 'Email' | 'SMS'
+  subject: string
+  status: 'Entregue' | 'Pendente' | 'Falha'
+  date: string
+  body: string
 }
 
 export type AttendanceRecord = {
@@ -181,6 +194,7 @@ export type AppState = {
   schedules: Schedule[]
   logs: AuditLog[]
   notifications: SystemNotification[]
+  communicationLogs: CommunicationLog[]
   attendances: AttendanceRecord[]
   employees: Employee[]
   products: Product[]

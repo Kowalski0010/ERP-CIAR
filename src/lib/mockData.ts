@@ -13,6 +13,7 @@ import {
   StockMovement,
   Supplier,
   PurchaseOrder,
+  CommunicationLog,
 } from './types'
 
 const defaultAddress = {
@@ -96,8 +97,22 @@ export const mockClasses: ClassRoom[] = [
     name: 'Engenharia de Software - 1º Sem',
     course: 'Engenharia',
     semester: '1º Semestre',
+    capacity: 40,
   },
-  { id: 'T02', name: 'Design Gráfico - 3º Sem', course: 'Design', semester: '3º Semestre' },
+  {
+    id: 'T02',
+    name: 'Design Gráfico - 3º Sem',
+    course: 'Design',
+    semester: '3º Semestre',
+    capacity: 30,
+  },
+  {
+    id: 'T03',
+    name: 'Administração - 1º Sem',
+    course: 'Administração',
+    semester: '1º Semestre',
+    capacity: 50,
+  },
 ]
 
 export const mockSchedules: Schedule[] = [
@@ -214,6 +229,15 @@ export const mockLogs: AuditLog[] = [
     action: 'Confirmou Pagamento',
     entity: 'Fatura: INV-8829',
   },
+  {
+    id: 'log4',
+    timestamp: new Date(Date.now() - 172800000).toISOString(),
+    user: 'Prof. Thiago',
+    action: 'Alteração de Notas',
+    entity: 'Diário de Classe: T01 - Cálculo I',
+    details: 'Nota N1 alterada de 7.0 para 8.5',
+    targetStudent: 'Ana Silva',
+  },
 ]
 
 export const mockNotifications: SystemNotification[] = [
@@ -234,6 +258,36 @@ export const mockNotifications: SystemNotification[] = [
     date: new Date(Date.now() - 86400000).toISOString(),
     target: 'Alunos',
     read: true,
+  },
+]
+
+export const mockCommunicationLogs: CommunicationLog[] = [
+  {
+    id: 'EV-001',
+    recipient: 'Ana Silva',
+    channel: 'Email',
+    subject: 'Aviso de Matrícula',
+    status: 'Entregue',
+    date: '2023-10-25 10:30',
+    body: 'Olá Ana, sua rematrícula foi processada com sucesso. Acesse o portal...',
+  },
+  {
+    id: 'EV-002',
+    recipient: 'Carlos Oliveira',
+    channel: 'SMS',
+    subject: 'Alerta de Boleto',
+    status: 'Falha',
+    date: '2023-10-24 08:15',
+    body: 'TOTVS Edu: Boleto com vencimento em 10/11 disponivel no portal.',
+  },
+  {
+    id: 'EV-003',
+    recipient: 'Todos Alunos',
+    channel: 'Email',
+    subject: 'Manutenção no Sistema',
+    status: 'Entregue',
+    date: '2023-10-20 14:00',
+    body: 'Aviso geral de manutenção no domingo. O portal ficará inativo...',
   },
 ]
 

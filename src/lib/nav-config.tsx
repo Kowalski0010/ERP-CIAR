@@ -16,7 +16,6 @@ import {
   Package,
   ShoppingCart,
   TrendingUp,
-  CreditCard,
   Building,
   UserCheck,
   CheckSquare,
@@ -35,6 +34,8 @@ import {
   FileSearch,
   HelpCircle,
   BookCopy,
+  BarChart,
+  FolderOpen,
 } from 'lucide-react'
 
 export interface NavItem {
@@ -54,6 +55,15 @@ export const navGroups: NavGroup[] = [
     items: [{ title: 'Visão Geral', href: '/', icon: LayoutDashboard }],
   },
   {
+    title: 'Portal do Aluno',
+    items: [
+      { title: 'Meu Painel', href: '/student/dashboard', icon: LayoutDashboard },
+      { title: 'Agenda de Aulas', href: '/student/schedule', icon: Calendar },
+      { title: 'Extrato Financeiro', href: '/student/financial', icon: Wallet },
+      { title: 'Documentos', href: '/student/documents', icon: FolderOpen },
+    ],
+  },
+  {
     title: 'Acadêmico',
     items: [
       { title: 'Alunos', href: '/academic/students', icon: Users },
@@ -61,6 +71,7 @@ export const navGroups: NavGroup[] = [
       { title: 'Turmas', href: '/academic/classes', icon: BookOpen },
       { title: 'Horários', href: '/academic/schedules', icon: Calendar },
       { title: 'Notas e Frequência', href: '/academic/grades', icon: CheckSquare },
+      { title: 'Dashboard de Ocupação', href: '/academic/occupancy', icon: BarChart },
     ],
   },
   {

@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useAppStore } from '@/contexts/AppContext'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -20,17 +21,36 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Checkbox } from '@/components/ui/checkbox'
+import { useToast } from '@/hooks/use-toast'
+import { FileText } from 'lucide-react'
 
 export default function EnrollmentWorkflow() {
   const location = useLocation()
   const navigate = useNavigate()
+  const { students, generateContract } = useAppStore()
+  const { toast } = useToast()
+
   const activeTab = location.pathname.split('/').pop() || 'efetuar-matricula'
+
+  const handleGenerateContract = () => {
+    // Mock using first student
+    const student = students[0]
+    if (student) {
+      generateContract(student.id)
+      toast({
+        title: 'Contrato Gerado com Sucesso',
+        description: `O documento foi salvo e enviado automaticamente para o email de ${student.name}.`,
+      })
+    }
+  }
 
   return (
     <div className="space-y-6 animate-fade-in-up">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Fluxos de Matrícula</h1>
-        <p className="text-muted-foreground">Gerencie o ciclo completo de ingresso de alunos.</p>
+        <p className="text-muted-foreground">
+          Gerencie o ciclo completo de ingresso e emissão de contratos.
+        </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => navigate(`/secretaria/${v}`)}>
@@ -49,10 +69,12 @@ export default function EnrollmentWorkflow() {
           <CardTitle>
             {activeTab === 'efetuar-pre-matricula' && 'Registro de Interesse / Pré-Matrícula'}
             {activeTab === 'efetivar-pre-matricula' && 'Conversão de Pré-Matrículas'}
-            {activeTab === 'efetuar-matricula' && 'Nova Matrícula (Direta)'}
+            {activeTab === 'efetuar-matricula' && 'Nova Matrícula e Emissão de Contrato'}
             {activeTab === 'efetuar-matricula-disciplina' && 'Alocação de Disciplinas'}
           </CardTitle>
-          <CardDescription>Siga os passos requeridos para completar o processo.</CardDescription>
+          <CardDescription>
+            A emissão do contrato gera um log de auditoria e envia cópia ao aluno.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {activeTab === 'efetuar-pre-matricula' && (
@@ -108,16 +130,15 @@ export default function EnrollmentWorkflow() {
                 <Badge variant="secondary" className="text-sm py-1">
                   Passo 2: Curso e Plano
                 </Badge>
-                <Badge variant="outline" className="text-sm py-1">
-                  Passo 3: Contrato
+                <Badge variant="outline" className="text-sm py-1 border-primary text-primary">
+                  Passo 3: Contrato Digital
                 </Badge>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input placeholder="Nome Completo" />
-                <Input placeholder="CPF" />
-                <Input placeholder="Data de Nascimento" type="date" />
-                <Input placeholder="CEP" />
-                <Select>
+                <Input placeholder="Nome Completo" defaultValue="Ana Silva" />
+                <Input placeholder="CPF" defaultValue="123.456.789-00" />
+                <Input placeholder="E-mail" defaultValue="ana.silva@email.com" />
+                <Select defaultValue="c1">
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o Curso" />
                   </SelectTrigger>
@@ -125,16 +146,13 @@ export default function EnrollmentWorkflow() {
                     <SelectItem value="c1">Engenharia de Software</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Plano de Pagamento" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="p1">Mensalidade Padrão - 12x</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
-              <Button className="w-full">Gerar Matrícula e Contrato</Button>
+
+              <div className="pt-4 border-t border-zinc-200 mt-4">
+                <Button className="w-full sm:w-auto shadow-sm" onClick={handleGenerateContract}>
+                  <FileText className="h-4 w-4 mr-2" /> Gerar Matrícula e Enviar Contrato
+                </Button>
+              </div>
             </div>
           )}
 
@@ -164,14 +182,6 @@ export default function EnrollmentWorkflow() {
                       <TableCell>MAT101</TableCell>
                       <TableCell>Cálculo I</TableCell>
                       <TableCell>4</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>
-                        <Checkbox />
-                      </TableCell>
-                      <TableCell>COMP201</TableCell>
-                      <TableCell>Algoritmos</TableCell>
-                      <TableCell>6</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>

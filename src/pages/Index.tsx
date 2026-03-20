@@ -7,15 +7,22 @@ import {
   TrendingUp,
   BookOpen,
   ChevronUp,
-  ChevronDown,
+  Shield,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Legend } from 'recharts'
 import { mockFinancialChart } from '@/lib/mockData'
 import { Button } from '@/components/ui/button'
-import { Link } from 'react-router-dom'
-import { Separator } from '@/components/ui/separator'
+import { Link, useNavigate } from 'react-router-dom'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Role } from '@/lib/types'
 
 const chartConfig = {
   receitas: { label: 'Receitas', color: 'hsl(var(--primary))' },
@@ -23,7 +30,8 @@ const chartConfig = {
 }
 
 export default function Index() {
-  const { students, leads, payments, currentUserRole } = useAppStore()
+  const { students, leads, payments, currentUserRole, setCurrentUserRole } = useAppStore()
+  const navigate = useNavigate()
 
   const activeStudents = students.filter((s) => s.status === 'Ativo').length
   const newLeads = leads.filter((l) => l.status === 'Novo').length
@@ -38,26 +46,34 @@ export default function Index() {
   const isFinancial = currentUserRole === 'Admin' || currentUserRole === 'Financeiro'
   const isCommercial = currentUserRole === 'Admin' || currentUserRole === 'Comercial'
 
+  const handleRoleChange = (role: Role) => {
+    setCurrentUserRole(role)
+    if (role === 'Aluno') {
+      navigate('/student/dashboard')
+    }
+  }
+
   return (
     <div className="space-y-6 animate-fade-in-up pb-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-2">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Visão gerencial consolidada • Perfil: {currentUserRole}
-          </p>
+          <p className="text-sm text-muted-foreground mt-1">Visão gerencial consolidada</p>
         </div>
-        <div className="flex gap-2">
-          {isCommercial && (
-            <Button variant="outline" size="sm" asChild className="h-9">
-              <Link to="/commercial/leads">Gerenciar Leads</Link>
-            </Button>
-          )}
-          {isAcademic && (
-            <Button size="sm" asChild className="h-9">
-              <Link to="/academic/students">Nova Matrícula</Link>
-            </Button>
-          )}
+        <div className="flex items-center gap-3 bg-zinc-100 p-1.5 rounded-lg border border-zinc-200">
+          <Shield className="h-4 w-4 text-zinc-500 ml-2" />
+          <Select value={currentUserRole} onValueChange={handleRoleChange}>
+            <SelectTrigger className="h-8 w-[160px] bg-white text-xs border-transparent shadow-sm">
+              <SelectValue placeholder="Perfil de Acesso" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Admin">Administrador</SelectItem>
+              <SelectItem value="Academico">Secretaria / Acadêmico</SelectItem>
+              <SelectItem value="Financeiro">Financeiro</SelectItem>
+              <SelectItem value="Comercial">Comercial</SelectItem>
+              <SelectItem value="Aluno">Portal do Aluno</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -261,9 +277,17 @@ export default function Index() {
                   </div>
                 ))}
               </div>
-              <div className="p-4 pt-2">
+              <div className="p-4 pt-2 flex flex-col gap-2">
                 <Button variant="outline" size="sm" className="w-full text-xs font-medium" asChild>
                   <Link to="/academic/classes">Ver Agenda Completa</Link>
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="w-full text-xs font-medium bg-zinc-900 text-white hover:bg-zinc-800"
+                  asChild
+                >
+                  <Link to="/academic/occupancy">Dashboard de Ocupação</Link>
                 </Button>
               </div>
             </CardContent>

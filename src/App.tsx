@@ -15,6 +15,7 @@ import Teachers from './pages/academic/Teachers'
 import Classes from './pages/academic/Classes'
 import Schedules from './pages/academic/Schedules'
 import Grades from './pages/academic/Grades'
+import ClassOccupancy from './pages/academic/ClassOccupancy'
 
 // Secretaria
 import ContratosDocumentos from './pages/secretaria/ContratosDocumentos'
@@ -53,6 +54,12 @@ import Movements from './pages/inventory/Movements'
 import Orders from './pages/purchasing/Orders'
 import Suppliers from './pages/purchasing/Suppliers'
 
+// Student Portal
+import StudentDashboard from './pages/student/StudentDashboard'
+import StudentSchedule from './pages/student/StudentSchedule'
+import StudentFinancial from './pages/student/StudentFinancial'
+import StudentDocuments from './pages/student/StudentDocuments'
+
 function App() {
   return (
     <ThemeProvider defaultTheme="system" storageKey="sio-ui-theme">
@@ -68,6 +75,14 @@ function App() {
                 <Route path="classes" element={<Classes />} />
                 <Route path="schedules" element={<Schedules />} />
                 <Route path="grades" element={<Grades />} />
+                <Route path="occupancy" element={<ClassOccupancy />} />
+              </Route>
+
+              <Route path="student">
+                <Route path="dashboard" element={<StudentDashboard />} />
+                <Route path="schedule" element={<StudentSchedule />} />
+                <Route path="financial" element={<StudentFinancial />} />
+                <Route path="documents" element={<StudentDocuments />} />
               </Route>
 
               <Route path="secretaria">
