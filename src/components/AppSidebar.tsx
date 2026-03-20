@@ -1,135 +1,214 @@
-import { Link, useLocation } from 'react-router-dom'
-import { Building2, ChevronDown } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import {
+  Search,
+  Star,
+  CalendarDays,
+  StickyNote,
+  Users,
+  Printer,
+  Mail,
+  Newspaper,
+  PlayCircle,
+  Lock,
+  GraduationCap,
+  Settings,
+  Megaphone,
+  DollarSign,
+  Wrench,
+} from 'lucide-react'
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupLabel,
-  SidebarGroupContent,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarHeader,
+  useSidebar,
 } from '@/components/ui/sidebar'
-import { useAppStore } from '@/contexts/AppContext'
-import { navGroups } from '@/lib/nav-config'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Input } from '@/components/ui/input'
 
 export function AppSidebar() {
-  const location = useLocation()
-  const { currentUserRole } = useAppStore()
-
-  const filteredGroups = navGroups.filter((group) => {
-    if (currentUserRole === 'Admin') {
-      return group.title !== 'Portal do Aluno'
-    }
-
-    if (currentUserRole === 'Aluno') {
-      return group.title === 'Portal do Aluno'
-    }
-
-    if (currentUserRole === 'Academico') {
-      return ['Dashboard', 'Acadêmico', 'Secretaria', 'Secretaria Educação'].includes(group.title)
-    }
-    if (currentUserRole === 'Financeiro') {
-      return ['Dashboard', 'Financeiro'].includes(group.title)
-    }
-    if (currentUserRole === 'Comercial') {
-      return ['Dashboard', 'Comercial / CRM'].includes(group.title)
-    }
-
-    return false
-  })
-
-  const finalGroups = filteredGroups.map((group) => {
-    if (group.title === 'Administração' && currentUserRole !== 'Admin') {
-      return {
-        ...group,
-        items: group.items.filter(
-          (item) =>
-            !['Logs de Auditoria', 'Controle de Acessos', 'Configurações'].includes(item.title),
-        ),
-      }
-    }
-    return group
-  })
+  const { toggleSidebar } = useSidebar()
 
   return (
-    <Sidebar className="border-r border-sidebar-border shadow-md bg-zinc-50">
-      <SidebarHeader className="p-4 border-b border-sidebar-border/50">
-        <div className="flex items-center gap-3 px-2 py-1">
-          <div className="bg-zinc-900 flex items-center justify-center p-2 rounded text-zinc-50 shadow-sm">
-            <Building2 className="h-5 w-5" />
+    <Sidebar className="border-r border-zinc-200 bg-white shadow-sm font-sans" collapsible="icon">
+      <SidebarHeader className="p-0 border-b-0">
+        <div className="flex flex-col items-center justify-center pt-8 pb-4 group-data-[collapsible=icon]:hidden">
+          {/* Mock CIAR Logo */}
+          <div className="relative flex items-center justify-center h-20 w-20 mb-2">
+            <div className="absolute w-12 h-12 rounded-full bg-[#1e3a8a] top-0 left-2 opacity-90 mix-blend-multiply flex items-center justify-center">
+              <div className="w-4 h-4 bg-white rounded-full absolute -top-1 -right-1" />
+            </div>
+            <div className="absolute w-14 h-14 rounded-full bg-[#00a651] bottom-0 right-1 opacity-90 mix-blend-multiply flex items-center justify-center">
+              <div className="w-5 h-5 bg-white rounded-full absolute -top-1 -left-1" />
+            </div>
           </div>
-          <div className="flex flex-col">
-            <span className="font-bold text-[15px] leading-tight text-sidebar-foreground tracking-tight">
-              TOTVS Edu
-            </span>
-            <span className="text-[10px] font-semibold text-sidebar-foreground/60 uppercase tracking-widest mt-0.5">
-              ERP Enterprise
-            </span>
+          <span className="text-3xl font-extrabold text-[#1e3a8a] tracking-[0.2em] mt-1">CIAR</span>
+        </div>
+        <div className="px-4 pb-4 pt-2 group-data-[collapsible=icon]:hidden">
+          <div className="relative">
+            <Input
+              type="search"
+              placeholder="Pesquisar..."
+              className="pl-3 pr-8 h-9 text-xs border-zinc-300 rounded-sm focus-visible:ring-[#1e3a8a]"
+            />
+            <Search className="absolute right-2.5 top-2.5 h-4 w-4 text-zinc-400" />
           </div>
         </div>
       </SidebarHeader>
-      <SidebarContent className="p-3 gap-2 pt-4">
-        {finalGroups.map((group) => {
-          const isGroupActive = group.items.some(
-            (item) =>
-              location.pathname === item.href ||
-              (item.href !== '/' && location.pathname.startsWith(item.href)),
-          )
 
-          return (
-            <Collapsible
-              key={group.title}
-              defaultOpen={
-                isGroupActive || group.title === 'Dashboard' || group.title === 'Portal do Aluno'
-              }
-              className="group/collapsible"
-            >
-              <SidebarGroup className="px-0 py-1">
-                <SidebarGroupLabel
+      <SidebarContent className="p-0 gap-0">
+        <SidebarGroup className="p-0">
+          <SidebarGroupLabel className="px-4 py-2 h-auto text-[11px] font-bold text-zinc-500 tracking-wider group-data-[collapsible=icon]:hidden flex items-center gap-2">
+            <Star className="h-4 w-4 text-[#1e3a8a] fill-[#1e3a8a]" /> FAVORITOS
+          </SidebarGroupLabel>
+          <SidebarMenu className="gap-0">
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                className="rounded-none h-10 px-4 text-zinc-600 hover:bg-zinc-100 hover:text-[#1e3a8a] text-[13px]"
+              >
+                <Link to="/secretaria/cadastrar-horario">
+                  <span className="group-data-[collapsible=icon]:hidden">Cadastrar Horário</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+
+        <div className="h-px bg-zinc-200 my-2 group-data-[collapsible=icon]:hidden" />
+
+        <SidebarGroup className="p-0">
+          <SidebarMenu className="gap-0">
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive
+                className="rounded-none h-10 px-4 border-l-4 border-l-[#1e3a8a] bg-zinc-100 text-[#1e3a8a] font-semibold text-[13px] hover:bg-zinc-100"
+              >
+                <Link to="/">
+                  <CalendarDays className="h-[18px] w-[18px]" />
+                  <span>AGENDA</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-zinc-600 hover:bg-zinc-50 text-[13px]">
+                <StickyNote className="h-[18px] w-[18px]" />
+                <span>BLOCO DE NOTAS</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-zinc-600 hover:bg-zinc-50 text-[13px]"
+              >
+                <Link to="/secretaria/consultar-aluno">
+                  <Users className="h-[18px] w-[18px]" />
+                  <span>CONSULTA ALUNO</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-zinc-600 hover:bg-zinc-50 text-[13px]"
+              >
+                <Link to="/secretaria/imprimir-documentos">
+                  <Printer className="h-[18px] w-[18px]" />
+                  <span>IMPRIMIR</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-zinc-600 hover:bg-zinc-50 text-[13px]">
+                <Mail className="h-[18px] w-[18px]" />
+                <span>MENSAGENS</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-zinc-600 hover:bg-zinc-50 text-[13px]">
+                <Newspaper className="h-[18px] w-[18px]" />
+                <span>NEWS</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={toggleSidebar}
+                className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-[#1e3a8a] font-semibold hover:bg-zinc-50 text-[13px]"
+              >
+                <PlayCircle className="h-[18px] w-[18px]" />
+                <span>RECOLHER MENU</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-zinc-600 hover:bg-zinc-50 text-[13px]">
+                <Lock className="h-[18px] w-[18px]" />
+                <span>TROCAR SENHA</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+
+        {/* Dark Modules Section */}
+        <div className="mt-2 bg-[#2d3e50] flex-1 pb-4 group-data-[collapsible=icon]:bg-transparent">
+          <SidebarGroup className="p-0">
+            <SidebarMenu className="gap-0">
+              <SidebarMenuItem>
+                <SidebarMenuButton
                   asChild
-                  className="px-3 mb-1 cursor-pointer hover:bg-zinc-200/50"
+                  className="rounded-none h-11 px-4 border-b border-[#3b4f63] text-zinc-200 hover:bg-[#3b4f63] hover:text-white text-[13px] font-medium group-data-[collapsible=icon]:text-zinc-600 group-data-[collapsible=icon]:border-none"
                 >
-                  <CollapsibleTrigger className="w-full flex items-center justify-between text-sidebar-foreground/50 text-[10px] font-bold uppercase tracking-widest">
-                    {group.title}
-                    <ChevronDown className="h-3.5 w-3.5 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
-                  </CollapsibleTrigger>
-                </SidebarGroupLabel>
-                <CollapsibleContent className="data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down overflow-hidden">
-                  <SidebarGroupContent>
-                    <SidebarMenu className="gap-0.5">
-                      {group.items.map((item) => {
-                        const isActive = location.pathname === item.href
-                        return (
-                          <SidebarMenuItem key={item.title}>
-                            <SidebarMenuButton
-                              asChild
-                              isActive={isActive}
-                              className={`transition-all duration-200 h-8 rounded-md px-3 border-l-2 ${
-                                isActive
-                                  ? 'bg-zinc-200/50 border-zinc-900 text-zinc-900 font-medium'
-                                  : 'border-transparent text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'
-                              }`}
-                            >
-                              <Link to={item.href} className="flex items-center gap-3">
-                                <item.icon
-                                  className={`h-[14px] w-[14px] ${isActive ? 'text-zinc-900' : 'opacity-70'}`}
-                                />
-                                <span className="text-[13px]">{item.title}</span>
-                              </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        )
-                      })}
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </CollapsibleContent>
-              </SidebarGroup>
-            </Collapsible>
-          )
-        })}
+                  <Link to="/academic/students">
+                    <GraduationCap className="h-[18px] w-[18px]" />
+                    <span>ACADÊMICO</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  className="rounded-none h-11 px-4 border-b border-[#3b4f63] text-zinc-200 hover:bg-[#3b4f63] hover:text-white text-[13px] font-medium group-data-[collapsible=icon]:text-zinc-600 group-data-[collapsible=icon]:border-none"
+                >
+                  <Link to="/admin/settings">
+                    <Settings className="h-[18px] w-[18px]" />
+                    <span>ADMINISTRAÇÃO SISTEMA</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  className="rounded-none h-11 px-4 border-b border-[#3b4f63] text-zinc-200 hover:bg-[#3b4f63] hover:text-white text-[13px] font-medium group-data-[collapsible=icon]:text-zinc-600 group-data-[collapsible=icon]:border-none"
+                >
+                  <Link to="/commercial/leads">
+                    <Megaphone className="h-[18px] w-[18px]" />
+                    <span>CRM - COMUNICAÇÃO</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  className="rounded-none h-11 px-4 border-b border-[#3b4f63] text-zinc-200 hover:bg-[#3b4f63] hover:text-white text-[13px] font-medium group-data-[collapsible=icon]:text-zinc-600 group-data-[collapsible=icon]:border-none"
+                >
+                  <Link to="/financial/payments">
+                    <DollarSign className="h-[18px] w-[18px]" />
+                    <span>FINANCEIRO</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton className="rounded-none h-11 px-4 border-b border-[#3b4f63] text-zinc-200 hover:bg-[#3b4f63] hover:text-white text-[13px] font-medium group-data-[collapsible=icon]:text-zinc-600 group-data-[collapsible=icon]:border-none">
+                  <Wrench className="h-[18px] w-[18px]" />
+                  <span>MATHEUS SOLUÇÕES</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroup>
+        </div>
       </SidebarContent>
     </Sidebar>
   )

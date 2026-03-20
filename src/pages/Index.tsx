@@ -1,298 +1,188 @@
-import { useAppStore } from '@/contexts/AppContext'
-import {
-  Users,
-  DollarSign,
-  Target,
-  AlertCircle,
-  TrendingUp,
-  BookOpen,
-  ChevronUp,
-  Shield,
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Legend } from 'recharts'
-import { mockFinancialChart } from '@/lib/mockData'
+import { Calendar as CalendarIcon, Mail, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Link, useNavigate } from 'react-router-dom'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Role } from '@/lib/types'
 
-const chartConfig = {
-  receitas: { label: 'Receitas', color: 'hsl(var(--primary))' },
-  despesas: { label: 'Despesas', color: 'hsl(var(--muted-foreground))' },
-}
+const calendarDays = [
+  // Row 1
+  { day: 1, current: true },
+  { day: 2, current: true },
+  { day: 3, current: true },
+  { day: 4, current: true },
+  { day: 5, current: true },
+  { day: 6, current: true },
+  { day: 7, current: true },
+  // Row 2
+  { day: 8, current: true },
+  { day: 9, current: true },
+  { day: 10, current: true },
+  { day: 11, current: true },
+  { day: 12, current: true },
+  { day: 13, current: true },
+  { day: 14, current: true },
+  // Row 3
+  { day: 15, current: true },
+  { day: 16, current: true },
+  { day: 17, current: true },
+  { day: 18, current: true },
+  { day: 19, current: true },
+  { day: 20, current: true, today: true },
+  { day: 21, current: true },
+  // Row 4
+  { day: 22, current: true },
+  { day: 23, current: true },
+  { day: 24, current: true },
+  { day: 25, current: true },
+  { day: 26, current: true },
+  { day: 27, current: true },
+  { day: 28, current: true },
+  // Row 5
+  { day: 29, current: true },
+  { day: 30, current: true },
+  { day: 31, current: true },
+  { day: 1, current: false },
+  { day: 2, current: false },
+  { day: 3, current: false },
+  { day: 4, current: false },
+  // Row 6
+  { day: 5, current: false },
+  { day: 6, current: false },
+  { day: 7, current: false },
+  { day: 8, current: false },
+  { day: 9, current: false },
+  { day: 10, current: false },
+  { day: 11, current: false },
+]
 
 export default function Index() {
-  const { students, leads, payments, currentUserRole, setCurrentUserRole } = useAppStore()
-  const navigate = useNavigate()
-
-  const activeStudents = students.filter((s) => s.status === 'Ativo').length
-  const newLeads = leads.filter((l) => l.status === 'Novo').length
-  const pendingPayments = payments.filter(
-    (p) => p.status === 'Pendente' || p.status === 'Atrasado',
-  ).length
-  const totalRevenue = payments
-    .filter((p) => p.status === 'Pago')
-    .reduce((acc, curr) => acc + curr.amount, 0)
-
-  const isAcademic = currentUserRole === 'Admin' || currentUserRole === 'Academico'
-  const isFinancial = currentUserRole === 'Admin' || currentUserRole === 'Financeiro'
-  const isCommercial = currentUserRole === 'Admin' || currentUserRole === 'Comercial'
-
-  const handleRoleChange = (role: Role) => {
-    setCurrentUserRole(role)
-    if (role === 'Aluno') {
-      navigate('/student/dashboard')
-    }
-  }
-
   return (
-    <div className="space-y-6 animate-fade-in-up pb-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-2">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">Visão gerencial consolidada</p>
-        </div>
-        <div className="flex items-center gap-3 bg-zinc-100 p-1.5 rounded-lg border border-zinc-200">
-          <Shield className="h-4 w-4 text-zinc-500 ml-2" />
-          <Select value={currentUserRole} onValueChange={handleRoleChange}>
-            <SelectTrigger className="h-8 w-[160px] bg-white text-xs border-transparent shadow-sm">
-              <SelectValue placeholder="Perfil de Acesso" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Admin">Administrador</SelectItem>
-              <SelectItem value="Academico">Secretaria / Acadêmico</SelectItem>
-              <SelectItem value="Financeiro">Financeiro</SelectItem>
-              <SelectItem value="Comercial">Comercial</SelectItem>
-              <SelectItem value="Aluno">Portal do Aluno</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+    <div className="space-y-6 animate-fade-in pb-8 font-sans">
+      <div>
+        <h1 className="text-3xl font-normal text-[#1e3a8a] tracking-tight">Agenda</h1>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {isAcademic && (
-          <Card className="shadow-subtle border-border/50">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Total de Alunos
-                  </p>
-                  <p className="text-2xl font-bold text-foreground">{activeStudents}</p>
-                </div>
-                <div className="p-2 rounded-md bg-primary/10 text-primary">
-                  <Users className="h-5 w-5" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-center text-xs text-emerald-600 font-medium">
-                <ChevronUp className="h-3 w-3 mr-1" />
-                <span>12% em relação ao mês anterior</span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+      <div className="bg-white border border-zinc-200 p-6 shadow-sm">
+        <h2 className="text-2xl font-normal text-[#1e3a8a] mb-6">Agenda</h2>
 
-        {isFinancial && (
-          <>
-            <Card className="shadow-subtle border-border/50">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Receita Mensal
-                    </p>
-                    <p className="text-2xl font-bold text-foreground">
-                      R$ {totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                  <div className="p-2 rounded-md bg-emerald-500/10 text-emerald-600">
-                    <TrendingUp className="h-5 w-5" />
-                  </div>
-                </div>
-                <div className="mt-4 flex items-center text-xs text-emerald-600 font-medium">
-                  <ChevronUp className="h-3 w-3 mr-1" />
-                  <span>8.4% acima da meta</span>
-                </div>
-              </CardContent>
-            </Card>
+        {/* Calendar Controls */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+          <div className="flex rounded-md border border-zinc-300 overflow-hidden shadow-sm">
+            <Button
+              variant="ghost"
+              className="rounded-none border-r border-zinc-300 h-9 px-4 text-xs font-medium bg-zinc-100 hover:bg-zinc-200 text-zinc-700"
+            >
+              Mês
+            </Button>
+            <Button
+              variant="ghost"
+              className="rounded-none border-r border-zinc-300 h-9 px-4 text-xs font-medium hover:bg-zinc-100 text-zinc-700"
+            >
+              Semana
+            </Button>
+            <Button
+              variant="ghost"
+              className="rounded-none h-9 px-4 text-xs font-medium hover:bg-zinc-100 text-zinc-700"
+            >
+              Dia
+            </Button>
+          </div>
 
-            <Card className="shadow-subtle border-border/50">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Inadimplência
-                    </p>
-                    <p className="text-2xl font-bold text-foreground">{pendingPayments}</p>
-                  </div>
-                  <div className="p-2 rounded-md bg-rose-500/10 text-rose-600">
-                    <AlertCircle className="h-5 w-5" />
-                  </div>
-                </div>
-                <div className="mt-4 flex items-center text-xs text-rose-600 font-medium">
-                  <ChevronUp className="h-3 w-3 mr-1" />
-                  <span>Requer atenção imediata</span>
-                </div>
-              </CardContent>
-            </Card>
-          </>
-        )}
+          <div className="text-lg font-bold text-zinc-600 uppercase tracking-widest">
+            Março 2026
+          </div>
 
-        {isCommercial && (
-          <Card className="shadow-subtle border-border/50">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Leads Ativos
-                  </p>
-                  <p className="text-2xl font-bold text-foreground">{newLeads}</p>
-                </div>
-                <div className="p-2 rounded-md bg-amber-500/10 text-amber-600">
-                  <Target className="h-5 w-5" />
-                </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              className="h-9 px-4 text-xs font-medium text-zinc-600 shadow-sm"
+            >
+              Hoje
+            </Button>
+            <Button
+              variant="outline"
+              className="h-9 px-4 text-xs font-medium text-zinc-600 shadow-sm bg-zinc-50"
+            >
+              Mostrar Aniversariantes
+            </Button>
+            <div className="flex rounded-md border border-zinc-300 overflow-hidden shadow-sm ml-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-none border-r border-zinc-300 h-9 w-10 hover:bg-zinc-100"
+              >
+                <ChevronLeft className="h-4 w-4 text-zinc-600" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-none h-9 w-10 hover:bg-zinc-100"
+              >
+                <ChevronRight className="h-4 w-4 text-zinc-600" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Calendar Grid */}
+        <div className="border-t border-l border-zinc-200">
+          <div className="grid grid-cols-7 bg-white">
+            {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'].map((day) => (
+              <div
+                key={day}
+                className="py-3 text-center font-bold text-sm text-zinc-800 border-r border-b border-zinc-200"
+              >
+                {day}
               </div>
-              <div className="mt-4 flex items-center text-xs text-muted-foreground font-medium">
-                <span>Aguardando primeiro contato</span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {isFinancial && (
-          <Card
-            className={`col-span-1 border-border/50 shadow-subtle ${isAcademic ? 'lg:col-span-2' : 'lg:col-span-3'}`}
-          >
-            <CardHeader className="border-b border-border/50 bg-muted/10 py-4">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2 text-foreground">
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-                Desempenho Financeiro
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <ChartContainer config={chartConfig} className="h-[320px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={mockFinancialChart}
-                    margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                  >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      vertical={false}
-                      stroke="hsl(var(--border))"
-                      opacity={0.5}
-                    />
-                    <XAxis
-                      dataKey="month"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                      dy={10}
-                    />
-                    <YAxis
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                      tickFormatter={(val) => `R$${val / 1000}k`}
-                    />
-                    <ChartTooltip
-                      cursor={{ fill: 'hsl(var(--muted)/0.4)' }}
-                      content={<ChartTooltipContent />}
-                    />
-                    <Legend
-                      verticalAlign="top"
-                      height={36}
-                      iconType="circle"
-                      wrapperStyle={{ fontSize: '12px' }}
-                    />
-                    <Bar
-                      dataKey="receitas"
-                      fill="var(--color-receitas)"
-                      radius={[4, 4, 0, 0]}
-                      maxBarSize={40}
-                    />
-                    <Bar
-                      dataKey="despesas"
-                      fill="var(--color-despesas)"
-                      radius={[4, 4, 0, 0]}
-                      maxBarSize={40}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-        )}
-
-        {isAcademic && (
-          <Card
-            className={`col-span-1 border-border/50 shadow-subtle flex flex-col ${!isFinancial ? 'lg:col-span-3' : ''}`}
-          >
-            <CardHeader className="border-b border-border/50 bg-muted/10 py-4">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2 text-foreground">
-                <BookOpen className="h-4 w-4 text-muted-foreground" />
-                Agenda Acadêmica
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 pt-6 px-0">
-              <div className="space-y-0 divide-y divide-border/50">
-                {[
-                  { time: '09:00', title: 'Reunião de Coordenação', type: 'Institucional' },
-                  {
-                    time: '14:30',
-                    title: 'Fechamento de Notas 3º Bimestre',
-                    type: 'Prazo Limite',
-                    urgent: true,
-                  },
-                  {
-                    time: '16:00',
-                    title: 'Visita Técnica: Turma Eng. Software',
-                    type: 'Atividade Externa',
-                  },
-                ].map((item, i) => (
-                  <div key={i} className="flex gap-4 p-4 hover:bg-muted/30 transition-colors">
-                    <div className="flex flex-col items-center justify-start pt-1">
-                      <span className="text-xs font-semibold text-muted-foreground w-12 text-right tabular-nums">
-                        {item.time}
-                      </span>
-                    </div>
-                    <div className="flex-1">
-                      <p
-                        className={`text-sm font-medium ${item.urgent ? 'text-rose-600' : 'text-foreground'}`}
-                      >
-                        {item.title}
-                      </p>
-                      <span className="text-xs text-muted-foreground mt-1 block">{item.type}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="p-4 pt-2 flex flex-col gap-2">
-                <Button variant="outline" size="sm" className="w-full text-xs font-medium" asChild>
-                  <Link to="/academic/classes">Ver Agenda Completa</Link>
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="w-full text-xs font-medium bg-zinc-900 text-white hover:bg-zinc-800"
-                  asChild
+            ))}
+            {calendarDays.map((date, i) => (
+              <div
+                key={i}
+                className={`min-h-[100px] p-2 border-r border-b border-zinc-200 relative transition-colors
+                  ${date.today ? 'bg-[#fff9c4]' : 'bg-white'}
+                `}
+              >
+                <span
+                  className={`absolute top-2 right-3 text-xl ${
+                    date.current ? 'text-zinc-800' : 'text-zinc-300'
+                  }`}
                 >
-                  <Link to="/academic/occupancy">Dashboard de Ocupação</Link>
-                </Button>
+                  {date.day}
+                </span>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            ))}
+          </div>
+        </div>
+
+        {/* Markers Section */}
+        <fieldset className="mt-8 border border-zinc-200 rounded-md p-4 pt-6 relative">
+          <legend className="absolute -top-3 left-4 bg-white px-2 text-xs font-medium text-zinc-500">
+            Marcadores
+          </legend>
+          <div className="flex flex-wrap gap-2">
+            <Button className="bg-[#2d3e50] hover:bg-[#1e2b3c] text-white text-xs h-8 px-4 rounded shadow-sm">
+              Ocultar Agenda Pessoal
+            </Button>
+            <Button className="bg-[#00c0b5] hover:bg-[#009e95] text-white text-xs h-8 px-4 rounded shadow-sm">
+              Ocultar Calendário Escolar
+            </Button>
+            <Button className="bg-[#d32f2f] hover:bg-[#b71c1c] text-white text-xs h-8 px-4 rounded shadow-sm">
+              Ocultar Feriados
+            </Button>
+          </div>
+        </fieldset>
+
+        {/* Summary Cards */}
+        <div className="mt-6 space-y-3">
+          <div className="p-4 border border-blue-200 bg-[#f0f7ff] rounded-md flex items-center gap-3 shadow-sm">
+            <CalendarIcon className="h-5 w-5 text-blue-800" />
+            <span className="text-sm font-medium text-blue-900">
+              Sem compromissos agendados para hoje!
+            </span>
+          </div>
+
+          <div className="p-4 border border-amber-200 bg-[#fff9c4] rounded-md flex items-center gap-3 shadow-sm">
+            <Mail className="h-5 w-5 text-amber-600" />
+            <span className="text-sm font-medium text-amber-900">Sem novas mensagens!</span>
+          </div>
+        </div>
       </div>
     </div>
   )
