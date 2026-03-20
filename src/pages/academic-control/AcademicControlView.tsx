@@ -1,5 +1,4 @@
 import { useParams, Link } from 'react-router-dom'
-import { academicList, slugify } from '@/lib/nav-config'
 import { BookOpen, Search, Filter, Plus, Save, ChevronLeft } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -17,7 +16,9 @@ import { Label } from '@/components/ui/label'
 
 export default function AcademicControlView() {
   const { id } = useParams()
-  const title = academicList.find((t) => slugify(t) === id) || 'Módulo Acadêmico'
+  const title = id
+    ? id.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
+    : 'Módulo Acadêmico'
   const isForm = id?.startsWith('lancar-')
 
   const mockData = Array.from({ length: 6 }).map((_, i) => ({

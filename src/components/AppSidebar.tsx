@@ -20,47 +20,28 @@ export function AppSidebar() {
   const { currentUserRole } = useAppStore()
 
   const filteredGroups = navGroups.filter((group) => {
-    if (currentUserRole === 'Aluno') {
-      return group.label === 'Portal do Aluno'
-    }
-
-    if (group.label === 'Portal do Aluno') return false
-
     if (currentUserRole === 'Admin') return true
 
-    if (
-      currentUserRole === 'Academico' &&
-      [
-        'Visão Geral',
-        'Módulo Acadêmico',
-        'Controle Acadêmico',
-        'Relatórios',
-        'Administração',
-      ].includes(group.label)
-    ) {
-      return true
+    if (currentUserRole === 'Academico') {
+      return ['Dashboard', 'Acadêmico', 'Secretaria', 'Secretaria Educação'].includes(group.title)
     }
-    if (
-      currentUserRole === 'Financeiro' &&
-      ['Visão Geral', 'Módulo Financeiro', 'Relatórios', 'Administração'].includes(group.label)
-    )
-      return true
-    if (
-      currentUserRole === 'Comercial' &&
-      ['Visão Geral', 'Módulo Comercial', 'Relatórios'].includes(group.label)
-    )
-      return true
+    if (currentUserRole === 'Financeiro') {
+      return ['Dashboard', 'Financeiro'].includes(group.title)
+    }
+    if (currentUserRole === 'Comercial') {
+      return ['Dashboard', 'Comercial / CRM'].includes(group.title)
+    }
 
     return false
   })
 
   const finalGroups = filteredGroups.map((group) => {
-    if (group.label === 'Administração' && currentUserRole !== 'Admin') {
+    if (group.title === 'Administração' && currentUserRole !== 'Admin') {
       return {
         ...group,
         items: group.items.filter(
           (item) =>
-            !['Auditoria (Logs)', 'Controle de Acessos', 'Configurações'].includes(item.title),
+            !['Logs de Auditoria', 'Controle de Acessos', 'Configurações'].includes(item.title),
         ),
       }
     }
@@ -79,20 +60,23 @@ export function AppSidebar() {
               TOTVS Edu
             </span>
             <span className="text-[10px] font-semibold text-sidebar-foreground/60 uppercase tracking-widest mt-0.5">
-              {currentUserRole === 'Aluno' ? 'Portal do Aluno' : 'ERP Enterprise'}
+              ERP Enterprise
             </span>
           </div>
         </div>
       </SidebarHeader>
       <SidebarContent className="p-3 gap-2 pt-4">
         {finalGroups.map((group) => {
-          const isLargeGroup = group.label === 'Controle Acadêmico' || group.label === 'Relatórios'
-          const isGroupActive = group.items.some((item) => location.pathname.startsWith(item.url))
+          const isGroupActive = group.items.some(
+            (item) =>
+              location.pathname === item.href ||
+              (item.href !== '/' && location.pathname.startsWith(item.href)),
+          )
 
           return (
             <Collapsible
-              key={group.label}
-              defaultOpen={!isLargeGroup || isGroupActive}
+              key={group.title}
+              defaultOpen={isGroupActive || group.title === 'Dashboard'}
               className="group/collapsible"
             >
               <SidebarGroup className="px-0 py-1">
@@ -101,7 +85,7 @@ export function AppSidebar() {
                   className="px-3 mb-1 cursor-pointer hover:bg-zinc-200/50"
                 >
                   <CollapsibleTrigger className="w-full flex items-center justify-between text-sidebar-foreground/50 text-[10px] font-bold uppercase tracking-widest">
-                    {group.label}
+                    {group.title}
                     <ChevronDown className="h-3.5 w-3.5 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
                   </CollapsibleTrigger>
                 </SidebarGroupLabel>
@@ -109,7 +93,7 @@ export function AppSidebar() {
                   <SidebarGroupContent>
                     <SidebarMenu className="gap-0.5">
                       {group.items.map((item) => {
-                        const isActive = location.pathname === item.url
+                        const isActive = location.pathname === item.href
                         return (
                           <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton
@@ -121,13 +105,11 @@ export function AppSidebar() {
                                   : 'border-transparent text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'
                               }`}
                             >
-                              <Link to={item.url} className="flex items-center gap-3">
+                              <Link to={item.href} className="flex items-center gap-3">
                                 <item.icon
                                   className={`h-[14px] w-[14px] ${isActive ? 'text-zinc-900' : 'opacity-70'}`}
                                 />
-                                <span className={isLargeGroup ? 'text-xs' : 'text-[13px]'}>
-                                  {item.title}
-                                </span>
+                                <span className="text-[13px]">{item.title}</span>
                               </Link>
                             </SidebarMenuButton>
                           </SidebarMenuItem>

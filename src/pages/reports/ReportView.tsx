@@ -1,6 +1,5 @@
 import { useParams, Link } from 'react-router-dom'
-import { reportsList, slugify } from '@/lib/nav-config'
-import { FileText, Download, FileSpreadsheet, ChevronLeft, Calendar } from 'lucide-react'
+import { FileText, Download, FileSpreadsheet, ChevronLeft, Calendar, Search } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -24,7 +23,9 @@ import { useToast } from '@/hooks/use-toast'
 export default function ReportView() {
   const { id } = useParams()
   const { toast } = useToast()
-  const title = reportsList.find((t) => slugify(t) === id) || 'Relatório Gerencial'
+  const title = id
+    ? id.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
+    : 'Relatório Gerencial'
 
   const mockData = Array.from({ length: 8 }).map((_, i) => ({
     id: `000${i + 1}`,
