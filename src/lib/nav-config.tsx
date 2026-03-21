@@ -36,6 +36,7 @@ import {
   BookCopy,
   BarChart,
   FolderOpen,
+  MapPin,
 } from 'lucide-react'
 
 export interface NavItem {
@@ -158,6 +159,17 @@ export const navGroups: NavGroup[] = [
       { title: 'Movimentações', href: '/inventory/movements', icon: ArrowRightLeft },
       { title: 'Pedidos de Compra', href: '/purchasing/orders', icon: ShoppingCart },
       { title: 'Fornecedores', href: '/purchasing/suppliers', icon: Building },
+    ],
+  },
+  {
+    title: 'Cadastros Básicos',
+    items: [
+      { title: 'Avaliações', href: '/admin/registry/avaliacoes', icon: CheckSquare },
+      { title: 'Cursos', href: '/admin/registry/curso', icon: BookOpen },
+      { title: 'Convênios', href: '/admin/registry/convenio', icon: Users },
+      { title: 'CEP (Logradouros)', href: '/admin/registry/cep', icon: MapPin },
+      { title: 'Disciplinas', href: '/admin/registry/disciplina', icon: BookCopy },
+      { title: 'Turmas', href: '/admin/registry/turmas', icon: Building },
     ],
   },
   {
