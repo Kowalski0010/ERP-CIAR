@@ -67,6 +67,7 @@ export const navGroups: NavGroup[] = [
   {
     title: 'Acadêmico',
     items: [
+      { title: 'Agenda Acadêmica', href: '/academic/agenda', icon: Calendar },
       { title: 'Alunos', href: '/academic/students', icon: Users },
       { title: 'Professores', href: '/academic/teachers', icon: GraduationCap },
       { title: 'Turmas', href: '/academic/classes', icon: BookOpen },

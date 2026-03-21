@@ -10,6 +10,8 @@ import {
   AlertCircle,
   Users,
   FileText,
+  Download,
+  FileSpreadsheet,
 } from 'lucide-react'
 import {
   Table,
@@ -67,6 +69,13 @@ export default function Students() {
     })
   }
 
+  const handleExport = (type: string) => {
+    toast({
+      title: `Exportando ${type}`,
+      description: `Gerando arquivo ${type} da lista de alunos. O download iniciará em breve.`,
+    })
+  }
+
   const totalActive = students.filter((s) => s.status === 'Ativo').length
   const totalGraduated = students.filter((s) => s.status === 'Formado').length
   const totalLate = studentsWithFinance.filter((s) => s.financialStatus === 'Inadimplente').length
@@ -80,13 +89,32 @@ export default function Students() {
             Gestão de matrículas, documentação e histórico de discentes.
           </p>
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)} className="shadow-sm h-9 px-4">
-          <Plus className="mr-2 h-4 w-4" /> Nova Matrícula
-        </Button>
+        <div className="flex gap-2 w-full sm:w-auto overflow-x-auto pb-1">
+          <Button
+            variant="outline"
+            className="shadow-sm h-10 px-4 text-xs font-semibold shrink-0"
+            onClick={() => handleExport('Excel')}
+          >
+            <FileSpreadsheet className="mr-2 h-4 w-4 text-emerald-600" /> Excel
+          </Button>
+          <Button
+            variant="outline"
+            className="shadow-sm h-10 px-4 text-xs font-semibold shrink-0"
+            onClick={() => handleExport('PDF')}
+          >
+            <Download className="mr-2 h-4 w-4" /> PDF
+          </Button>
+          <Button
+            onClick={() => setIsAddDialogOpen(true)}
+            className="shadow-sm h-10 px-4 shrink-0 font-semibold"
+          >
+            <Plus className="mr-2 h-4 w-4" /> Nova Matrícula
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Card className="shadow-sm border-zinc-200">
+        <Card className="shadow-sm border-zinc-200 bg-white">
           <CardContent className="p-4 flex items-center justify-between">
             <div className="space-y-1">
               <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">
@@ -94,12 +122,12 @@ export default function Students() {
               </p>
               <p className="text-2xl font-bold text-zinc-900">{totalActive}</p>
             </div>
-            <div className="p-2 rounded-md bg-zinc-100 text-zinc-700">
+            <div className="p-2 rounded-md bg-blue-50 text-blue-600">
               <Users className="h-5 w-5" />
             </div>
           </CardContent>
         </Card>
-        <Card className="shadow-sm border-zinc-200">
+        <Card className="shadow-sm border-zinc-200 bg-white">
           <CardContent className="p-4 flex items-center justify-between">
             <div className="space-y-1">
               <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">
@@ -107,12 +135,12 @@ export default function Students() {
               </p>
               <p className="text-2xl font-bold text-zinc-900">{totalGraduated}</p>
             </div>
-            <div className="p-2 rounded-md bg-zinc-100 text-zinc-700">
+            <div className="p-2 rounded-md bg-emerald-50 text-emerald-600">
               <GraduationCap className="h-5 w-5" />
             </div>
           </CardContent>
         </Card>
-        <Card className="shadow-sm border-zinc-200">
+        <Card className="shadow-sm border-zinc-200 bg-white">
           <CardContent className="p-4 flex items-center justify-between">
             <div className="space-y-1">
               <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">
@@ -127,12 +155,12 @@ export default function Students() {
         </Card>
       </div>
 
-      <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-2 flex flex-col sm:flex-row gap-3 items-center justify-between">
+      <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-3 flex flex-col sm:flex-row gap-3 items-center justify-between">
         <div className="relative flex-1 w-full max-w-md">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
+          <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
           <Input
             placeholder="Buscar por nome, email ou CPF..."
-            className="pl-9 h-9 bg-zinc-50/50 border-transparent focus-visible:border-zinc-300 w-full text-xs"
+            className="pl-9 h-10 bg-zinc-50/50 border-zinc-200 focus-visible:border-zinc-300 w-full text-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -141,19 +169,19 @@ export default function Students() {
           <Button
             variant="outline"
             size="icon"
-            className="h-9 w-9 shrink-0"
+            className="h-10 w-10 shrink-0 border-zinc-200"
             title="Filtros Avançados"
           >
-            <SlidersHorizontal className="h-4 w-4" />
+            <SlidersHorizontal className="h-4 w-4 text-zinc-500" />
           </Button>
-          <div className="flex bg-zinc-100 p-1 rounded-md shrink-0">
+          <div className="flex bg-zinc-100 p-1.5 rounded-md shrink-0 border border-zinc-200">
             {['Todos', 'Ativo', 'Inativo', 'Formado'].map((status) => (
               <Button
                 key={status}
                 variant={filterStatus === status ? 'secondary' : 'ghost'}
                 size="sm"
                 onClick={() => setFilterStatus(status)}
-                className={`text-[11px] h-7 px-3 font-medium ${filterStatus === status ? 'shadow-sm bg-white' : 'text-zinc-500'}`}
+                className={`text-xs h-7 px-3 font-semibold transition-colors ${filterStatus === status ? 'shadow-sm bg-white text-zinc-900' : 'text-zinc-500 hover:text-zinc-900'}`}
               >
                 {status}
               </Button>
@@ -164,99 +192,114 @@ export default function Students() {
 
       <div className="bg-white border border-zinc-200 rounded-lg shadow-sm overflow-hidden">
         {filteredStudents.length > 0 ? (
-          <Table className="table-compact">
-            <TableHeader>
-              <TableRow className="hover:bg-transparent bg-zinc-50/50">
-                <TableHead className="w-[280px]">Aluno / Contato</TableHead>
-                <TableHead className="w-[140px]">Documento (CPF)</TableHead>
-                <TableHead>Curso Vinculado</TableHead>
-                <TableHead className="w-[120px]">Status Acadêmico</TableHead>
-                <TableHead className="w-[140px]">Situação Financeira</TableHead>
-                <TableHead className="text-right w-[60px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredStudents.map((student) => (
-                <TableRow key={student.id} className="group hover:bg-zinc-50/80 transition-colors">
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-7 w-7 rounded-sm border border-zinc-200">
-                        <AvatarImage src={student.avatar} />
-                        <AvatarFallback className="bg-zinc-100 text-zinc-900 text-[10px] font-semibold rounded-sm">
-                          {student.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex flex-col min-w-0">
-                        <span className="font-semibold text-zinc-900 truncate">{student.name}</span>
-                        <span className="text-[10px] text-zinc-500 truncate">{student.email}</span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-mono text-[11px] text-zinc-600">
-                    {student.cpf || 'Não informado'}
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-xs font-medium text-zinc-700">{student.course}</span>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={
-                        student.status === 'Ativo'
-                          ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                          : student.status === 'Inativo'
-                            ? 'border-rose-200 bg-rose-50 text-rose-700'
-                            : 'border-zinc-200 bg-zinc-50 text-zinc-700'
-                      }
-                    >
-                      {student.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={
-                        student.financialStatus === 'Regular'
-                          ? 'border-transparent bg-transparent text-emerald-600'
-                          : 'border-amber-200 bg-amber-50 text-amber-700'
-                      }
-                    >
-                      {student.financialStatus}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right p-1">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <MoreHorizontal className="h-4 w-4 text-zinc-400" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-[180px]">
-                        <DropdownMenuLabel className="text-xs">Opções</DropdownMenuLabel>
-                        <DropdownMenuItem className="text-xs">Ficha Completa</DropdownMenuItem>
-                        <DropdownMenuItem className="text-xs">Histórico Escolar</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-xs font-medium text-blue-600 focus:text-blue-700 cursor-pointer flex items-center gap-2"
-                          onClick={() => handleGenerateInvoice(student.id, student.name)}
-                        >
-                          <FileText className="w-3.5 h-3.5" /> Gerar Fatura / Boleto
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-xs text-destructive focus:text-destructive">
-                          Bloquear Matrícula
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table className="table-compact">
+              <TableHeader>
+                <TableRow className="hover:bg-transparent bg-zinc-50/50">
+                  <TableHead className="w-[280px]">Aluno / Contato</TableHead>
+                  <TableHead className="w-[140px]">Documento (CPF)</TableHead>
+                  <TableHead>Curso Vinculado</TableHead>
+                  <TableHead className="w-[120px]">Status Acadêmico</TableHead>
+                  <TableHead className="w-[140px]">Situação Financeira</TableHead>
+                  <TableHead className="text-right w-[60px]"></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredStudents.map((student) => (
+                  <TableRow
+                    key={student.id}
+                    className="group hover:bg-zinc-50/80 transition-colors"
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8 rounded border border-zinc-200 shadow-sm">
+                          <AvatarImage src={student.avatar} />
+                          <AvatarFallback className="bg-zinc-100 text-zinc-900 text-xs font-bold rounded">
+                            {student.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col min-w-0">
+                          <span className="font-semibold text-zinc-900 text-sm truncate">
+                            {student.name}
+                          </span>
+                          <span className="text-[11px] text-zinc-500 truncate">
+                            {student.email}
+                          </span>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-zinc-600">
+                      {student.cpf || 'Não informado'}
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-xs font-medium text-zinc-700">{student.course}</span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={
+                          student.status === 'Ativo'
+                            ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                            : student.status === 'Inativo'
+                              ? 'border-rose-200 bg-rose-50 text-rose-700'
+                              : 'border-zinc-200 bg-zinc-50 text-zinc-700'
+                        }
+                      >
+                        {student.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={
+                          student.financialStatus === 'Regular'
+                            ? 'border-transparent bg-transparent text-emerald-600'
+                            : 'border-amber-200 bg-amber-50 text-amber-700'
+                        }
+                      >
+                        {student.financialStatus}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right p-2">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <MoreHorizontal className="h-4 w-4 text-zinc-500" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-[200px]">
+                          <DropdownMenuLabel className="text-xs text-zinc-500 uppercase tracking-widest">
+                            Opções de Matrícula
+                          </DropdownMenuLabel>
+                          <DropdownMenuItem className="text-sm font-medium cursor-pointer">
+                            Ficha Completa
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-sm font-medium cursor-pointer">
+                            Histórico Escolar
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-sm font-medium text-blue-600 focus:text-blue-700 focus:bg-blue-50 cursor-pointer flex items-center gap-2"
+                            onClick={() => handleGenerateInvoice(student.id, student.name)}
+                          >
+                            <FileText className="w-4 h-4" /> Gerar Fatura / Boleto
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-sm font-medium text-rose-600 focus:text-rose-700 focus:bg-rose-50 cursor-pointer">
+                            Bloquear Matrícula
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         ) : (
           <div className="flex flex-col items-center justify-center p-12 text-center bg-zinc-50/50">
             <div className="h-12 w-12 bg-white border border-zinc-200 rounded-lg flex items-center justify-center mb-3 shadow-sm">
@@ -269,7 +312,7 @@ export default function Students() {
             <Button
               variant="outline"
               size="sm"
-              className="mt-4 h-8 text-xs"
+              className="mt-4 h-9 text-xs"
               onClick={() => setSearchTerm('')}
             >
               Limpar Filtros

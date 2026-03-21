@@ -47,30 +47,42 @@ export default function ReportView() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-2">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Button variant="ghost" size="icon" className="h-6 w-6 -ml-1 text-zinc-500" asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 -ml-2 text-zinc-500 hover:text-zinc-900"
+              asChild
+            >
               <Link to="/">
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-5 w-5" />
               </Link>
             </Button>
-            <Badge variant="secondary" className="bg-zinc-100 text-zinc-600 text-[10px]">
+            <Badge
+              variant="secondary"
+              className="bg-zinc-100 text-zinc-600 text-[10px] font-bold uppercase tracking-widest border border-zinc-200"
+            >
               Suite de Relatórios
             </Badge>
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900 flex items-center gap-2">
-            <FileText className="h-6 w-6 text-zinc-400" />
+            <FileText className="h-7 w-7 text-zinc-400" />
             {title}
           </h1>
           <p className="text-sm text-zinc-500 mt-1">Extração de dados tabulares e analíticos.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto overflow-x-auto pb-1">
           <Button
             variant="outline"
-            className="shadow-sm h-9 px-4 text-xs"
+            className="shadow-sm h-10 px-4 text-xs font-semibold shrink-0"
             onClick={() => handleExport('Excel')}
           >
             <FileSpreadsheet className="mr-2 h-4 w-4 text-emerald-600" /> Excel
           </Button>
-          <Button className="shadow-sm h-9 px-4 text-xs" onClick={() => handleExport('PDF')}>
+          <Button
+            variant="outline"
+            className="shadow-sm h-10 px-4 text-xs font-semibold shrink-0"
+            onClick={() => handleExport('PDF')}
+          >
             <Download className="mr-2 h-4 w-4" /> Exportar PDF
           </Button>
         </div>
@@ -88,7 +100,7 @@ export default function ReportView() {
               Período Letivo
             </label>
             <Select defaultValue="atual">
-              <SelectTrigger className="bg-zinc-50 text-xs h-9">
+              <SelectTrigger className="bg-zinc-50 text-xs h-10">
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>
@@ -103,7 +115,7 @@ export default function ReportView() {
               Curso / Turma
             </label>
             <Select defaultValue="todos">
-              <SelectTrigger className="bg-zinc-50 text-xs h-9">
+              <SelectTrigger className="bg-zinc-50 text-xs h-10">
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>
@@ -118,7 +130,7 @@ export default function ReportView() {
               Status Operacional
             </label>
             <Select defaultValue="ativos">
-              <SelectTrigger className="bg-zinc-50 text-xs h-9">
+              <SelectTrigger className="bg-zinc-50 text-xs h-10">
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>
@@ -128,7 +140,10 @@ export default function ReportView() {
             </Select>
           </div>
           <div className="flex items-end">
-            <Button variant="secondary" className="w-full h-9 shadow-sm text-xs font-semibold">
+            <Button
+              variant="secondary"
+              className="w-full h-10 shadow-sm text-xs font-semibold bg-zinc-900 text-white hover:bg-zinc-800"
+            >
               <Search className="h-4 w-4 mr-2" /> Processar Relatório
             </Button>
           </div>
@@ -136,37 +151,42 @@ export default function ReportView() {
       </Card>
 
       <div className="bg-white border border-zinc-200 rounded-lg shadow-sm overflow-hidden mt-6">
-        <Table className="table-compact">
-          <TableHeader className="bg-zinc-50/80">
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="w-[100px]">Código ID</TableHead>
-              <TableHead>Informação Principal</TableHead>
-              <TableHead className="w-[200px]">Agrupamento / Categoria</TableHead>
-              <TableHead className="text-right w-[150px]">Métrica / Valor</TableHead>
-              <TableHead className="w-[140px]">Data Reg.</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {mockData.map((row) => (
-              <TableRow key={row.id} className="hover:bg-zinc-50/50 transition-colors">
-                <TableCell className="font-mono text-[11px] text-zinc-500 font-medium">
-                  {row.id}
-                </TableCell>
-                <TableCell className="font-semibold text-zinc-900 text-xs">{row.col1}</TableCell>
-                <TableCell className="text-xs text-zinc-600">
-                  <Badge variant="secondary" className="font-medium bg-zinc-100 px-2 py-0">
-                    {row.col2}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right font-mono text-xs text-zinc-700">
-                  {row.col3}
-                </TableCell>
-                <TableCell className="text-xs text-zinc-500">{row.col4}</TableCell>
+        <div className="overflow-x-auto">
+          <Table className="table-compact min-w-[600px]">
+            <TableHeader className="bg-zinc-50/80">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[100px]">Código ID</TableHead>
+                <TableHead>Informação Principal</TableHead>
+                <TableHead className="w-[200px]">Agrupamento / Categoria</TableHead>
+                <TableHead className="text-right w-[150px]">Métrica / Valor</TableHead>
+                <TableHead className="w-[140px]">Data Reg.</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <div className="p-3 border-t border-zinc-100 bg-zinc-50 text-xs text-zinc-500 flex justify-between items-center">
+            </TableHeader>
+            <TableBody>
+              {mockData.map((row) => (
+                <TableRow key={row.id} className="hover:bg-zinc-50/50 transition-colors">
+                  <TableCell className="font-mono text-[11px] text-zinc-500 font-medium">
+                    {row.id}
+                  </TableCell>
+                  <TableCell className="font-semibold text-zinc-900 text-xs">{row.col1}</TableCell>
+                  <TableCell className="text-xs text-zinc-600">
+                    <Badge
+                      variant="secondary"
+                      className="font-medium bg-zinc-100 px-2 py-0 border-zinc-200"
+                    >
+                      {row.col2}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right font-mono text-xs text-zinc-700">
+                    {row.col3}
+                  </TableCell>
+                  <TableCell className="text-xs text-zinc-500">{row.col4}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+        <div className="p-4 border-t border-zinc-100 bg-zinc-50 text-xs text-zinc-500 flex justify-between items-center">
           <span>Exibindo 8 registros processados.</span>
           <span className="font-mono">Gerado em: {new Date().toLocaleString('pt-BR')}</span>
         </div>

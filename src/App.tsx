@@ -24,6 +24,7 @@ import Grades from './pages/academic/Grades'
 import ClassOccupancy from './pages/academic/ClassOccupancy'
 import PedagogicalTracking from './pages/academic/PedagogicalTracking'
 import AcademicControlView from './pages/academic-control/AcademicControlView'
+import Agenda from './pages/academic/Agenda'
 
 // Secretaria
 import ContratosDocumentos from './pages/secretaria/ContratosDocumentos'
@@ -91,6 +92,7 @@ function App() {
 
               {/* Academic Core */}
               <Route path="academic">
+                <Route path="agenda" element={<Agenda />} />
                 <Route path="students" element={<Students />} />
                 <Route path="teachers" element={<Teachers />} />
                 <Route path="classes" element={<Classes />} />

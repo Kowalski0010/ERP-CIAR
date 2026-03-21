@@ -43,18 +43,18 @@ export default function Reports() {
       </div>
 
       <Card className="border-zinc-200 shadow-sm bg-white">
-        <CardHeader className="pb-4 border-b border-zinc-100">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+        <CardHeader className="pb-4 border-b border-zinc-100 bg-zinc-50/50">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2 text-zinc-800">
             <Filter className="h-4 w-4 text-zinc-400" /> Parâmetros do Relatório
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-4 gap-4 bg-zinc-50/50">
+        <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div className="space-y-1.5">
             <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">
               Módulo
             </label>
             <Select defaultValue="financeiro">
-              <SelectTrigger className="bg-white text-xs h-9">
+              <SelectTrigger className="bg-zinc-50 text-xs h-10 border-zinc-200">
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>
@@ -68,7 +68,7 @@ export default function Reports() {
               Período
             </label>
             <Select defaultValue="ano">
-              <SelectTrigger className="bg-white text-xs h-9">
+              <SelectTrigger className="bg-zinc-50 text-xs h-10 border-zinc-200">
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>
@@ -79,12 +79,15 @@ export default function Reports() {
             </Select>
           </div>
           <div className="sm:col-span-2 flex items-end gap-2">
-            <Button className="flex-1 h-9 shadow-sm" onClick={() => handleExport('PDF')}>
+            <Button
+              className="flex-1 h-10 shadow-sm text-sm font-semibold"
+              onClick={() => handleExport('PDF')}
+            >
               <Download className="h-4 w-4 mr-2" /> PDF Gerencial
             </Button>
             <Button
               variant="outline"
-              className="flex-1 h-9 shadow-sm"
+              className="flex-1 h-10 shadow-sm text-sm font-semibold"
               onClick={() => handleExport('Excel')}
             >
               <FileSpreadsheet className="h-4 w-4 mr-2 text-emerald-600" /> Base de Dados
@@ -95,13 +98,15 @@ export default function Reports() {
 
       <div className="grid grid-cols-1 gap-6">
         <Card className="border-zinc-200 shadow-sm bg-white">
-          <CardHeader>
-            <CardTitle className="text-lg">Prévia: Desempenho Financeiro (2023)</CardTitle>
+          <CardHeader className="border-b border-zinc-100 py-4">
+            <CardTitle className="text-lg text-zinc-900">
+              Prévia: Desempenho Financeiro (2023)
+            </CardTitle>
             <CardDescription>
               Visão consolidada de Receitas vs Despesas Operacionais
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <ChartContainer config={chartConfig} className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart

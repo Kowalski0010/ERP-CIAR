@@ -43,15 +43,20 @@ const appModules = [
         title: 'Controle Acadêmico',
         items: [
           { title: 'Acompanhamento pedagógico', url: '/academic/pedagogical' },
+          { title: 'Agenda Acadêmica', url: '/academic/agenda' },
+          { title: 'Atribuir professor', url: '/academic/control/alocar-professor' },
           { title: 'Consultar notas', url: '/academic/grades' },
           { title: 'Controle de TCC', url: '/academic/control/tcc' },
           { title: 'Dispensar disciplina', url: '/academic/control/dispensa' },
+          { title: 'Editar perfil de aluno', url: '/academic/control/editar-aluno' },
+          { title: 'Gerenciar disciplinas', url: '/academic/control/vincular-disciplina' },
+          { title: 'Gerenciar turma', url: '/academic/control/trocar-turma' },
           { title: 'Histórico Escolar', url: '/academic/control/historico' },
           { title: 'Lançar afastamento', url: '/academic/control/afastamento' },
           { title: 'Lançar estágio', url: '/academic/control/estagio' },
           { title: 'Lançar forma de ingresso', url: '/academic/control/forma-ingresso' },
           { title: 'Lançar frequência', url: '/academic/control/lancar-frequencia' },
-          { title: 'Lançar notas', url: '/academic/grades' },
+          { title: 'Lançar notas', url: '/academic/control/lancar-notas' },
           { title: 'Lançar planejamento', url: '/academic/control/planejamento' },
         ],
       },
@@ -352,7 +357,7 @@ export function AppSidebar() {
                                         <SidebarMenuSubItem key={item.title}>
                                           <SidebarMenuSubButton
                                             asChild
-                                            className="rounded-none h-9 pl-14 pr-4 text-zinc-400 hover:bg-[#2d3e50] hover:text-white text-[11px] font-normal border-none"
+                                            className="rounded-none h-10 pl-14 pr-4 text-zinc-400 hover:bg-[#2d3e50] hover:text-white text-[11px] font-normal border-none"
                                           >
                                             <Link to={item.url}>{item.title}</Link>
                                           </SidebarMenuSubButton>

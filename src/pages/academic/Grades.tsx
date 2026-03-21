@@ -32,7 +32,7 @@ const initialGrades = [
 ]
 
 export default function Grades() {
-  const { addLog, currentUserRole } = useAppStore()
+  const { addLog, currentUserRole, addCommunicationLog } = useAppStore()
   const { toast } = useToast()
   const [grades, setGrades] = useState(initialGrades)
   const [isSaving, setIsSaving] = useState(false)
@@ -64,10 +64,19 @@ export default function Grades() {
         details: 'Salvo em lote via Diário.',
       })
 
+      // Send Notification to Students
+      addCommunicationLog({
+        recipient: 'Alunos da Turma T01',
+        channel: 'Email',
+        subject: 'Atualização no Diário de Classe',
+        status: 'Entregue',
+        body: 'As notas da disciplina "Algoritmos Avançados" foram consolidadas no sistema. Acesse o portal do aluno para verificar seu boletim e situação final.',
+      })
+
       setIsSaving(false)
       toast({
         title: 'Diário de Classe Salvo',
-        description: 'As notas foram processadas, salvos no histórico e auditadas.',
+        description: 'As notas foram processadas e alertas automáticos foram enviados aos alunos.',
       })
     }, 800)
   }
@@ -78,11 +87,11 @@ export default function Grades() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Diário de Classe</h1>
           <p className="text-sm text-zinc-500 mt-1">
-            Lançamento de avaliações. Alterações são monitoradas pelo Log de Auditoria.
+            Lançamento de avaliações. Alterações disparam notificações aos alunos.
           </p>
         </div>
-        <Button variant="outline" className="shadow-sm">
-          <FileSpreadsheet className="mr-2 h-4 w-4" /> Exportar Planilha
+        <Button variant="outline" className="shadow-sm h-10 px-4 text-sm font-semibold">
+          <FileSpreadsheet className="mr-2 h-4 w-4 text-emerald-600" /> Exportar Planilha
         </Button>
       </div>
 
@@ -93,7 +102,7 @@ export default function Grades() {
               Período
             </label>
             <Select defaultValue="2023-2">
-              <SelectTrigger className="bg-white h-9 text-xs">
+              <SelectTrigger className="bg-white h-10 text-sm">
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>
@@ -107,7 +116,7 @@ export default function Grades() {
               Turma
             </label>
             <Select defaultValue="t01">
-              <SelectTrigger className="bg-white h-9 text-xs">
+              <SelectTrigger className="bg-white h-10 text-sm">
                 <SelectValue placeholder="Selecione a turma" />
               </SelectTrigger>
               <SelectContent>
@@ -121,7 +130,7 @@ export default function Grades() {
               Disciplina
             </label>
             <Select defaultValue="d1">
-              <SelectTrigger className="bg-white h-9 text-xs">
+              <SelectTrigger className="bg-white h-10 text-sm">
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>
@@ -136,14 +145,14 @@ export default function Grades() {
       <Alert className="bg-blue-50 border-blue-200 text-blue-900 shadow-sm">
         <AlertCircle className="h-4 w-4 text-blue-600" />
         <AlertDescription className="text-xs font-medium">
-          Sistema parametrizado para <strong>Média 7.0</strong>. Alterações ficam em rascunho até
-          confirmação de salvamento e geram trilha de auditoria.
+          Sistema parametrizado para <strong>Média 7.0</strong>. O salvamento consolida as notas e
+          notifica os responsáveis automaticamente por e-mail.
         </AlertDescription>
       </Alert>
 
       <div className="bg-white border border-zinc-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
-        <div className="flex-1 overflow-auto">
-          <Table className="table-compact">
+        <div className="flex-1 overflow-x-auto">
+          <Table className="table-compact min-w-[700px]">
             <TableHeader className="bg-zinc-50/80 sticky top-0 z-10 backdrop-blur-sm">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-[80px] text-center">Matrícula</TableHead>
@@ -165,7 +174,7 @@ export default function Grades() {
                     <TableCell className="font-mono text-xs text-zinc-500 text-center font-medium">
                       {matricula}
                     </TableCell>
-                    <TableCell className="font-semibold text-zinc-900 text-xs">
+                    <TableCell className="font-semibold text-zinc-900 text-sm">
                       {student.name}
                     </TableCell>
                     <TableCell>
@@ -176,7 +185,7 @@ export default function Grades() {
                         step="0.5"
                         value={student.n1 || ''}
                         onChange={(e) => handleGradeChange(student.id, 'n1', e.target.value)}
-                        className="w-16 mx-auto text-center h-8 text-xs bg-zinc-50 focus-visible:ring-zinc-400 font-bold"
+                        className="w-20 mx-auto text-center h-10 text-sm bg-zinc-50 focus-visible:ring-zinc-400 font-bold"
                       />
                     </TableCell>
                     <TableCell>
@@ -187,18 +196,18 @@ export default function Grades() {
                         step="0.5"
                         value={student.n2 || ''}
                         onChange={(e) => handleGradeChange(student.id, 'n2', e.target.value)}
-                        className="w-16 mx-auto text-center h-8 text-xs bg-zinc-50 focus-visible:ring-zinc-400 font-bold"
+                        className="w-20 mx-auto text-center h-10 text-sm bg-zinc-50 focus-visible:ring-zinc-400 font-bold"
                       />
                     </TableCell>
                     <TableCell className="text-center">
-                      <span className="font-mono font-bold text-[14px] px-2 py-0.5 bg-zinc-100 rounded border border-zinc-200 text-zinc-800">
+                      <span className="font-mono font-bold text-base px-2 py-1 bg-zinc-100 rounded border border-zinc-200 text-zinc-800">
                         {avg}
                       </span>
                     </TableCell>
                     <TableCell>
                       <Badge
                         variant="outline"
-                        className={`${status.color} px-2 py-0 text-[10px] font-bold`}
+                        className={`${status.color} px-2 py-0.5 text-[11px] font-bold`}
                       >
                         {status.text}
                       </Badge>
@@ -209,20 +218,20 @@ export default function Grades() {
             </TableBody>
           </Table>
         </div>
-        <div className="p-4 border-t border-zinc-200 bg-zinc-50/50 flex justify-between items-center shrink-0">
+        <div className="p-4 border-t border-zinc-200 bg-zinc-50/50 flex flex-col sm:flex-row justify-between items-center shrink-0 gap-4">
           <span className="text-xs text-zinc-500 font-medium flex items-center">
-            <Check className="h-3.5 w-3.5 mr-1 text-emerald-500" /> Todos os alunos avaliados
+            <Check className="h-4 w-4 mr-1 text-emerald-500" /> Todos os alunos avaliados
           </span>
           <Button
             onClick={handleSave}
             disabled={isSaving}
-            className="shadow-sm min-w-[160px] bg-zinc-900 hover:bg-zinc-800 text-white"
+            className="shadow-sm w-full sm:w-auto min-w-[200px] h-10 bg-zinc-900 hover:bg-zinc-800 text-white font-semibold"
           >
             {isSaving ? (
-              'Auditando & Salvando...'
+              'Processando Notificações...'
             ) : (
               <>
-                <Save className="mr-2 h-4 w-4" /> Consolidar e Auditar Notas
+                <Save className="mr-2 h-4 w-4" /> Consolidar e Notificar Turma
               </>
             )}
           </Button>
