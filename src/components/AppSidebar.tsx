@@ -42,102 +42,59 @@ const appModules = [
     ],
   },
   {
-    title: 'CADASTRO (REGISTRATION)',
+    title: 'CADASTROS',
     icon: Plus,
-    subGroups: [
-      {
-        title: 'Acadêmico',
-        items: [
-          { title: 'Novo Aluno', url: '/academic/students' },
-          { title: 'Professores', url: '/academic/teachers' },
-          { title: 'Turmas', url: '/academic/classes' },
-        ],
-      },
-      {
-        title: 'Cadastros Básicos',
-        items: [
-          { title: 'Cursos', url: '/admin/registry/curso' },
-          { title: 'Disciplinas', url: '/admin/registry/disciplina' },
-          { title: 'Livros (Biblioteca)', url: '/library/catalog' },
-          { title: 'Convênios', url: '/admin/registry/convenio' },
-          { title: 'CEP (Logradouros)', url: '/admin/registry/cep' },
-        ],
-      },
+    items: [
+      { title: 'Alunos', url: '/academic/students' },
+      { title: 'Professores', url: '/academic/teachers' },
+      { title: 'Cursos', url: '/admin/registry/curso' },
+      { title: 'Turmas', url: '/academic/classes' },
+      { title: 'Disciplinas', url: '/admin/registry/disciplina' },
+      { title: 'Ativ. Extra-Curriculares', url: '/academic/extracurricular' },
     ],
   },
   {
-    title: 'CONSULTA / GESTÃO',
-    icon: Search,
-    subGroups: [
-      {
-        title: 'Gestão Escolar',
-        items: [
-          { title: 'Aprovações Pendentes', url: '/admin/approvals' },
-          { title: 'Integrações Oficiais', url: '/admin/integrations' },
-        ],
-      },
-      {
-        title: 'Dashboards e BI',
-        items: [
-          { title: 'Dashboard Biblioteca', url: '/library/dashboard' },
-          { title: 'Ocupação de Turmas', url: '/academic/occupancy' },
-        ],
-      },
-      {
-        title: 'Relatórios Customizados',
-        items: [{ title: 'Criador de Relatórios', url: '/reports/custom' }],
-      },
-      {
-        title: 'Consultas Diárias',
-        items: [
-          { title: 'Agenda Acadêmica', url: '/academic/agenda' },
-          { title: 'Consulta de Alunos', url: '/secretaria/consultar-aluno' },
-          { title: 'Controle de Notas', url: '/academic/grades' },
-          { title: 'Empréstimos (Biblioteca)', url: '/library/loans' },
-        ],
-      },
-      {
-        title: 'Auditoria e Sistema',
-        items: [
-          { title: 'Logs de Auditoria', url: '/admin/audit-logs' },
-          { title: 'Backup em Nuvem', url: '/admin/backup' },
-        ],
-      },
+    title: 'PEDAGÓGICO',
+    icon: GraduationCap,
+    items: [
+      { title: 'Dashboard de Performance', url: '/academic/performance' },
+      { title: 'Chamada Digital', url: '/academic/roll-call' },
+      { title: 'Acomp. Pedagógico', url: '/academic/pedagogical' },
+      { title: 'Controle de Notas', url: '/academic/grades' },
+      { title: 'Relatórios e Atas', url: '/reports/custom' },
+    ],
+  },
+  {
+    title: 'GESTÃO E FINANCEIRO',
+    icon: DollarSign,
+    items: [
+      { title: 'Aprovações Pendentes', url: '/admin/approvals' },
+      { title: 'Pagamentos e Faturas', url: '/financial/payments' },
+      { title: 'Fluxo de Caixa', url: '/financial/cash-flow' },
+      { title: 'Biblioteca Central', url: '/library/dashboard' },
+      { title: 'Backups do Sistema', url: '/admin/backup' },
+      { title: 'Integrações Oficiais', url: '/admin/integrations' },
     ],
   },
   {
     title: 'COMUNICAÇÃO',
     icon: Mail,
     items: [
+      { title: 'Caixa de Feedback', url: '/secretaria/feedback' },
+      { title: 'Notificações WhatsApp', url: '/admin/communication-settings' },
+      { title: 'Agenda e Calendário', url: '/academic/agenda' },
+      { title: 'Alertas em Massa', url: '/admin/notifications' },
       { title: 'Chat Interno', url: '/utilities/chat' },
-      { title: 'Inbox de Feedback', url: '/secretaria/feedback' },
-      { title: 'Mensagens / Avisos', url: '/utilities/messages' },
-      { title: 'Config. WhatsApp', url: '/admin/communication-settings' },
     ],
   },
   {
     title: 'OPERAÇÕES SECRETARIA',
     icon: Settings,
-    subGroups: [
-      {
-        title: 'Matrículas',
-        items: [
-          { title: 'Efetuar Matrícula', url: '/secretaria/efetuar-matricula' },
-          { title: 'Manutenção Matrícula', url: '/secretaria/manutencao-matricula' },
-        ],
-      },
-      {
-        title: 'Documentos',
-        items: [{ title: 'Imprimir Documentos', url: '/secretaria/imprimir-documentos' }],
-      },
-    ],
-  },
-  {
-    title: 'FINANCEIRO',
-    icon: DollarSign,
     items: [
-      { title: 'Gestão de Faturas', url: '/financial/payments' },
-      { title: 'Fluxo de Caixa', url: '/financial/cash-flow' },
+      { title: 'Efetuar Matrícula', url: '/secretaria/efetuar-matricula' },
+      { title: 'Manutenção Matrícula', url: '/secretaria/manutencao-matricula' },
+      { title: 'Imprimir Documentos', url: '/secretaria/imprimir-documentos' },
+      { title: 'Consulta de Alunos', url: '/secretaria/consultar-aluno' },
     ],
   },
 ]
@@ -160,23 +117,19 @@ export function AppSidebar() {
 
     if (currentUserRole === 'Secretaria') {
       return (
-        module.title === 'CADASTRO (REGISTRATION)' ||
-        module.title === 'CONSULTA / GESTÃO' ||
+        module.title === 'CADASTROS' ||
+        module.title === 'GESTÃO E FINANCEIRO' ||
         module.title === 'COMUNICAÇÃO' ||
         module.title === 'OPERAÇÕES SECRETARIA'
       )
     }
 
     if (currentUserRole === 'Financeiro') {
-      return (
-        module.title === 'FINANCEIRO' ||
-        module.title === 'CONSULTA / GESTÃO' ||
-        module.title === 'COMUNICAÇÃO'
-      )
+      return module.title === 'GESTÃO E FINANCEIRO' || module.title === 'COMUNICAÇÃO'
     }
 
     if (currentUserRole === 'Professor') {
-      return module.title === 'COMUNICAÇÃO' || module.title === 'CONSULTA / GESTÃO'
+      return module.title === 'COMUNICAÇÃO' || module.title === 'PEDAGÓGICO'
     }
 
     return true
@@ -284,7 +237,7 @@ export function AppSidebar() {
                       <SidebarMenuButton className="rounded-none h-11 px-4 border-b border-[#3b4f63] text-zinc-200 hover:bg-[#3b4f63] hover:text-white text-[13px] font-medium group-data-[collapsible=icon]:text-zinc-600 group-data-[collapsible=icon]:border-none">
                         <module.icon className="h-[18px] w-[18px]" />
                         <span className="group-data-[collapsible=icon]:hidden">{module.title}</span>
-                        {(module.subGroups || module.items) && (
+                        {module.items && (
                           <ChevronRight className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/root:rotate-90 group-data-[collapsible=icon]:hidden" />
                         )}
                       </SidebarMenuButton>
@@ -292,47 +245,16 @@ export function AppSidebar() {
 
                     <CollapsibleContent className="bg-[#1e2b3c] group-data-[collapsible=icon]:hidden">
                       <SidebarMenuSub className="border-none m-0 p-0">
-                        {module.subGroups
-                          ? module.subGroups.map((subGroup) => (
-                              <Collapsible
-                                key={subGroup.title}
-                                defaultOpen={false}
-                                className="group/sub"
-                              >
-                                <SidebarMenuItem>
-                                  <CollapsibleTrigger asChild>
-                                    <SidebarMenuButton className="rounded-none h-10 pl-11 pr-4 text-zinc-300 hover:bg-[#2d3e50] hover:text-white text-[12px] font-medium border-b border-[#2d3e50]">
-                                      <span>{subGroup.title}</span>
-                                      <ChevronRight className="ml-auto h-3.5 w-3.5 transition-transform group-data-[state=open]/sub:rotate-90" />
-                                    </SidebarMenuButton>
-                                  </CollapsibleTrigger>
-                                  <CollapsibleContent className="bg-[#15202b]">
-                                    <SidebarMenuSub className="border-none m-0 p-0">
-                                      {subGroup.items.map((item) => (
-                                        <SidebarMenuSubItem key={item.title}>
-                                          <SidebarMenuSubButton
-                                            asChild
-                                            className="rounded-none h-10 pl-14 pr-4 text-zinc-400 hover:bg-[#2d3e50] hover:text-white text-[11px] font-normal border-none"
-                                          >
-                                            <Link to={item.url}>{item.title}</Link>
-                                          </SidebarMenuSubButton>
-                                        </SidebarMenuSubItem>
-                                      ))}
-                                    </SidebarMenuSub>
-                                  </CollapsibleContent>
-                                </SidebarMenuItem>
-                              </Collapsible>
-                            ))
-                          : module.items?.map((item) => (
-                              <SidebarMenuSubItem key={item.title}>
-                                <SidebarMenuSubButton
-                                  asChild
-                                  className="rounded-none h-10 pl-11 pr-4 text-zinc-300 hover:bg-[#2d3e50] hover:text-white text-[12px] font-medium border-b border-[#2d3e50]"
-                                >
-                                  <Link to={item.url}>{item.title}</Link>
-                                </SidebarMenuSubButton>
-                              </SidebarMenuSubItem>
-                            ))}
+                        {module.items?.map((item) => (
+                          <SidebarMenuSubItem key={item.title}>
+                            <SidebarMenuSubButton
+                              asChild
+                              className="rounded-none h-10 pl-11 pr-4 text-zinc-300 hover:bg-[#2d3e50] hover:text-white text-[12px] font-medium border-b border-[#2d3e50]"
+                            >
+                              <Link to={item.url}>{item.title}</Link>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
                       </SidebarMenuSub>
                     </CollapsibleContent>
                   </SidebarMenuItem>

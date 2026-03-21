@@ -301,6 +301,26 @@ export type ApprovalRequest = {
   rejectionReason?: string
 }
 
+export type ExtracurricularActivity = {
+  id: string
+  name: string
+  category: string
+  instructor: string
+  schedule: string
+  monthlyFee: number
+  status: 'Ativo' | 'Inativo'
+}
+
+export type ExtracurricularEnrollment = {
+  id: string
+  studentId: string
+  studentName: string
+  activityId: string
+  activityName: string
+  enrollmentDate: string
+  status: 'Ativo' | 'Cancelado'
+}
+
 export type AppState = {
   isAuthenticated: boolean
   currentUserRole: Role
@@ -329,4 +349,6 @@ export type AppState = {
   loans: Loan[]
   feedbacks: StudentFeedback[]
   approvalRequests: ApprovalRequest[]
+  extracurricularActivities: ExtracurricularActivity[]
+  extracurricularEnrollments: ExtracurricularEnrollment[]
 }

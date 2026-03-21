@@ -24,6 +24,8 @@ import {
   Loan,
   StudentFeedback,
   ApprovalRequest,
+  ExtracurricularActivity,
+  ExtracurricularEnrollment,
 } from './types'
 
 const defaultAddress = {
@@ -581,5 +583,38 @@ export const mockApprovalRequests: ApprovalRequest[] = [
     date: new Date(Date.now() - 172800000).toISOString(),
     details: 'Declaração de Vínculo com Grade',
     status: 'Aprovado',
+  },
+]
+
+export const mockExtracurricularActivities: ExtracurricularActivity[] = [
+  {
+    id: 'EXT-01',
+    name: 'Futebol Society',
+    category: 'Esportes',
+    instructor: 'Prof. Marcos',
+    schedule: 'Terças e Quintas, 18h',
+    monthlyFee: 120.0,
+    status: 'Ativo',
+  },
+  {
+    id: 'EXT-02',
+    name: 'Inglês Intermediário',
+    category: 'Idiomas',
+    instructor: 'Profa. Sarah',
+    schedule: 'Segundas e Quartas, 17h',
+    monthlyFee: 150.0,
+    status: 'Ativo',
+  },
+]
+
+export const mockExtracurricularEnrollments: ExtracurricularEnrollment[] = [
+  {
+    id: 'EXM-001',
+    studentId: '1',
+    studentName: 'Ana Silva',
+    activityId: 'EXT-02',
+    activityName: 'Inglês Intermediário',
+    enrollmentDate: '2023-08-10',
+    status: 'Ativo',
   },
 ]

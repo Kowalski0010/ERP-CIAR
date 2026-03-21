@@ -28,6 +28,8 @@ import {
   Loan,
   StudentFeedback,
   ApprovalRequest,
+  ExtracurricularActivity,
+  ExtracurricularEnrollment,
 } from '@/lib/types'
 import {
   mockStudents,
@@ -55,6 +57,8 @@ import {
   mockLoans,
   mockFeedbacks,
   mockApprovalRequests,
+  mockExtracurricularActivities,
+  mockExtracurricularEnrollments,
 } from '@/lib/mockData'
 
 interface AppContextType extends AppState {
@@ -98,6 +102,9 @@ interface AppContextType extends AppState {
 
   approveRequest: (id: string) => void
   rejectRequest: (id: string, reason: string) => void
+
+  addExtracurricularActivity: (activity: Omit<ExtracurricularActivity, 'id'>) => void
+  enrollInExtracurricular: (studentId: string, activityId: string) => void
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
@@ -132,6 +139,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [loans, setLoans] = useState<Loan[]>(mockLoans)
   const [feedbacks, setFeedbacks] = useState<StudentFeedback[]>(mockFeedbacks)
   const [approvalRequests, setApprovalRequests] = useState<ApprovalRequest[]>(mockApprovalRequests)
+  const [extracurricularActivities, setExtracurricularActivities] = useState<
+    ExtracurricularActivity[]
+  >(mockExtracurricularActivities)
+  const [extracurricularEnrollments, setExtracurricularEnrollments] = useState<
+    ExtracurricularEnrollment[]
+  >(mockExtracurricularEnrollments)
 
   const login = () => setIsAuthenticated(true)
   const logout = () => setIsAuthenticated(false)
@@ -551,6 +564,41 @@ export function AppProvider({ children }: { children: ReactNode }) {
     })
   }
 
+  const addExtracurricularActivity = (activity: Omit<ExtracurricularActivity, 'id'>) => {
+    setExtracurricularActivities((prev) => [...prev, { ...activity, id: generateId('EXT') }])
+    addLog({
+      user: currentUserRole,
+      action: 'Criou Atividade Extracurricular',
+      entity: `Atividade: ${activity.name}`,
+    })
+  }
+
+  const enrollInExtracurricular = (studentId: string, activityId: string) => {
+    const student = students.find((s) => s.id === studentId)
+    const activity = extracurricularActivities.find((a) => a.id === activityId)
+    if (!student || !activity) return
+
+    const newEnrollment: ExtracurricularEnrollment = {
+      id: generateId('EXM'),
+      studentId,
+      studentName: student.name,
+      activityId,
+      activityName: activity.name,
+      enrollmentDate: new Date().toISOString(),
+      status: 'Ativo',
+    }
+
+    setExtracurricularEnrollments((prev) => [newEnrollment, ...prev])
+    generateInvoice(studentId, activity.monthlyFee)
+
+    addLog({
+      user: currentUserRole,
+      action: 'Matrícula Extracurricular',
+      entity: `Atividade: ${activity.name}`,
+      targetStudent: student.name,
+    })
+  }
+
   return (
     <AppContext.Provider
       value={{
@@ -584,6 +632,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         loans,
         feedbacks,
         approvalRequests,
+        extracurricularActivities,
+        extracurricularEnrollments,
         addLead,
         updateLeadStatus,
         updateStudent,
@@ -616,6 +666,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         simulatePaymentReconciliation,
         approveRequest,
         rejectRequest,
+        addExtracurricularActivity,
+        enrollInExtracurricular,
       }}
     >
       {children}

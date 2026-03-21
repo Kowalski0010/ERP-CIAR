@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { CalendarDays, Clock, MapPin, BookOpen } from 'lucide-react'
+import { CalendarDays, Clock, MapPin, BookOpen, Download, PlusCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { ptBR } from 'date-fns/locale'
 
 const mockEvents = [
@@ -13,6 +14,7 @@ const mockEvents = [
     type: 'Avaliação',
     time: '08:00',
     location: 'Sala 101',
+    desc: 'Avaliação presencial com peso 10.',
   },
   {
     id: 2,
@@ -21,6 +23,7 @@ const mockEvents = [
     type: 'Trabalho',
     time: '23:59',
     location: 'Portal Acadêmico',
+    desc: 'Prazo final para envio via sistema.',
   },
   {
     id: 3,
@@ -29,6 +32,7 @@ const mockEvents = [
     type: 'Evento',
     time: '14:00',
     location: 'Sala dos Professores',
+    desc: 'Alinhamento pedagógico bimestral.',
   },
 ]
 
@@ -39,16 +43,60 @@ export default function Agenda() {
     (e) => date && e.date.toDateString() === date.toDateString(),
   )
 
+  const generateGoogleCalendarUrl = (event: any) => {
+    const d = new Date(event.date)
+    const [hours, minutes] = event.time.split(':')
+    d.setHours(parseInt(hours), parseInt(minutes))
+
+    const start = d.toISOString().replace(/-|:|\.\d+/g, '')
+    const endObj = new Date(d.getTime() + 60 * 60 * 1000)
+    const end = endObj.toISOString().replace(/-|:|\.\d+/g, '')
+
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${start}/${end}&details=${encodeURIComponent(event.desc)}&location=${encodeURIComponent(event.location)}`
+  }
+
+  const downloadICS = (event: any) => {
+    const d = new Date(event.date)
+    const [hours, minutes] = event.time.split(':')
+    d.setHours(parseInt(hours), parseInt(minutes))
+
+    const start = d.toISOString().replace(/-|:|\.\d+/g, '')
+    const endObj = new Date(d.getTime() + 60 * 60 * 1000)
+    const end = endObj.toISOString().replace(/-|:|\.\d+/g, '')
+
+    const icsData = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+URL:${document.URL}
+DTSTART:${start}
+DTEND:${end}
+SUMMARY:${event.title}
+DESCRIPTION:${event.desc}
+LOCATION:${event.location}
+END:VEVENT
+END:VCALENDAR`
+
+    const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8' })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `${event.title.replace(/\s+/g, '_')}.ics`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   return (
     <div className="space-y-6 animate-fade-in-up pb-8 max-w-[1200px] mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-2">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900 flex items-center gap-2">
             <CalendarDays className="h-7 w-7 text-zinc-400" />
-            Agenda Acadêmica
+            Agenda Acadêmica Institucional
           </h1>
           <p className="text-sm text-zinc-500 mt-1">
-            Calendário visual de avaliações, prazos e eventos institucionais.
+            Calendário visual de avaliações, prazos e eventos. Sincronize com seu calendário
+            pessoal.
           </p>
         </div>
       </div>
@@ -80,7 +128,7 @@ export default function Agenda() {
               {selectedEvents.map((ev) => (
                 <Card
                   key={ev.id}
-                  className="border-zinc-200 shadow-sm hover:border-blue-300 transition-colors cursor-pointer group bg-white"
+                  className="border-zinc-200 shadow-sm transition-colors group bg-white"
                 >
                   <CardContent className="p-4 flex flex-col sm:flex-row items-start gap-4">
                     <div className="p-3 rounded-lg bg-blue-50 border border-blue-100 text-blue-600 shrink-0">
@@ -98,13 +146,28 @@ export default function Agenda() {
                           {ev.type}
                         </Badge>
                       </div>
-                      <div className="flex flex-wrap items-center gap-4 text-xs text-zinc-500 font-medium">
+                      <div className="flex flex-wrap items-center gap-4 text-xs text-zinc-500 font-medium mb-4">
                         <span className="flex items-center gap-1.5 bg-zinc-100 px-2 py-1 rounded">
                           <Clock className="h-3.5 w-3.5" /> {ev.time}
                         </span>
                         <span className="flex items-center gap-1.5 bg-zinc-100 px-2 py-1 rounded">
                           <MapPin className="h-3.5 w-3.5" /> {ev.location}
                         </span>
+                      </div>
+                      <div className="flex gap-2 border-t border-zinc-100 pt-3">
+                        <Button variant="outline" size="sm" className="h-8 text-[11px]" asChild>
+                          <a href={generateGoogleCalendarUrl(ev)} target="_blank" rel="noreferrer">
+                            <PlusCircle className="mr-1.5 h-3.5 w-3.5" /> Google Agenda
+                          </a>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 text-[11px]"
+                          onClick={() => downloadICS(ev)}
+                        >
+                          <Download className="mr-1.5 h-3.5 w-3.5" /> Exportar .ICS
+                        </Button>
                       </div>
                     </div>
                   </CardContent>

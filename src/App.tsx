@@ -30,6 +30,9 @@ import ClassOccupancy from './pages/academic/ClassOccupancy'
 import PedagogicalTracking from './pages/academic/PedagogicalTracking'
 import AcademicControlView from './pages/academic-control/AcademicControlView'
 import Agenda from './pages/academic/Agenda'
+import AcademicPerformance from './pages/academic/AcademicPerformance'
+import DigitalRollCall from './pages/academic/DigitalRollCall'
+import Extracurricular from './pages/academic/Extracurricular'
 
 // Library
 import LibraryCatalog from './pages/library/LibraryCatalog'
@@ -123,6 +126,9 @@ function App() {
                 <Route path="grades" element={<Grades />} />
                 <Route path="occupancy" element={<ClassOccupancy />} />
                 <Route path="pedagogical" element={<PedagogicalTracking />} />
+                <Route path="performance" element={<AcademicPerformance />} />
+                <Route path="roll-call" element={<DigitalRollCall />} />
+                <Route path="extracurricular" element={<Extracurricular />} />
                 <Route path="control/:id" element={<AcademicControlView />} />
               </Route>
 
