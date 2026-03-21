@@ -4,12 +4,21 @@ import { Button } from '@/components/ui/button'
 import { AlertCircle, CheckCircle2, Download, Building2, RefreshCw } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 
 export default function Integrations() {
   const { toast } = useToast()
-  
-  const [esocialStatus, setEsocialStatus] = useState<'idle' | 'validating' | 'errors' | 'ready'>('idle')
+
+  const [esocialStatus, setEsocialStatus] = useState<'idle' | 'validating' | 'errors' | 'ready'>(
+    'idle',
+  )
   const [mecStatus, setMecStatus] = useState<'idle' | 'validating' | 'ready'>('idle')
 
   const handleValidateEsocial = () => {
@@ -23,7 +32,10 @@ export default function Integrations() {
   }
 
   const handleExportEsocial = () => {
-    toast({ title: 'Exportação e-Social Concluída', description: 'Arquivo XML estruturado gerado com sucesso.' })
+    toast({
+      title: 'Exportação e-Social Concluída',
+      description: 'Arquivo XML estruturado gerado com sucesso.',
+    })
   }
 
   const handleValidateMec = () => {
@@ -32,7 +44,10 @@ export default function Integrations() {
   }
 
   const handleExportMec = () => {
-    toast({ title: 'Censo Escolar (MEC) Concluído', description: 'Arquivo CSV formatado foi gerado para envio ao INEP.' })
+    toast({
+      title: 'Censo Escolar (MEC) Concluído',
+      description: 'Arquivo CSV formatado foi gerado para envio ao INEP.',
+    })
   }
 
   return (
@@ -50,7 +65,6 @@ export default function Integrations() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
         {/* e-Social Card */}
         <Card className="border-zinc-200 shadow-sm bg-white h-fit">
           <CardHeader className="border-b border-zinc-100 bg-zinc-50/50">
@@ -65,13 +79,14 @@ export default function Integrations() {
                 Clique abaixo para realizar a varredura na base de dados.
               </div>
             )}
-            
+
             {esocialStatus === 'validating' && (
               <div className="text-center py-6 text-blue-600 text-sm font-medium flex items-center justify-center gap-2 border border-blue-100 bg-blue-50/30 rounded-md">
-                <RefreshCw className="h-4 w-4 animate-spin" /> Verificando campos obrigatórios (CPF, PIS)...
+                <RefreshCw className="h-4 w-4 animate-spin" /> Verificando campos obrigatórios (CPF,
+                PIS)...
               </div>
             )}
-            
+
             {esocialStatus === 'errors' && (
               <div className="space-y-4 animate-fade-in">
                 <Alert variant="destructive">
@@ -94,8 +109,7 @@ export default function Integrations() {
                         <TableCell className="font-medium text-xs">Carlos Souza (Prof)</TableCell>
                         <TableCell className="text-xs">PIS/PASEP não preenchido</TableCell>
                       </TableRow>
-                    </TableRow>
-                  </TableBody>
+                    </TableBody>
                   </Table>
                 </div>
                 <Button variant="outline" className="w-full text-xs" onClick={handleFixEsocial}>
@@ -103,7 +117,7 @@ export default function Integrations() {
                 </Button>
               </div>
             )}
-            
+
             {esocialStatus === 'ready' && (
               <div className="text-center py-6 text-emerald-600 text-sm font-medium flex items-center justify-center gap-2 border border-emerald-100 bg-emerald-50 rounded-md animate-fade-in">
                 <CheckCircle2 className="h-5 w-5" /> Base de dados íntegra e pronta!
@@ -111,17 +125,17 @@ export default function Integrations() {
             )}
 
             <div className="flex gap-3 pt-4 border-t border-zinc-100">
-              <Button 
-                variant="secondary" 
-                className="flex-1 shadow-sm" 
+              <Button
+                variant="secondary"
+                className="flex-1 shadow-sm"
                 onClick={handleValidateEsocial}
                 disabled={esocialStatus === 'validating'}
               >
                 Validar Dados
               </Button>
-              <Button 
-                className="flex-1 shadow-sm" 
-                onClick={handleExportEsocial} 
+              <Button
+                className="flex-1 shadow-sm"
+                onClick={handleExportEsocial}
                 disabled={esocialStatus !== 'ready'}
               >
                 <Download className="w-4 h-4 mr-2" /> Gerar XML
@@ -139,19 +153,19 @@ export default function Integrations() {
             </CardDescription>
           </CardHeader>
           <CardContent className="p-6 space-y-4">
-            
             {mecStatus === 'idle' && (
               <div className="text-center py-6 text-zinc-500 text-sm border border-dashed rounded-md">
                 Verifique se o INEP da escola está atualizado antes de prosseguir.
               </div>
             )}
-            
+
             {mecStatus === 'validating' && (
               <div className="text-center py-6 text-blue-600 text-sm font-medium flex items-center justify-center gap-2 border border-blue-100 bg-blue-50/30 rounded-md">
-                <RefreshCw className="h-4 w-4 animate-spin" /> Verificando vínculos e status acadêmicos...
+                <RefreshCw className="h-4 w-4 animate-spin" /> Verificando vínculos e status
+                acadêmicos...
               </div>
             )}
-            
+
             {mecStatus === 'ready' && (
               <div className="text-center py-6 text-emerald-600 text-sm font-medium flex items-center justify-center gap-2 border border-emerald-100 bg-emerald-50 rounded-md animate-fade-in">
                 <CheckCircle2 className="h-5 w-5" /> 142 alunos processados sem inconsistências.
@@ -159,17 +173,17 @@ export default function Integrations() {
             )}
 
             <div className="flex gap-3 pt-4 border-t border-zinc-100 mt-auto">
-              <Button 
-                variant="secondary" 
-                className="flex-1 shadow-sm" 
+              <Button
+                variant="secondary"
+                className="flex-1 shadow-sm"
                 onClick={handleValidateMec}
                 disabled={mecStatus === 'validating'}
               >
                 Validar Dados
               </Button>
-              <Button 
-                className="flex-1 shadow-sm" 
-                onClick={handleExportMec} 
+              <Button
+                className="flex-1 shadow-sm"
+                onClick={handleExportMec}
                 disabled={mecStatus !== 'ready'}
               >
                 <Download className="w-4 h-4 mr-2" /> Gerar Arquivo
@@ -177,9 +191,7 @@ export default function Integrations() {
             </div>
           </CardContent>
         </Card>
-
       </div>
     </div>
   )
 }
-
