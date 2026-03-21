@@ -1,6 +1,13 @@
 import { useAppStore } from '@/contexts/AppContext'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { CalendarDays, Wallet, ClipboardList, BookOpen, GraduationCap } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import {
+  CalendarDays,
+  Wallet,
+  ClipboardList,
+  BookOpen,
+  GraduationCap,
+  Sparkles,
+} from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Link } from 'react-router-dom'
@@ -23,6 +30,14 @@ export default function StudentDashboard() {
 
   // Mock next class
   const nextClass = schedules.find((s) => s.classId === 'T01')
+
+  // Mock AI Logic to find low performance subjects
+  const aiRecommendations = myAttendances
+    .map((att, i) => {
+      const grade = 8.5 - i * 2.5 // matching parent portal mock logic
+      return { ...att, grade, isLow: grade < 7.0 }
+    })
+    .filter((att) => att.isLow)
 
   return (
     <div className="space-y-6 animate-fade-in-up pb-8 max-w-[1200px] mx-auto">
@@ -123,6 +138,47 @@ export default function StudentDashboard() {
           </CardContent>
         </Card>
 
+        {aiRecommendations.length > 0 && (
+          <Card className="border-indigo-200 shadow-sm bg-indigo-50/50 md:col-span-3 mt-4">
+            <CardHeader className="py-4 border-b border-indigo-100 bg-indigo-50">
+              <CardTitle className="text-sm font-semibold text-indigo-900 flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-indigo-600" />
+                IA Educacional: Sugestões de Leitura
+              </CardTitle>
+              <CardDescription className="text-xs text-indigo-700">
+                O sistema identificou oportunidades de melhoria com base nas suas notas recentes e
+                separou materiais de apoio exclusivos para você no acervo.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {aiRecommendations.map((sub) => (
+                <div
+                  key={sub.id}
+                  className="flex gap-3 bg-white p-3 rounded-md border border-indigo-100 shadow-sm hover:border-indigo-300 transition-colors cursor-pointer"
+                >
+                  <div className="h-16 w-12 bg-indigo-100 rounded flex items-center justify-center shrink-0">
+                    <BookOpen className="h-5 w-5 text-indigo-500" />
+                  </div>
+                  <div>
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] bg-indigo-50 text-indigo-700 border-indigo-200 px-1.5 py-0 mb-1 leading-none"
+                    >
+                      {sub.subject}
+                    </Badge>
+                    <h4 className="text-[13px] font-bold text-zinc-900 leading-tight mb-1">
+                      Fundamentos de {sub.subject}
+                    </h4>
+                    <p className="text-[10px] text-zinc-500 leading-tight">
+                      Recomendado pela IA para recuperar sua média na disciplina.
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Resumo Acadêmico */}
         <Card className="border-zinc-200 shadow-sm bg-white md:col-span-3 mt-2">
           <CardHeader className="py-4 border-b border-zinc-100 bg-zinc-50/50">
@@ -133,8 +189,11 @@ export default function StudentDashboard() {
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y divide-zinc-100">
-              {myAttendances.map((att) => {
+              {myAttendances.map((att, i) => {
                 const isWarning = att.absences / att.totalClasses > 0.25
+                const grade = 8.5 - i * 2.5
+                const isLowGrade = grade < 7.0
+
                 return (
                   <div
                     key={att.id}
@@ -154,14 +213,14 @@ export default function StudentDashboard() {
                           Média Parcial
                         </p>
                         <p className="font-mono font-bold text-lg leading-tight text-zinc-900">
-                          8.5
+                          {grade.toFixed(1)}
                         </p>
                       </div>
                       <Badge
                         variant="outline"
-                        className="w-24 justify-center bg-emerald-50 text-emerald-700 border-emerald-200"
+                        className={`w-28 justify-center ${!isLowGrade ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}
                       >
-                        Na Média
+                        {!isLowGrade ? 'Na Média' : 'Abaixo da Média'}
                       </Badge>
                     </div>
                   </div>

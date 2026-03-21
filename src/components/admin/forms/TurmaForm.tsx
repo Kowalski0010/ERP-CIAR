@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAppStore } from '@/contexts/AppContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,46 +11,72 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
+import { ClassRoom } from '@/lib/types'
 
-export function TurmaForm({ onCancel }: { onCancel: () => void }) {
-  const { addClass, cursos } = useAppStore()
+export function TurmaForm({
+  onCancel,
+  initialData,
+}: {
+  onCancel: () => void
+  initialData?: ClassRoom
+}) {
+  const { addClass, updateClass, cursos } = useAppStore()
   const { toast } = useToast()
 
-  const [courseId, setCourseId] = useState('')
-  const [shift, setShift] = useState('')
+  const [courseId, setCourseId] = useState(initialData?.course || '')
+  const [shift, setShift] = useState(initialData?.shift || '')
+
+  useEffect(() => {
+    if (initialData) {
+      setCourseId(cursos.find((c) => c.name === initialData.course)?.id || 'eng')
+      setShift(initialData.shift || 'Matutino')
+    }
+  }, [initialData, cursos])
 
   const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const fd = new FormData(e.currentTarget)
     const code = fd.get('code') as string
-
-    // Find course name by id (mock data usage)
     const selectedCourse = cursos.find((c) => c.id === courseId)?.name || 'Curso Genérico'
 
-    addClass({
-      id: code.split(' ')[0], // generate id from first word of code
+    const classData = {
       name: code,
       course: selectedCourse,
-      semester: `1º Semestre (${shift})`,
+      semester: `${fd.get('year')} - ${shift}`,
       capacity: Number(fd.get('capacity')),
-    })
+      year: fd.get('year') as string,
+      shift: shift,
+      room: fd.get('room') as string,
+    }
 
-    toast({
-      title: 'Turma Salva',
-      description: 'A nova turma foi persistida e está disponível para matrículas.',
-    })
+    if (initialData) {
+      updateClass(initialData.id, classData)
+      toast({
+        title: 'Turma Atualizada',
+        description: 'As informações da turma foram editadas e salvas com sucesso.',
+      })
+    } else {
+      addClass({
+        id: code.split(' ')[0],
+        ...classData,
+      })
+      toast({
+        title: 'Turma Salva',
+        description: 'A nova turma foi persistida e está disponível para matrículas.',
+      })
+    }
+
     onCancel()
   }
 
   return (
     <form onSubmit={handleSave} className="space-y-5 max-w-2xl">
       <div className="space-y-2">
-        <Label className="text-xs font-semibold text-zinc-700">
-          Código / Nome da Turma (Nova Turma)
-        </Label>
+        <Label className="text-xs font-semibold text-zinc-700">Nome da Turma</Label>
         <Input
           name="code"
           required
+          defaultValue={initialData?.name}
           placeholder="Ex: T01 - Engenharia de Software"
           className="bg-zinc-50 font-medium"
         />
@@ -89,14 +115,35 @@ export function TurmaForm({ onCancel }: { onCancel: () => void }) {
         </div>
       </div>
 
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="text-xs font-semibold text-zinc-700">Ano Letivo</Label>
+          <Input
+            name="year"
+            required
+            defaultValue={initialData?.year || new Date().getFullYear().toString()}
+            className="bg-zinc-50"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-xs font-semibold text-zinc-700">Sala / Laboratório</Label>
+          <Input
+            name="room"
+            required
+            defaultValue={initialData?.room || ''}
+            placeholder="Ex: Sala 102, Lab Info..."
+            className="bg-zinc-50"
+          />
+        </div>
+      </div>
+
       <div className="space-y-2">
-        <Label className="text-xs font-semibold text-zinc-700">
-          Capacidade Máxima de Alunos na Turma
-        </Label>
+        <Label className="text-xs font-semibold text-zinc-700">Capacidade Máxima de Alunos</Label>
         <Input
           name="capacity"
           type="number"
           required
+          defaultValue={initialData?.capacity}
           placeholder="Ex: 40"
           className="bg-zinc-50 w-full sm:w-48"
         />
@@ -107,7 +154,7 @@ export function TurmaForm({ onCancel }: { onCancel: () => void }) {
           Cancelar
         </Button>
         <Button type="submit" className="shadow-sm">
-          Abrir Nova Turma
+          {initialData ? 'Salvar Edição' : 'Abrir Nova Turma'}
         </Button>
       </div>
     </form>

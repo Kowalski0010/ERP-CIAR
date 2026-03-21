@@ -11,6 +11,7 @@ import {
   ChevronRight,
   LogOut,
   Plus,
+  Users,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -42,13 +43,18 @@ const appModules = [
     ],
   },
   {
+    title: 'PORTAL DO RESPONSÁVEL',
+    icon: Users,
+    items: [{ title: 'Meu Painel', url: '/parent/dashboard' }],
+  },
+  {
     title: 'CADASTROS',
     icon: Plus,
     items: [
       { title: 'Alunos', url: '/academic/students' },
       { title: 'Professores', url: '/academic/teachers' },
       { title: 'Cursos', url: '/admin/registry/curso' },
-      { title: 'Turmas', url: '/academic/classes' },
+      { title: 'Turmas (Cadastro)', url: '/admin/registry/turmas' },
       { title: 'Disciplinas', url: '/admin/registry/disciplina' },
       { title: 'Ativ. Extra-Curriculares', url: '/academic/extracurricular' },
     ],
@@ -72,6 +78,8 @@ const appModules = [
       { title: 'Pagamentos e Faturas', url: '/financial/payments' },
       { title: 'Fluxo de Caixa', url: '/financial/cash-flow' },
       { title: 'Biblioteca Central', url: '/library/dashboard' },
+      { title: 'Auditoria de Acessos', url: '/admin/audit-logs' },
+      { title: 'Monitoramento CFTV', url: '/admin/security' },
       { title: 'Backups do Sistema', url: '/admin/backup' },
       { title: 'Integrações Oficiais', url: '/admin/integrations' },
     ],
@@ -108,11 +116,15 @@ export function AppSidebar() {
   // Filter modules based on RBAC logic
   const filteredModules = appModules.filter((module) => {
     if (currentUserRole === 'Admin' || currentUserRole === 'Gestao') {
-      return module.title !== 'PORTAL DO ALUNO'
+      return module.title !== 'PORTAL DO ALUNO' && module.title !== 'PORTAL DO RESPONSÁVEL'
     }
 
     if (currentUserRole === 'Aluno') {
       return module.title === 'PORTAL DO ALUNO'
+    }
+
+    if (currentUserRole === 'Responsável') {
+      return module.title === 'PORTAL DO RESPONSÁVEL'
     }
 
     if (currentUserRole === 'Secretaria') {
@@ -164,7 +176,7 @@ export function AppSidebar() {
       <SidebarContent className="p-0 gap-0">
         <SidebarGroup className="p-0">
           <SidebarMenu className="gap-0">
-            {currentUserRole !== 'Aluno' && (
+            {currentUserRole !== 'Aluno' && currentUserRole !== 'Responsável' && (
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
@@ -195,6 +207,24 @@ export function AppSidebar() {
                   <Link to="/student/dashboard">
                     <CalendarDays className="h-[18px] w-[18px]" />
                     <span>MEU PAINEL</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+
+            {currentUserRole === 'Responsável' && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  className={`rounded-none h-10 px-4 border-l-4 font-semibold text-[13px] ${
+                    location.pathname.includes('/parent/dashboard')
+                      ? 'border-l-[#1e3a8a] bg-zinc-100 text-[#1e3a8a]'
+                      : 'border-l-transparent text-zinc-600 hover:bg-zinc-50'
+                  }`}
+                >
+                  <Link to="/parent/dashboard">
+                    <Users className="h-[18px] w-[18px]" />
+                    <span>PORTAL DA FAMÍLIA</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

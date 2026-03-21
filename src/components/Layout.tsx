@@ -13,8 +13,12 @@ export default function Layout() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (isAuthenticated && currentUserRole === 'Aluno' && location.pathname === '/') {
-      navigate('/student/dashboard', { replace: true })
+    if (isAuthenticated) {
+      if (currentUserRole === 'Aluno' && location.pathname === '/') {
+        navigate('/student/dashboard', { replace: true })
+      } else if (currentUserRole === 'Responsável' && location.pathname === '/') {
+        navigate('/parent/dashboard', { replace: true })
+      }
     }
   }, [currentUserRole, location.pathname, navigate, isAuthenticated])
 
@@ -32,9 +36,10 @@ export default function Layout() {
       '/reports',
       '/library',
     ],
-    Financeiro: ['/financial', '/utilities', '/reports'],
+    Financeiro: ['/financial', '/admin/security', '/utilities', '/reports'],
     Professor: ['/academic', '/utilities', '/library'],
     Aluno: ['/student', '/utilities', '/library'],
+    Responsável: ['/parent', '/utilities'],
     Gestao: ['/'], // Has access to everything
     Admin: ['/'], // Has access to everything
   }
@@ -46,6 +51,13 @@ export default function Layout() {
     location.pathname === '/'
 
   if (!isAllowed) {
+    const defaultRoute =
+      currentUserRole === 'Aluno'
+        ? '/student/dashboard'
+        : currentUserRole === 'Responsável'
+          ? '/parent/dashboard'
+          : '/'
+
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-[#f4f6f8] font-sans">
         <ShieldAlert className="h-16 w-16 text-rose-500 mb-4" />
@@ -57,11 +69,7 @@ export default function Layout() {
           <Button variant="outline" onClick={() => navigate(-1)}>
             Voltar
           </Button>
-          <Button
-            onClick={() => navigate(currentUserRole === 'Aluno' ? '/student/dashboard' : '/')}
-          >
-            Ir para Início
-          </Button>
+          <Button onClick={() => navigate(defaultRoute)}>Ir para Início</Button>
         </div>
       </div>
     )

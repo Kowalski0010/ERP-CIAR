@@ -6,6 +6,7 @@ export type Role =
   | 'Financeiro'
   | 'Comercial'
   | 'Aluno'
+  | 'Responsável'
 
 export type Address = {
   zipCode: string
@@ -67,6 +68,9 @@ export type ClassRoom = {
   course: string
   semester: string
   capacity?: number
+  room?: string
+  year?: string
+  shift?: string
 }
 
 export type Schedule = {

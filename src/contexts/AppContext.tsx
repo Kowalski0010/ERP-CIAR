@@ -72,6 +72,8 @@ interface AppContextType extends AppState {
   registerPayment: (payment: Payment) => void
   addTeacher: (teacher: Teacher) => void
   addClass: (cls: Partial<ClassRoom>) => void
+  updateClass: (id: string, cls: Partial<ClassRoom>) => void
+  deleteClass: (id: string) => void
   addSchedule: (schedule: Schedule) => void
   enrollStudent: (student: Student, plan: FinancialPlan, leadId?: string) => void
   addLog: (log: Omit<AuditLog, 'id' | 'timestamp'>) => void
@@ -165,6 +167,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ...prev,
     ])
   }
+
   const addAvaliacao = (data: Partial<Avaliacao>) => {
     setAvaliacoes((prev) => [
       {
@@ -178,6 +181,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ...prev,
     ])
   }
+
   const addConvenio = (data: Partial<Convenio>) => {
     setConvenios((prev) => [
       {
@@ -191,6 +195,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ...prev,
     ])
   }
+
   const addCep = (data: Partial<CepRecord>) => {
     setCeps((prev) => [
       {
@@ -206,6 +211,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ...prev,
     ])
   }
+
   const addDisciplina = (data: Partial<Disciplina>) => {
     setDisciplinas((prev) => [
       {
@@ -218,6 +224,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ...prev,
     ])
   }
+
   const addClass = (cls: Partial<ClassRoom>) => {
     setClasses((prev) => [
       {
@@ -226,9 +233,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
         course: cls.course!,
         semester: cls.semester!,
         capacity: cls.capacity,
+        room: cls.room,
+        year: cls.year,
+        shift: cls.shift,
       },
       ...prev,
     ])
+    addLog({
+      user: currentUserRole,
+      action: 'Criou Nova Turma',
+      entity: `Turma: ${cls.name}`,
+    })
+  }
+
+  const updateClass = (id: string, partial: Partial<ClassRoom>) => {
+    setClasses((prev) => prev.map((c) => (c.id === id ? { ...c, ...partial } : c)))
+    addLog({
+      user: currentUserRole,
+      action: 'Atualizou Turma',
+      entity: `Turma: ${partial.name || id}`,
+    })
+  }
+
+  const deleteClass = (id: string) => {
+    const cls = classes.find((c) => c.id === id)
+    setClasses((prev) => prev.filter((c) => c.id !== id))
+    addLog({
+      user: currentUserRole,
+      action: 'Excluiu Turma',
+      entity: `Turma: ${cls?.name || id}`,
+    })
   }
 
   const addBook = (book: Omit<Book, 'id'>) => {
@@ -641,6 +675,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         registerPayment,
         addTeacher,
         addClass,
+        updateClass,
+        deleteClass,
         addSchedule,
         enrollStudent,
         addLog,

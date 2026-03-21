@@ -1,14 +1,24 @@
+import { useState } from 'react'
 import { useAppStore } from '@/contexts/AppContext'
 import { useNavigate, Link, Navigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Lock } from 'lucide-react'
+import { Role } from '@/lib/types'
 
 export default function Login() {
-  const { login, isAuthenticated } = useAppStore()
+  const { login, isAuthenticated, setCurrentUserRole } = useAppStore()
   const navigate = useNavigate()
+  const [role, setRole] = useState<Role>('Admin')
 
   if (isAuthenticated) {
     return <Navigate to="/" replace />
@@ -16,8 +26,16 @@ export default function Login() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
+    setCurrentUserRole(role)
     login()
-    navigate('/')
+
+    if (role === 'Aluno') {
+      navigate('/student/dashboard')
+    } else if (role === 'Responsável') {
+      navigate('/parent/dashboard')
+    } else {
+      navigate('/')
+    }
   }
 
   return (
@@ -34,6 +52,22 @@ export default function Login() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Perfil de Acesso (Mock)</Label>
+              <Select value={role} onValueChange={(v: Role) => setRole(v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Admin">Administrador (Master)</SelectItem>
+                  <SelectItem value="Secretaria">Secretaria Escolar</SelectItem>
+                  <SelectItem value="Financeiro">Financeiro</SelectItem>
+                  <SelectItem value="Professor">Corpo Docente</SelectItem>
+                  <SelectItem value="Aluno">Portal do Aluno</SelectItem>
+                  <SelectItem value="Responsável">Portal do Responsável</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2">
               <Label>E-mail ou Matrícula</Label>
               <Input

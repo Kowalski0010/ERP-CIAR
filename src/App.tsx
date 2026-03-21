@@ -72,6 +72,7 @@ import BackupSettings from './pages/admin/BackupSettings'
 import PendingApprovals from './pages/admin/PendingApprovals'
 import CommunicationSettings from './pages/admin/CommunicationSettings'
 import Integrations from './pages/admin/Integrations'
+import SecurityCameras from './pages/admin/SecurityCameras'
 
 // Generic Report View
 import ReportView from './pages/reports/ReportView'
@@ -86,13 +87,14 @@ import Movements from './pages/inventory/Movements'
 import Orders from './pages/purchasing/Orders'
 import Suppliers from './pages/purchasing/Suppliers'
 
-// Student Portal
+// Portals
 import StudentDashboard from './pages/student/StudentDashboard'
 import StudentSchedule from './pages/student/StudentSchedule'
 import StudentFinancial from './pages/student/StudentFinancial'
 import StudentDocuments from './pages/student/StudentDocuments'
 import StudentFeedback from './pages/student/StudentFeedback'
 import StudentProfile from './pages/student/StudentProfile'
+import ParentDashboard from './pages/parent/ParentDashboard'
 
 function App() {
   return (
@@ -139,7 +141,7 @@ function App() {
                 <Route path="dashboard" element={<LibraryDashboard />} />
               </Route>
 
-              {/* Student Portal */}
+              {/* Portals */}
               <Route path="student">
                 <Route path="dashboard" element={<StudentDashboard />} />
                 <Route path="schedule" element={<StudentSchedule />} />
@@ -147,6 +149,10 @@ function App() {
                 <Route path="documents" element={<StudentDocuments />} />
                 <Route path="feedback" element={<StudentFeedback />} />
                 <Route path="profile" element={<StudentProfile />} />
+              </Route>
+
+              <Route path="parent">
+                <Route path="dashboard" element={<ParentDashboard />} />
               </Route>
 
               {/* Secretaria Modules */}
@@ -224,6 +230,7 @@ function App() {
                 <Route path="communication-logs" element={<CommunicationLogs />} />
                 <Route path="registry/:id" element={<RegistryView />} />
                 <Route path="backup" element={<BackupSettings />} />
+                <Route path="security" element={<SecurityCameras />} />
               </Route>
 
               {/* Generic Reports */}

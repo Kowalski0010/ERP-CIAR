@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { useAppStore } from '@/contexts/AppContext'
 import { Database, Search, Plus, Filter, Edit, Trash2, ChevronLeft } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -26,11 +27,15 @@ import { TurmaForm } from '@/components/admin/forms/TurmaForm'
 export default function RegistryView() {
   const { id } = useParams()
   const { toast } = useToast()
+  const { classes, deleteClass } = useAppStore()
+
   const [isAdding, setIsAdding] = useState(false)
+  const [editItem, setEditItem] = useState<any>(null)
 
   // Reset isAdding when changing routes
   useEffect(() => {
     setIsAdding(false)
+    setEditItem(null)
   }, [id])
 
   // Format ID for display
@@ -38,7 +43,9 @@ export default function RegistryView() {
     ? id.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
     : 'Cadastro Básico'
 
-  const mockData = Array.from({ length: 5 }).map((_, i) => ({
+  const isTurmas = id === 'turmas'
+
+  const genericMockData = Array.from({ length: 5 }).map((_, i) => ({
     id: `REG-00${i + 1}`,
     name: `${title} - Exemplo ${i + 1}`,
     description: `Registro genérico para módulo de ${title.toLowerCase()}`,
@@ -46,15 +53,51 @@ export default function RegistryView() {
     date: new Date(Date.now() - Math.random() * 10000000000).toLocaleDateString('pt-BR'),
   }))
 
-  const handleAction = (action: string) => {
-    toast({
-      title: `Ação: ${action}`,
-      description: `Funcionalidade '${action}' acionada no módulo de ${title}.`,
-    })
+  const displayData = isTurmas
+    ? classes.map((c) => ({
+        id: c.id,
+        name: c.name,
+        description: `${c.course} | Sala: ${c.room || 'N/A'} | Ano: ${c.year || c.semester.substring(0, 4)}`,
+        status: 'Ativo',
+        date: new Date().toLocaleDateString('pt-BR'),
+        original: c,
+      }))
+    : genericMockData
+
+  const handleEditAction = (item: any) => {
+    if (isTurmas && item.original) {
+      setEditItem(item.original)
+      setIsAdding(true)
+    } else {
+      toast({
+        title: `Editar Registro`,
+        description: `Funcionalidade 'Editar' acionada para ${item.name}.`,
+      })
+    }
+  }
+
+  const handleDeleteAction = (item: any) => {
+    if (isTurmas) {
+      deleteClass(item.id)
+      toast({
+        title: `Registro Excluído`,
+        description: `A turma ${item.name} foi removida do sistema com sucesso.`,
+      })
+    } else {
+      toast({
+        title: `Excluir Registro`,
+        description: `Funcionalidade 'Excluir' acionada para ${item.name}.`,
+      })
+    }
+  }
+
+  const handleCancelForm = () => {
+    setIsAdding(false)
+    setEditItem(null)
   }
 
   const renderForm = () => {
-    const props = { onCancel: () => setIsAdding(false) }
+    const props = { onCancel: handleCancelForm }
     switch (id) {
       case 'avaliacoes':
         return <AvaliacaoForm {...props} />
@@ -67,14 +110,14 @@ export default function RegistryView() {
       case 'disciplina':
         return <DisciplinaForm {...props} />
       case 'turmas':
-        return <TurmaForm {...props} />
+        return <TurmaForm {...props} initialData={editItem} />
       default:
         return (
           <form
             onSubmit={(e) => {
               e.preventDefault()
               toast({ title: 'Salvo', description: 'Registro genérico salvo.' })
-              setIsAdding(false)
+              handleCancelForm()
             }}
             className="space-y-4 max-w-2xl"
           >
@@ -86,7 +129,7 @@ export default function RegistryView() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setIsAdding(false)}
+                onClick={handleCancelForm}
                 className="shadow-sm"
               >
                 Cancelar
@@ -119,11 +162,15 @@ export default function RegistryView() {
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900 flex items-center gap-2">
             <Database className="h-6 w-6 text-zinc-400" />
-            {isAdding ? `Novo(a) ${title}` : `Gestão de ${title}`}
+            {isAdding
+              ? editItem
+                ? `Editando ${title}`
+                : `Novo(a) ${title}`
+              : `Gestão de ${title}`}
           </h1>
           <p className="text-sm text-zinc-500 mt-1">
             {isAdding
-              ? 'Preencha as informações abaixo para salvar um novo registro.'
+              ? 'Preencha as informações abaixo para atualizar o registro.'
               : 'Interface padronizada para manutenção de registros de sistema.'}
           </p>
         </div>
@@ -167,14 +214,14 @@ export default function RegistryView() {
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="w-[100px]">Código</TableHead>
                   <TableHead>Nome / Identificação</TableHead>
-                  <TableHead className="hidden md:table-cell">Descrição Breve</TableHead>
+                  <TableHead className="hidden md:table-cell">Detalhes</TableHead>
                   <TableHead className="w-[120px]">Criado em</TableHead>
                   <TableHead className="w-[100px] text-center">Status</TableHead>
                   <TableHead className="text-right w-[100px]">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {mockData.map((row) => (
+                {displayData.map((row) => (
                   <TableRow key={row.id} className="hover:bg-zinc-50/50 transition-colors group">
                     <TableCell className="font-mono text-xs text-zinc-500">{row.id}</TableCell>
                     <TableCell className="font-semibold text-zinc-900 text-xs">
@@ -202,7 +249,7 @@ export default function RegistryView() {
                           variant="ghost"
                           size="icon"
                           className="h-7 w-7 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                          onClick={() => handleAction('Editar')}
+                          onClick={() => handleEditAction(row)}
                         >
                           <Edit className="h-3.5 w-3.5" />
                         </Button>
@@ -210,7 +257,7 @@ export default function RegistryView() {
                           variant="ghost"
                           size="icon"
                           className="h-7 w-7 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
-                          onClick={() => handleAction('Excluir')}
+                          onClick={() => handleDeleteAction(row)}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
@@ -221,7 +268,7 @@ export default function RegistryView() {
               </TableBody>
             </Table>
             <div className="p-3 border-t border-zinc-100 bg-zinc-50 text-[11px] text-zinc-400 text-right font-mono">
-              Exibindo {mockData.length} registros
+              Exibindo {displayData.length} registros
             </div>
           </div>
         </>
