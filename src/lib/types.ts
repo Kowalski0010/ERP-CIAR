@@ -325,6 +325,16 @@ export type ExtracurricularEnrollment = {
   status: 'Ativo' | 'Cancelado'
 }
 
+export type Candidate = {
+  id: string
+  name: string
+  email: string
+  phone: string
+  subjects: string
+  status: 'Novo' | 'Em Avaliação' | 'Entrevista' | 'Aprovado' | 'Rejeitado'
+  dateApplied: string
+}
+
 export type AppState = {
   isAuthenticated: boolean
   currentUserRole: Role
@@ -355,4 +365,5 @@ export type AppState = {
   approvalRequests: ApprovalRequest[]
   extracurricularActivities: ExtracurricularActivity[]
   extracurricularEnrollments: ExtracurricularEnrollment[]
+  candidates: Candidate[]
 }

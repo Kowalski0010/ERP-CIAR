@@ -26,6 +26,7 @@ import {
   ApprovalRequest,
   ExtracurricularActivity,
   ExtracurricularEnrollment,
+  Candidate,
 } from './types'
 
 const defaultAddress = {
@@ -616,5 +617,35 @@ export const mockExtracurricularEnrollments: ExtracurricularEnrollment[] = [
     activityName: 'Inglês Intermediário',
     enrollmentDate: '2023-08-10',
     status: 'Ativo',
+  },
+]
+
+export const mockCandidates: Candidate[] = [
+  {
+    id: 'CAND-001',
+    name: 'Aline Souza',
+    email: 'aline@exemplo.com',
+    phone: '(11) 98888-0001',
+    subjects: 'Matemática, Física',
+    status: 'Novo',
+    dateApplied: new Date(Date.now() - 86400000).toISOString(),
+  },
+  {
+    id: 'CAND-002',
+    name: 'Marcos Almeida',
+    email: 'marcos@exemplo.com',
+    phone: '(21) 97777-0002',
+    subjects: 'História, Geografia',
+    status: 'Em Avaliação',
+    dateApplied: new Date(Date.now() - 172800000).toISOString(),
+  },
+  {
+    id: 'CAND-003',
+    name: 'Juliana Castro',
+    email: 'juliana@exemplo.com',
+    phone: '(41) 96666-0003',
+    subjects: 'Lógica de Programação, Banco de Dados',
+    status: 'Entrevista',
+    dateApplied: new Date(Date.now() - 259200000).toISOString(),
   },
 ]

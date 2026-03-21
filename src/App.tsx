@@ -33,6 +33,7 @@ import Agenda from './pages/academic/Agenda'
 import AcademicPerformance from './pages/academic/AcademicPerformance'
 import DigitalRollCall from './pages/academic/DigitalRollCall'
 import Extracurricular from './pages/academic/Extracurricular'
+import RoomOccupancy from './pages/academic/RoomOccupancy'
 
 // Library
 import LibraryCatalog from './pages/library/LibraryCatalog'
@@ -50,6 +51,7 @@ import Transferencias from './pages/secretaria/Transferencias'
 import Administrativo from './pages/secretaria/Administrativo'
 import RelatorioFinal from './pages/secretaria-educacao/RelatorioFinal'
 import FeedbackInbox from './pages/secretaria/FeedbackInbox'
+import Certificados from './pages/secretaria/Certificados'
 
 // Financial
 import Payments from './pages/financial/Payments'
@@ -78,8 +80,9 @@ import SecurityCameras from './pages/admin/SecurityCameras'
 import ReportView from './pages/reports/ReportView'
 import CustomReports from './pages/reports/CustomReports'
 
-// HR
+// HR & Recruitment
 import Employees from './pages/hr/Employees'
+import Recruitment from './pages/hr/Recruitment'
 
 // Inventory & Purchasing
 import Stock from './pages/inventory/Stock'
@@ -96,15 +99,21 @@ import StudentFeedback from './pages/student/StudentFeedback'
 import StudentProfile from './pages/student/StudentProfile'
 import ParentDashboard from './pages/parent/ParentDashboard'
 
+// Public Forms
+import TeacherApplication from './pages/public/TeacherApplication'
+import VerifyCertificate from './pages/public/VerifyCertificate'
+
 function App() {
   return (
     <ThemeProvider defaultTheme="system" storageKey="sio-ui-theme">
       <AppProvider>
         <Router>
           <Routes>
-            {/* Public Auth Routes */}
+            {/* Public Auth & External Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/apply-teacher" element={<TeacherApplication />} />
+            <Route path="/verify/:code" element={<VerifyCertificate />} />
 
             <Route element={<Layout />}>
               <Route path="/" element={<Index />} />
@@ -127,6 +136,7 @@ function App() {
                 <Route path="schedules" element={<Schedules />} />
                 <Route path="grades" element={<Grades />} />
                 <Route path="occupancy" element={<ClassOccupancy />} />
+                <Route path="room-occupancy" element={<RoomOccupancy />} />
                 <Route path="pedagogical" element={<PedagogicalTracking />} />
                 <Route path="performance" element={<AcademicPerformance />} />
                 <Route path="roll-call" element={<DigitalRollCall />} />
@@ -181,6 +191,7 @@ function App() {
                 <Route path="reabertura-periodo" element={<Administrativo />} />
                 <Route path="recursos-aula" element={<Administrativo />} />
                 <Route path="feedback" element={<FeedbackInbox />} />
+                <Route path="certificados" element={<Certificados />} />
               </Route>
 
               <Route path="secretaria-educacao">
@@ -201,6 +212,7 @@ function App() {
               {/* HR */}
               <Route path="hr">
                 <Route path="employees" element={<Employees />} />
+                <Route path="recruitment" element={<Recruitment />} />
               </Route>
 
               {/* Inventory */}

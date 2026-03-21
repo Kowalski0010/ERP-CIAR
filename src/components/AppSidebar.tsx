@@ -12,6 +12,8 @@ import {
   LogOut,
   Plus,
   Users,
+  Briefcase,
+  Package,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -64,6 +66,7 @@ const appModules = [
     icon: GraduationCap,
     items: [
       { title: 'Dashboard de Performance', url: '/academic/performance' },
+      { title: 'Mapa de Ocupação', url: '/academic/room-occupancy' },
       { title: 'Chamada Digital', url: '/academic/roll-call' },
       { title: 'Acomp. Pedagógico', url: '/academic/pedagogical' },
       { title: 'Controle de Notas', url: '/academic/grades' },
@@ -85,6 +88,24 @@ const appModules = [
     ],
   },
   {
+    title: 'RECURSOS HUMANOS',
+    icon: Briefcase,
+    items: [
+      { title: 'Colaboradores', url: '/hr/employees' },
+      { title: 'Recrutamento de Docentes', url: '/hr/recruitment' },
+    ],
+  },
+  {
+    title: 'INVENTÁRIO E PATRIMÔNIO',
+    icon: Package,
+    items: [
+      { title: 'Estoque Atual', url: '/inventory/stock' },
+      { title: 'Movimentações', url: '/inventory/movements' },
+      { title: 'Pedidos de Compra', url: '/purchasing/orders' },
+      { title: 'Fornecedores', url: '/purchasing/suppliers' },
+    ],
+  },
+  {
     title: 'COMUNICAÇÃO',
     icon: Mail,
     items: [
@@ -101,6 +122,7 @@ const appModules = [
     items: [
       { title: 'Efetuar Matrícula', url: '/secretaria/efetuar-matricula' },
       { title: 'Manutenção Matrícula', url: '/secretaria/manutencao-matricula' },
+      { title: 'Emissão de Certificados', url: '/secretaria/certificados' },
       { title: 'Imprimir Documentos', url: '/secretaria/imprimir-documentos' },
       { title: 'Consulta de Alunos', url: '/secretaria/consultar-aluno' },
     ],
@@ -132,7 +154,9 @@ export function AppSidebar() {
         module.title === 'CADASTROS' ||
         module.title === 'GESTÃO E FINANCEIRO' ||
         module.title === 'COMUNICAÇÃO' ||
-        module.title === 'OPERAÇÕES SECRETARIA'
+        module.title === 'OPERAÇÕES SECRETARIA' ||
+        module.title === 'INVENTÁRIO E PATRIMÔNIO' ||
+        module.title === 'RECURSOS HUMANOS'
       )
     }
 

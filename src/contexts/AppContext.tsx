@@ -30,6 +30,7 @@ import {
   ApprovalRequest,
   ExtracurricularActivity,
   ExtracurricularEnrollment,
+  Candidate,
 } from '@/lib/types'
 import {
   mockStudents,
@@ -59,6 +60,7 @@ import {
   mockApprovalRequests,
   mockExtracurricularActivities,
   mockExtracurricularEnrollments,
+  mockCandidates,
 } from '@/lib/mockData'
 
 interface AppContextType extends AppState {
@@ -107,6 +109,12 @@ interface AppContextType extends AppState {
 
   addExtracurricularActivity: (activity: Omit<ExtracurricularActivity, 'id'>) => void
   enrollInExtracurricular: (studentId: string, activityId: string) => void
+
+  addProduct: (product: Omit<Product, 'id'>) => void
+  addStockMovement: (movement: Omit<StockMovement, 'id' | 'date'>) => void
+
+  addCandidate: (candidate: Omit<Candidate, 'id' | 'status' | 'dateApplied'>) => void
+  updateCandidateStatus: (id: string, status: Candidate['status']) => void
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
@@ -126,8 +134,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     useState<CommunicationLog[]>(mockCommunicationLogs)
   const [attendances] = useState<AttendanceRecord[]>(mockAttendance)
   const [employees] = useState<Employee[]>(mockEmployees)
-  const [products] = useState<Product[]>(mockProducts)
-  const [stockMovements] = useState<StockMovement[]>(mockMovements)
+  const [products, setProducts] = useState<Product[]>(mockProducts)
+  const [stockMovements, setStockMovements] = useState<StockMovement[]>(mockMovements)
   const [suppliers] = useState<Supplier[]>(mockSuppliers)
   const [purchaseOrders] = useState<PurchaseOrder[]>(mockOrders)
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(mockChatMessages)
@@ -147,11 +155,51 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [extracurricularEnrollments, setExtracurricularEnrollments] = useState<
     ExtracurricularEnrollment[]
   >(mockExtracurricularEnrollments)
+  const [candidates, setCandidates] = useState<Candidate[]>(mockCandidates)
 
   const login = () => setIsAuthenticated(true)
   const logout = () => setIsAuthenticated(false)
 
   const generateId = (prefix: string) => `${prefix}${Math.floor(Math.random() * 10000)}`
+
+  const addProduct = (product: Omit<Product, 'id'>) => {
+    setProducts((prev) => [{ ...product, id: generateId('PRD') }, ...prev])
+  }
+
+  const addStockMovement = (movement: Omit<StockMovement, 'id' | 'date'>) => {
+    setStockMovements((prev) => [
+      { ...movement, id: generateId('MOV'), date: new Date().toISOString() },
+      ...prev,
+    ])
+    setProducts((prev) =>
+      prev.map((p) => {
+        if (p.id === movement.productId) {
+          const newQty =
+            movement.type === 'Entrada'
+              ? p.currentQuantity + movement.quantity
+              : Math.max(0, p.currentQuantity - movement.quantity)
+          return { ...p, currentQuantity: newQty }
+        }
+        return p
+      }),
+    )
+  }
+
+  const addCandidate = (candidate: Omit<Candidate, 'id' | 'status' | 'dateApplied'>) => {
+    setCandidates((prev) => [
+      {
+        ...candidate,
+        id: generateId('CAND'),
+        status: 'Novo',
+        dateApplied: new Date().toISOString(),
+      },
+      ...prev,
+    ])
+  }
+
+  const updateCandidateStatus = (id: string, status: Candidate['status']) => {
+    setCandidates((prev) => prev.map((c) => (c.id === id ? { ...c, status } : c)))
+  }
 
   const addCurso = (data: Partial<Curso>) => {
     setCursos((prev) => [
@@ -668,6 +716,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         approvalRequests,
         extracurricularActivities,
         extracurricularEnrollments,
+        candidates,
         addLead,
         updateLeadStatus,
         updateStudent,
@@ -704,6 +753,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         rejectRequest,
         addExtracurricularActivity,
         enrollInExtracurricular,
+        addProduct,
+        addStockMovement,
+        addCandidate,
+        updateCandidateStatus,
       }}
     >
       {children}
