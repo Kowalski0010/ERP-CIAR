@@ -2,28 +2,21 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAppStore } from '@/contexts/AppContext'
 import {
   Search,
-  Star,
   CalendarDays,
   StickyNote,
-  Users,
-  Printer,
   Mail,
-  Newspaper,
-  PlayCircle,
-  Lock,
   GraduationCap,
   Settings,
-  Megaphone,
   DollarSign,
   ChevronRight,
-  BookOpen,
   LogOut,
+  Plus,
+  BookOpen,
 } from 'lucide-react'
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
@@ -44,47 +37,65 @@ const appModules = [
       { title: 'Meu Painel', url: '/student/dashboard' },
       { title: 'Agenda de Aulas', url: '/student/schedule' },
       { title: 'Extrato Financeiro', url: '/student/financial' },
-      { title: 'Documentos e Assinaturas', url: '/student/documents' },
+      { title: 'Documentos', url: '/student/documents' },
+      { title: 'Feedback / Suporte', url: '/student/feedback' },
     ],
   },
   {
-    title: 'ACADÊMICO',
-    icon: GraduationCap,
+    title: 'CADASTRO (REGISTRATION)',
+    icon: Plus,
     subGroups: [
       {
-        title: 'Controle Acadêmico',
+        title: 'Acadêmico',
         items: [
-          { title: 'Acompanhamento pedagógico', url: '/academic/pedagogical' },
-          { title: 'Agenda Acadêmica', url: '/academic/agenda' },
-          { title: 'Atribuir professor', url: '/academic/control/alocar-professor' },
-          { title: 'Consultar notas', url: '/academic/grades' },
-          { title: 'Editar perfil de aluno', url: '/academic/control/editar-aluno' },
-          { title: 'Gerenciar disciplinas', url: '/academic/control/vincular-disciplina' },
-          { title: 'Gerenciar turma', url: '/academic/control/trocar-turma' },
-          { title: 'Lançar frequência', url: '/academic/control/lancar-frequencia' },
-          { title: 'Lançar notas', url: '/academic/control/lancar-notas' },
+          { title: 'Novo Aluno', url: '/academic/students' },
+          { title: 'Professores', url: '/academic/teachers' },
+          { title: 'Turmas', url: '/academic/classes' },
         ],
       },
       {
-        title: 'Secretaria',
+        title: 'Cadastros Básicos',
         items: [
-          { title: '2ª via de contrato', url: '/secretaria/2a-via-contrato' },
-          { title: 'Bloquear matrícula', url: '/secretaria/bloquear-matricula' },
-          { title: 'Cadastrar horário', url: '/secretaria/cadastrar-horario' },
-          { title: 'Consultar aluno', url: '/secretaria/consultar-aluno' },
-          { title: 'Consultar curso', url: '/secretaria/consultar-curso' },
-          { title: 'Consultar matrícula', url: '/secretaria/consultar-matricula' },
-          { title: 'Transferência de turma', url: '/secretaria/trocar-aluno-turma' },
+          { title: 'Cursos', url: '/admin/registry/curso' },
+          { title: 'Disciplinas', url: '/admin/registry/disciplina' },
+          { title: 'Livros (Biblioteca)', url: '/library/catalog' },
+          { title: 'Convênios', url: '/admin/registry/convenio' },
+          { title: 'CEP (Logradouros)', url: '/admin/registry/cep' },
         ],
       },
     ],
   },
   {
-    title: 'BIBLIOTECA',
-    icon: BookOpen,
-    items: [
-      { title: 'Acervo e Catálogo', url: '/library/catalog' },
-      { title: 'Empréstimos e Devoluções', url: '/library/loans' },
+    title: 'CONSULTA / GESTÃO',
+    icon: Search,
+    subGroups: [
+      {
+        title: 'Dashboards e BI',
+        items: [
+          { title: 'Dashboard Biblioteca', url: '/library/dashboard' },
+          { title: 'Ocupação de Turmas', url: '/academic/occupancy' },
+        ],
+      },
+      {
+        title: 'Relatórios Customizados',
+        items: [{ title: 'Criador de Relatórios', url: '/reports/custom' }],
+      },
+      {
+        title: 'Consultas Diárias',
+        items: [
+          { title: 'Agenda Acadêmica', url: '/academic/agenda' },
+          { title: 'Consulta de Alunos', url: '/secretaria/consultar-aluno' },
+          { title: 'Controle de Notas', url: '/academic/grades' },
+          { title: 'Empréstimos (Biblioteca)', url: '/library/loans' },
+        ],
+      },
+      {
+        title: 'Auditoria e Sistema',
+        items: [
+          { title: 'Logs de Auditoria', url: '/admin/audit-logs' },
+          { title: 'Backup em Nuvem', url: '/admin/backup' },
+        ],
+      },
     ],
   },
   {
@@ -92,33 +103,24 @@ const appModules = [
     icon: Mail,
     items: [
       { title: 'Chat Interno', url: '/utilities/chat' },
+      { title: 'Inbox de Feedback', url: '/secretaria/feedback' },
       { title: 'Mensagens / Avisos', url: '/utilities/messages' },
     ],
   },
   {
-    title: 'ADMINISTRAÇÃO DO SISTEMA',
+    title: 'OPERAÇÕES SECRETARIA',
     icon: Settings,
     subGroups: [
       {
-        title: 'Cadastro',
+        title: 'Matrículas',
         items: [
-          { title: 'Avaliações', url: '/admin/registry/avaliacoes' },
-          { title: 'Cursos', url: '/admin/registry/curso' },
-          { title: 'Convênios', url: '/admin/registry/convenio' },
-          { title: 'CEP (Logradouros)', url: '/admin/registry/cep' },
-          { title: 'Disciplinas', url: '/admin/registry/disciplina' },
-          { title: 'Turmas', url: '/admin/registry/turmas' },
+          { title: 'Efetuar Matrícula', url: '/secretaria/efetuar-matricula' },
+          { title: 'Manutenção Matrícula', url: '/secretaria/manutencao-matricula' },
         ],
       },
-    ],
-  },
-  {
-    title: 'CRM – COMUNICAÇÃO',
-    icon: Megaphone,
-    subGroups: [
       {
-        title: 'Atendimento',
-        items: [{ title: 'Pipeline Comercial', url: '/commercial/leads' }],
+        title: 'Documentos',
+        items: [{ title: 'Imprimir Documentos', url: '/secretaria/imprimir-documentos' }],
       },
     ],
   },
@@ -145,46 +147,27 @@ export function AppSidebar() {
     }
 
     if (currentUserRole === 'Aluno') {
-      return module.title === 'PORTAL DO ALUNO' || module.title === 'BIBLIOTECA'
+      return module.title === 'PORTAL DO ALUNO'
     }
 
     if (currentUserRole === 'Secretaria') {
       return (
-        module.title === 'ACADÊMICO' ||
-        module.title === 'ADMINISTRAÇÃO DO SISTEMA' ||
+        module.title === 'CADASTRO (REGISTRATION)' ||
+        module.title === 'CONSULTA / GESTÃO' ||
         module.title === 'COMUNICAÇÃO' ||
-        module.title === 'BIBLIOTECA'
+        module.title === 'OPERAÇÕES SECRETARIA'
       )
     }
 
     if (currentUserRole === 'Financeiro') {
-      return (
-        module.title === 'FINANCEIRO' ||
-        module.title === 'ADMINISTRAÇÃO DO SISTEMA' ||
-        module.title === 'COMUNICAÇÃO'
-      )
+      return module.title === 'FINANCEIRO' || module.title === 'CONSULTA / GESTÃO'
     }
 
     if (currentUserRole === 'Professor') {
-      return (
-        module.title === 'ACADÊMICO' ||
-        module.title === 'COMUNICAÇÃO' ||
-        module.title === 'BIBLIOTECA'
-      )
+      return module.title === 'COMUNICAÇÃO' || module.title === 'CONSULTA / GESTÃO'
     }
 
     return true
-  })
-
-  // Filter subGroups for Secretaria (only show Cadastro in Administração)
-  const renderModules = filteredModules.map((module) => {
-    if (currentUserRole === 'Secretaria' && module.title === 'ADMINISTRAÇÃO DO SISTEMA') {
-      return {
-        ...module,
-        subGroups: module.subGroups?.filter((sg) => sg.title === 'Cadastro'),
-      }
-    }
-    return module
   })
 
   return (
@@ -282,7 +265,7 @@ export function AppSidebar() {
         <div className="mt-2 bg-[#2d3e50] flex-1 pb-4 group-data-[collapsible=icon]:bg-transparent">
           <SidebarGroup className="p-0">
             <SidebarMenu className="gap-0">
-              {renderModules.map((module) => (
+              {filteredModules.map((module) => (
                 <Collapsible key={module.title} defaultOpen={false} className="group/root">
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>

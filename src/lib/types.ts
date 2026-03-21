@@ -211,7 +211,6 @@ export type ChatMessage = {
   timestamp: string
 }
 
-// Registry Data Types
 export type Curso = {
   id: string
   name: string
@@ -255,7 +254,6 @@ export type Disciplina = {
   date: string
 }
 
-// Library Types
 export type Book = {
   id: string
   title: string
@@ -277,6 +275,17 @@ export type Loan = {
   status: 'Ativo' | 'Devolvido' | 'Atrasado'
 }
 
+export type StudentFeedback = {
+  id: string
+  studentId: string
+  studentName: string
+  category: 'Sugestão' | 'Reclamação' | 'Dúvida'
+  message: string
+  status: 'Novo' | 'Lido' | 'Respondido' | 'Arquivado'
+  date: string
+  reply?: string
+}
+
 export type AppState = {
   isAuthenticated: boolean
   currentUserRole: Role
@@ -296,8 +305,6 @@ export type AppState = {
   suppliers: Supplier[]
   purchaseOrders: PurchaseOrder[]
   chatMessages: ChatMessage[]
-
-  // Registry & Lib
   cursos: Curso[]
   avaliacoes: Avaliacao[]
   convenios: Convenio[]
@@ -305,4 +312,5 @@ export type AppState = {
   disciplinas: Disciplina[]
   books: Book[]
   loans: Loan[]
+  feedbacks: StudentFeedback[]
 }

@@ -34,6 +34,7 @@ import Agenda from './pages/academic/Agenda'
 // Library
 import LibraryCatalog from './pages/library/LibraryCatalog'
 import LibraryLoans from './pages/library/LibraryLoans'
+import LibraryDashboard from './pages/library/LibraryDashboard'
 
 // Secretaria
 import ContratosDocumentos from './pages/secretaria/ContratosDocumentos'
@@ -45,6 +46,7 @@ import AlunoOperacoes from './pages/secretaria/AlunoOperacoes'
 import Transferencias from './pages/secretaria/Transferencias'
 import Administrativo from './pages/secretaria/Administrativo'
 import RelatorioFinal from './pages/secretaria-educacao/RelatorioFinal'
+import FeedbackInbox from './pages/secretaria/FeedbackInbox'
 
 // Financial
 import Payments from './pages/financial/Payments'
@@ -63,9 +65,11 @@ import Reports from './pages/admin/Reports'
 import Workflows from './pages/admin/Workflows'
 import CommunicationLogs from './pages/admin/CommunicationLogs'
 import RegistryView from './pages/admin/RegistryView'
+import BackupSettings from './pages/admin/BackupSettings'
 
 // Generic Report View
 import ReportView from './pages/reports/ReportView'
+import CustomReports from './pages/reports/CustomReports'
 
 // HR
 import Employees from './pages/hr/Employees'
@@ -81,6 +85,7 @@ import StudentDashboard from './pages/student/StudentDashboard'
 import StudentSchedule from './pages/student/StudentSchedule'
 import StudentFinancial from './pages/student/StudentFinancial'
 import StudentDocuments from './pages/student/StudentDocuments'
+import StudentFeedback from './pages/student/StudentFeedback'
 
 function App() {
   return (
@@ -121,6 +126,7 @@ function App() {
               <Route path="library">
                 <Route path="catalog" element={<LibraryCatalog />} />
                 <Route path="loans" element={<LibraryLoans />} />
+                <Route path="dashboard" element={<LibraryDashboard />} />
               </Route>
 
               {/* Student Portal */}
@@ -129,6 +135,7 @@ function App() {
                 <Route path="schedule" element={<StudentSchedule />} />
                 <Route path="financial" element={<StudentFinancial />} />
                 <Route path="documents" element={<StudentDocuments />} />
+                <Route path="feedback" element={<StudentFeedback />} />
               </Route>
 
               {/* Secretaria Modules */}
@@ -156,6 +163,7 @@ function App() {
                 <Route path="trocar-aluno-turma" element={<Transferencias />} />
                 <Route path="reabertura-periodo" element={<Administrativo />} />
                 <Route path="recursos-aula" element={<Administrativo />} />
+                <Route path="feedback" element={<FeedbackInbox />} />
               </Route>
 
               <Route path="secretaria-educacao">
@@ -201,9 +209,11 @@ function App() {
                 <Route path="workflows" element={<Workflows />} />
                 <Route path="communication-logs" element={<CommunicationLogs />} />
                 <Route path="registry/:id" element={<RegistryView />} />
+                <Route path="backup" element={<BackupSettings />} />
               </Route>
 
               {/* Generic Reports */}
+              <Route path="reports/custom" element={<CustomReports />} />
               <Route path="reports/:id" element={<ReportView />} />
             </Route>
 

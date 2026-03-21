@@ -22,6 +22,7 @@ import {
   Disciplina,
   Book,
   Loan,
+  StudentFeedback,
 } from './types'
 
 const defaultAddress = {
@@ -461,6 +462,24 @@ export const mockBooks: Book[] = [
     availableCopies: 0,
     coverUrl: 'https://img.usecurling.com/p/200/300?q=code&color=purple',
   },
+  {
+    id: 'B003',
+    title: 'Design Patterns',
+    author: 'Erich Gamma',
+    isbn: '978-0201633610',
+    totalCopies: 4,
+    availableCopies: 1,
+    coverUrl: 'https://img.usecurling.com/p/200/300?q=design&color=red',
+  },
+  {
+    id: 'B004',
+    title: 'Direito Constitucional',
+    author: 'Alexandre de Moraes',
+    isbn: '978-8522400001',
+    totalCopies: 6,
+    availableCopies: 2,
+    coverUrl: 'https://img.usecurling.com/p/200/300?q=law&color=gray',
+  },
 ]
 
 export const mockLoans: Loan[] = [
@@ -471,7 +490,7 @@ export const mockLoans: Loan[] = [
     studentId: '1',
     studentName: 'Ana Silva',
     loanDate: '2023-10-01',
-    expectedReturnDate: new Date(Date.now() - 86400000).toISOString(),
+    expectedReturnDate: new Date(Date.now() - 86400000 * 5).toISOString(), // Atrasado 5 dias
     status: 'Ativo',
   },
   {
@@ -483,5 +502,56 @@ export const mockLoans: Loan[] = [
     loanDate: new Date().toISOString(),
     expectedReturnDate: new Date(Date.now() + 86400000 * 14).toISOString(),
     status: 'Ativo',
+  },
+  {
+    id: 'L003',
+    bookId: 'B003',
+    bookTitle: 'Design Patterns',
+    studentId: '2',
+    studentName: 'Carlos Oliveira',
+    loanDate: new Date(Date.now() - 86400000 * 20).toISOString(),
+    expectedReturnDate: new Date(Date.now() - 86400000 * 6).toISOString(), // Atrasado 6 dias
+    status: 'Ativo',
+  },
+  {
+    id: 'L004',
+    bookId: 'B001',
+    bookTitle: 'Clean Code',
+    studentId: '2',
+    studentName: 'Carlos Oliveira',
+    loanDate: new Date(Date.now() - 86400000 * 10).toISOString(),
+    expectedReturnDate: new Date(Date.now() + 86400000 * 4).toISOString(),
+    status: 'Ativo',
+  },
+  {
+    id: 'L005',
+    bookId: 'B004',
+    bookTitle: 'Direito Constitucional',
+    studentId: '1',
+    studentName: 'Ana Silva',
+    loanDate: new Date(Date.now() - 86400000 * 30).toISOString(),
+    expectedReturnDate: new Date(Date.now() - 86400000 * 16).toISOString(), // Atrasado 16 dias
+    status: 'Ativo',
+  },
+]
+
+export const mockFeedbacks: StudentFeedback[] = [
+  {
+    id: 'f1',
+    studentId: '1',
+    studentName: 'Ana Silva',
+    category: 'Dúvida',
+    message: 'Gostaria de saber quando começam as provas N2 do curso de Engenharia.',
+    status: 'Novo',
+    date: new Date(Date.now() - 3600000).toISOString(),
+  },
+  {
+    id: 'f2',
+    studentId: '2',
+    studentName: 'Carlos Oliveira',
+    category: 'Reclamação',
+    message: 'O ar condicionado da sala T02 está com defeito há 3 dias.',
+    status: 'Lido',
+    date: new Date(Date.now() - 86400000).toISOString(),
   },
 ]

@@ -26,6 +26,7 @@ import {
   Disciplina,
   Book,
   Loan,
+  StudentFeedback,
 } from '@/lib/types'
 import {
   mockStudents,
@@ -51,6 +52,7 @@ import {
   mockDisciplinas,
   mockBooks,
   mockLoans,
+  mockFeedbacks,
 } from '@/lib/mockData'
 
 interface AppContextType extends AppState {
@@ -76,19 +78,20 @@ interface AppContextType extends AppState {
   signDocument: (studentId: string, documentId: string) => void
   sendChatMessage: (content: string) => void
 
-  // Registry functions
   addCurso: (data: Partial<Curso>) => void
   addAvaliacao: (data: Partial<Avaliacao>) => void
   addConvenio: (data: Partial<Convenio>) => void
   addCep: (data: Partial<CepRecord>) => void
   addDisciplina: (data: Partial<Disciplina>) => void
 
-  // Library functions
   addBook: (book: Omit<Book, 'id'>) => void
   addLoan: (loan: Omit<Loan, 'id' | 'status'>) => void
   returnLoan: (loanId: string) => void
 
-  // Finance integration
+  addFeedback: (fb: Omit<StudentFeedback, 'id' | 'date' | 'status'>) => void
+  updateFeedbackStatus: (id: string, status: StudentFeedback['status']) => void
+  replyFeedback: (id: string, reply: string) => void
+
   simulatePaymentReconciliation: () => void
 }
 
@@ -115,7 +118,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [purchaseOrders] = useState<PurchaseOrder[]>(mockOrders)
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(mockChatMessages)
 
-  // Registries & Library
   const [cursos, setCursos] = useState<Curso[]>(mockCursos)
   const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>(mockAvaliacoes)
   const [convenios, setConvenios] = useState<Convenio[]>(mockConvenios)
@@ -123,6 +125,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [disciplinas, setDisciplinas] = useState<Disciplina[]>(mockDisciplinas)
   const [books, setBooks] = useState<Book[]>(mockBooks)
   const [loans, setLoans] = useState<Loan[]>(mockLoans)
+  const [feedbacks, setFeedbacks] = useState<StudentFeedback[]>(mockFeedbacks)
 
   const login = () => setIsAuthenticated(true)
   const logout = () => setIsAuthenticated(false)
@@ -228,7 +231,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (l.id === loanId) {
           const isLate = new Date() > new Date(l.expectedReturnDate)
           if (isLate) {
-            generateInvoice(l.studentId, 15.0) // Fine for late return
+            generateInvoice(l.studentId, 15.0)
             addCommunicationLog({
               recipient: l.studentName,
               channel: 'Email',
@@ -246,6 +249,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
         return l
       }),
+    )
+  }
+
+  const addFeedback = (fb: Omit<StudentFeedback, 'id' | 'date' | 'status'>) => {
+    setFeedbacks((prev) => [
+      { ...fb, id: generateId('FB'), status: 'Novo', date: new Date().toISOString() },
+      ...prev,
+    ])
+  }
+
+  const updateFeedbackStatus = (id: string, status: StudentFeedback['status']) => {
+    setFeedbacks((prev) => prev.map((fb) => (fb.id === id ? { ...fb, status } : fb)))
+  }
+
+  const replyFeedback = (id: string, reply: string) => {
+    setFeedbacks((prev) =>
+      prev.map((fb) => (fb.id === id ? { ...fb, reply, status: 'Respondido' } : fb)),
     )
   }
 
@@ -536,6 +556,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         disciplinas,
         books,
         loans,
+        feedbacks,
         addLead,
         updateLeadStatus,
         updateStudent,
@@ -562,6 +583,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         addBook,
         addLoan,
         returnLoan,
+        addFeedback,
+        updateFeedbackStatus,
+        replyFeedback,
         simulatePaymentReconciliation,
       }}
     >
