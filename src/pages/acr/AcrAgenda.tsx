@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
-import { CalendarDays, Plus, Clock, Users } from 'lucide-react'
+import { CalendarDays, Plus, Clock } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 
@@ -87,13 +87,16 @@ export default function AcrAgenda() {
             Gerencie horários, envie lembretes e integre pagamentos.
           </p>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
-          <div className="flex bg-zinc-100 p-1 rounded-md border border-zinc-200">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <div className="flex bg-zinc-100 p-1 rounded-md border border-zinc-200 w-full sm:w-auto justify-center">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setView('month')}
-              className={cn('h-8 text-xs font-medium', view === 'month' && 'bg-white shadow-sm')}
+              className={cn(
+                'h-9 sm:h-8 text-xs font-medium flex-1 sm:flex-none',
+                view === 'month' && 'bg-white shadow-sm',
+              )}
             >
               Mês
             </Button>
@@ -101,7 +104,10 @@ export default function AcrAgenda() {
               variant="ghost"
               size="sm"
               onClick={() => setView('week')}
-              className={cn('h-8 text-xs font-medium', view === 'week' && 'bg-white shadow-sm')}
+              className={cn(
+                'h-9 sm:h-8 text-xs font-medium flex-1 sm:flex-none',
+                view === 'week' && 'bg-white shadow-sm',
+              )}
             >
               Semana
             </Button>
@@ -109,12 +115,18 @@ export default function AcrAgenda() {
               variant="ghost"
               size="sm"
               onClick={() => setView('day')}
-              className={cn('h-8 text-xs font-medium', view === 'day' && 'bg-white shadow-sm')}
+              className={cn(
+                'h-9 sm:h-8 text-xs font-medium flex-1 sm:flex-none',
+                view === 'day' && 'bg-white shadow-sm',
+              )}
             >
               Dia
             </Button>
           </div>
-          <Button className="shadow-sm h-10 px-4" onClick={() => setIsAddOpen(true)}>
+          <Button
+            className="shadow-sm h-11 sm:h-10 px-4 w-full sm:w-auto"
+            onClick={() => setIsAddOpen(true)}
+          >
             <Plus className="mr-2 h-4 w-4" /> Novo Agendamento
           </Button>
         </div>
@@ -122,7 +134,7 @@ export default function AcrAgenda() {
 
       <Card className="border-zinc-200 shadow-sm bg-white overflow-hidden">
         <CardHeader className="border-b border-zinc-100 bg-zinc-50/50 py-3 flex flex-row items-center justify-between">
-          <CardTitle className="text-sm text-zinc-800">Visualização Semanal</CardTitle>
+          <CardTitle className="text-sm text-zinc-800">Visualização de Agendamentos</CardTitle>
           <div className="text-xs text-zinc-500 flex gap-4">
             <span className="flex items-center gap-1">
               <div className="w-2 h-2 rounded-full bg-blue-500" /> Agendado
@@ -132,62 +144,108 @@ export default function AcrAgenda() {
             </span>
           </div>
         </CardHeader>
-        <CardContent className="p-0 overflow-x-auto">
-          <div className="min-w-[800px] p-6">
-            <div className="grid grid-cols-[80px_repeat(5,1fr)] gap-2 mb-2">
-              <div className="text-xs font-bold text-zinc-400">Horário</div>
-              {days.map((d) => (
+        <CardContent className="p-0">
+          {/* Mobile List View */}
+          <div className="md:hidden flex flex-col gap-3 p-4">
+            {acrAppointments
+              .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+              .map((app) => (
                 <div
-                  key={d}
-                  className="text-sm font-semibold text-zinc-800 text-center pb-2 border-b border-zinc-200"
+                  key={app.id}
+                  className="p-4 border border-zinc-200 rounded-lg shadow-sm bg-white flex flex-col gap-2 hover:border-blue-300 transition-colors cursor-pointer"
+                  onClick={() => setIsAddOpen(true)}
                 >
-                  {d}
+                  <div className="flex justify-between items-start">
+                    <h4 className="font-semibold text-zinc-900 text-sm leading-tight pr-2">
+                      {app.patientName}
+                    </h4>
+                    <Badge
+                      variant="outline"
+                      className={
+                        app.status === 'Realizado'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : 'bg-blue-50 text-blue-700 border-blue-200'
+                      }
+                    >
+                      {app.status}
+                    </Badge>
+                  </div>
+                  <div className="flex flex-col gap-1 mt-1">
+                    <div className="flex items-center gap-2 text-xs text-zinc-700 font-medium">
+                      <Clock className="h-3.5 w-3.5 text-zinc-400" />
+                      {new Date(app.date).toLocaleString('pt-BR')}
+                    </div>
+                    <p className="text-[11px] text-zinc-500 uppercase tracking-wider">
+                      {app.analysisType}
+                    </p>
+                  </div>
                 </div>
               ))}
-            </div>
-            <div className="space-y-2">
-              {hours.map((h) => (
-                <div key={h} className="grid grid-cols-[80px_repeat(5,1fr)] gap-2 min-h-[60px]">
-                  <div className="text-xs font-mono text-zinc-500 flex items-center">{h}:00</div>
-                  {days.map((_, dIdx) => {
-                    const apps = getAppointmentsForSlot(dIdx, h)
-                    return (
-                      <div
-                        key={dIdx}
-                        className="bg-zinc-50 border border-zinc-100 rounded-md p-1.5 hover:bg-zinc-100 transition-colors cursor-pointer group relative"
-                        onClick={() => setIsAddOpen(true)}
-                      >
-                        {apps.map((app) => (
-                          <div
-                            key={app.id}
-                            className={cn(
-                              'p-2 rounded border text-xs flex flex-col mb-1',
-                              app.status === 'Realizado'
-                                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                                : 'bg-blue-50 border-blue-200 text-blue-800',
-                            )}
-                          >
-                            <span className="font-bold truncate">{app.patientName}</span>
-                            <span className="text-[10px] opacity-80">{app.analysisType}</span>
-                          </div>
-                        ))}
-                        {apps.length === 0 && (
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                            <Plus className="w-5 h-5 text-zinc-300" />
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              ))}
+            {acrAppointments.length === 0 && (
+              <p className="text-sm text-zinc-500 text-center py-6">
+                Nenhum agendamento registrado.
+              </p>
+            )}
+          </div>
+
+          {/* Desktop Grid View */}
+          <div className="hidden md:block overflow-x-auto">
+            <div className="min-w-[800px] p-6">
+              <div className="grid grid-cols-[80px_repeat(5,1fr)] gap-2 mb-2">
+                <div className="text-xs font-bold text-zinc-400">Horário</div>
+                {days.map((d) => (
+                  <div
+                    key={d}
+                    className="text-sm font-semibold text-zinc-800 text-center pb-2 border-b border-zinc-200"
+                  >
+                    {d}
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-2">
+                {hours.map((h) => (
+                  <div key={h} className="grid grid-cols-[80px_repeat(5,1fr)] gap-2 min-h-[60px]">
+                    <div className="text-xs font-mono text-zinc-500 flex items-center">{h}:00</div>
+                    {days.map((_, dIdx) => {
+                      const apps = getAppointmentsForSlot(dIdx, h)
+                      return (
+                        <div
+                          key={dIdx}
+                          className="bg-zinc-50 border border-zinc-100 rounded-md p-1.5 hover:bg-zinc-100 transition-colors cursor-pointer group relative"
+                          onClick={() => setIsAddOpen(true)}
+                        >
+                          {apps.map((app) => (
+                            <div
+                              key={app.id}
+                              className={cn(
+                                'p-2 rounded border text-xs flex flex-col mb-1',
+                                app.status === 'Realizado'
+                                  ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                                  : 'bg-blue-50 border-blue-200 text-blue-800',
+                              )}
+                            >
+                              <span className="font-bold truncate">{app.patientName}</span>
+                              <span className="text-[10px] opacity-80">{app.analysisType}</span>
+                            </div>
+                          ))}
+                          {apps.length === 0 && (
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                              <Plus className="w-5 h-5 text-zinc-300" />
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="max-w-md bg-white">
+        <DialogContent className="max-w-md bg-white w-[95vw] sm:w-full rounded-xl sm:rounded-lg">
           <DialogHeader>
             <DialogTitle>Novo Agendamento Clínico</DialogTitle>
           </DialogHeader>
@@ -195,7 +253,7 @@ export default function AcrAgenda() {
             <div className="space-y-2">
               <Label>Paciente</Label>
               <Select value={selectedPatientId} onValueChange={setSelectedPatientId} required>
-                <SelectTrigger>
+                <SelectTrigger className="h-11 sm:h-10 text-base sm:text-sm">
                   <SelectValue placeholder="Busque o paciente..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -211,7 +269,7 @@ export default function AcrAgenda() {
             <div className="space-y-2">
               <Label>Tipo de Análise / Serviço</Label>
               <Select name="analysisType" defaultValue="Análise Comportamental" required>
-                <SelectTrigger>
+                <SelectTrigger className="h-11 sm:h-10 text-base sm:text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -225,23 +283,40 @@ export default function AcrAgenda() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Data</Label>
-                <Input name="date" type="date" required />
+                <Input
+                  name="date"
+                  type="date"
+                  required
+                  className="h-11 sm:h-10 text-base sm:text-sm"
+                />
               </div>
               <div className="space-y-2">
                 <Label>Hora</Label>
-                <Input name="time" type="time" required />
+                <Input
+                  name="time"
+                  type="time"
+                  required
+                  className="h-11 sm:h-10 text-base sm:text-sm"
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Valor da Sessão (R$)</Label>
-                <Input name="value" type="number" step="0.01" required defaultValue="250.00" />
+                <Input
+                  name="value"
+                  type="number"
+                  step="0.01"
+                  required
+                  defaultValue="250.00"
+                  className="h-11 sm:h-10 text-base sm:text-sm"
+                />
               </div>
               <div className="space-y-2">
                 <Label>Cobrança</Label>
                 <Select name="paymentMethod" defaultValue="A Faturar" required>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11 sm:h-10 text-base sm:text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -260,11 +335,18 @@ export default function AcrAgenda() {
               <Switch id="reminder" checked={sendReminder} onCheckedChange={setSendReminder} />
             </div>
 
-            <DialogFooter className="pt-2 border-t border-zinc-100">
-              <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>
+            <DialogFooter className="pt-2 border-t border-zinc-100 flex-col sm:flex-row gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsAddOpen(false)}
+                className="w-full sm:w-auto h-11 sm:h-10"
+              >
                 Cancelar
               </Button>
-              <Button type="submit">Salvar Horário</Button>
+              <Button type="submit" className="w-full sm:w-auto h-11 sm:h-10">
+                Salvar Horário
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>

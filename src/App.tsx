@@ -108,6 +108,7 @@ import StudentDocuments from './pages/student/StudentDocuments'
 import StudentFeedback from './pages/student/StudentFeedback'
 import StudentProfile from './pages/student/StudentProfile'
 import ParentDashboard from './pages/parent/ParentDashboard'
+import PortalDashboard from './pages/portal/PortalDashboard'
 
 // Public Forms
 import TeacherApplication from './pages/public/TeacherApplication'
@@ -170,6 +171,7 @@ function App() {
               </Route>
 
               {/* Portals */}
+              <Route path="portal" element={<PortalDashboard />} />
               <Route path="student">
                 <Route path="dashboard" element={<StudentDashboard />} />
                 <Route path="schedule" element={<StudentSchedule />} />

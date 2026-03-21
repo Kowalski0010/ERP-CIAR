@@ -15,6 +15,7 @@ import {
   Briefcase,
   Package,
   Activity,
+  UserCircle,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -49,6 +50,11 @@ const appModules = [
     title: 'PORTAL DO RESPONSÁVEL',
     icon: Users,
     items: [{ title: 'Meu Painel', url: '/parent/dashboard' }],
+  },
+  {
+    title: 'PORTAL DO PACIENTE',
+    icon: UserCircle,
+    items: [{ title: 'Meu Painel Clínico', url: '/portal' }],
   },
   {
     title: 'ACR (CLÍNICA)',
@@ -152,16 +158,16 @@ export function AppSidebar() {
 
   const filteredModules = appModules.filter((module) => {
     if (currentUserRole === 'Admin' || currentUserRole === 'Gestao') {
-      return module.title !== 'PORTAL DO ALUNO' && module.title !== 'PORTAL DO RESPONSÁVEL'
+      return (
+        module.title !== 'PORTAL DO ALUNO' &&
+        module.title !== 'PORTAL DO RESPONSÁVEL' &&
+        module.title !== 'PORTAL DO PACIENTE'
+      )
     }
 
-    if (currentUserRole === 'Aluno') {
-      return module.title === 'PORTAL DO ALUNO'
-    }
-
-    if (currentUserRole === 'Responsável') {
-      return module.title === 'PORTAL DO RESPONSÁVEL'
-    }
+    if (currentUserRole === 'Aluno') return module.title === 'PORTAL DO ALUNO'
+    if (currentUserRole === 'Responsável') return module.title === 'PORTAL DO RESPONSÁVEL'
+    if (currentUserRole === 'Paciente') return module.title === 'PORTAL DO PACIENTE'
 
     if (currentUserRole === 'Secretaria') {
       return (
@@ -219,23 +225,25 @@ export function AppSidebar() {
       <SidebarContent className="p-0 gap-0">
         <SidebarGroup className="p-0">
           <SidebarMenu className="gap-0">
-            {currentUserRole !== 'Aluno' && currentUserRole !== 'Responsável' && (
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  className={`rounded-none h-10 px-4 border-l-4 font-semibold text-[13px] ${
-                    location.pathname === '/'
-                      ? 'border-l-[#1e3a8a] bg-zinc-100 text-[#1e3a8a]'
-                      : 'border-l-transparent text-zinc-600 hover:bg-zinc-50'
-                  }`}
-                >
-                  <Link to="/">
-                    <CalendarDays className="h-[18px] w-[18px]" />
-                    <span>DASHBOARD</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
+            {currentUserRole !== 'Aluno' &&
+              currentUserRole !== 'Responsável' &&
+              currentUserRole !== 'Paciente' && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    className={`rounded-none h-10 px-4 border-l-4 font-semibold text-[13px] ${
+                      location.pathname === '/'
+                        ? 'border-l-[#1e3a8a] bg-zinc-100 text-[#1e3a8a]'
+                        : 'border-l-transparent text-zinc-600 hover:bg-zinc-50'
+                    }`}
+                  >
+                    <Link to="/">
+                      <CalendarDays className="h-[18px] w-[18px]" />
+                      <span>DASHBOARD</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
 
             {currentUserRole === 'Aluno' && (
               <SidebarMenuItem>
@@ -273,6 +281,24 @@ export function AppSidebar() {
               </SidebarMenuItem>
             )}
 
+            {currentUserRole === 'Paciente' && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  className={`rounded-none h-10 px-4 border-l-4 font-semibold text-[13px] ${
+                    location.pathname.includes('/portal')
+                      ? 'border-l-[#1e3a8a] bg-zinc-100 text-[#1e3a8a]'
+                      : 'border-l-transparent text-zinc-600 hover:bg-zinc-50'
+                  }`}
+                >
+                  <Link to="/portal">
+                    <UserCircle className="h-[18px] w-[18px]" />
+                    <span>MEU PAINEL CLÍNICO</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
@@ -300,7 +326,7 @@ export function AppSidebar() {
           </SidebarMenu>
         </SidebarGroup>
 
-        <div className="mt-2 bg-[#2d3e50] flex-1 pb-4 group-data-[collapsible=icon]:bg-transparent">
+        <div className="mt-2 bg-[#2d3e50] flex-1 pb-4 group-data-[collapsible=icon]:bg-transparent overflow-y-auto">
           <SidebarGroup className="p-0">
             <SidebarMenu className="gap-0">
               {filteredModules.map((module) => (

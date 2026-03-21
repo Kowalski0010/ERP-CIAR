@@ -94,6 +94,7 @@ interface AppContextType extends AppState {
   addCommunicationLog: (log: Omit<CommunicationLog, 'id' | 'date' | 'status'>) => void
   generateInvoice: (studentId: string, amount: number) => void
   markNotificationsAsRead: () => void
+  markNotificationAsRead: (id: string) => void
   registerOccurrence: (studentId: string, text: string) => void
   generateContract: (studentId: string) => void
   signDocument: (studentId: string, documentId: string) => void
@@ -247,6 +248,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       action: 'Assinatura Digital de Prontuário',
       entity: `Prontuário: ${id}`,
     })
+
+    // Notify the patient
+    const record = acrRecords.find((r) => r.id === id)
+    if (record) {
+      sendNotification({
+        title: 'Prontuário Finalizado',
+        message: `O seu prontuário da consulta de ${new Date(record.date).toLocaleDateString('pt-BR')} foi assinado e finalizado pelo profissional.`,
+        target: 'Pacientes',
+        type: 'Success',
+        userId: record.patientId,
+      })
+    }
   }
 
   const addAcrAttachment = (recordId: string, attachment: Omit<AcrAttachment, 'id' | 'date'>) => {
@@ -268,6 +281,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const addAcrAppointment = (app: Omit<AcrAppointment, 'id'>) => {
     const newApp = { ...app, id: generateId('APP') }
     setAcrAppointments((prev) => [newApp, ...prev])
+
+    // Notify the patient
+    sendNotification({
+      title: 'Novo Agendamento Confirmado',
+      message: `Uma nova sessão de ${app.analysisType || 'Consulta'} foi agendada para ${new Date(app.date).toLocaleString('pt-BR')}.`,
+      target: 'Pacientes',
+      type: 'Info',
+      userId: app.patientId,
+    })
 
     if (app.status === 'Realizado' && app.value > 0) {
       registerPayment({
@@ -702,6 +724,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
   }
 
+  const markNotificationAsRead = (id: string) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
+  }
+
   const addLead = (lead: Lead) => {
     setLeads((prev) => [lead, ...prev])
     addLog({ user: currentUserRole, action: 'Criou Lead', entity: `Lead: ${lead.name}` })
@@ -909,6 +935,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         addCommunicationLog,
         generateInvoice,
         markNotificationsAsRead,
+        markNotificationAsRead,
         registerOccurrence,
         generateContract,
         signDocument,

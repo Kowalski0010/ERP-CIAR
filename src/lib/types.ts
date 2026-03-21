@@ -7,6 +7,7 @@ export type Role =
   | 'Comercial'
   | 'Aluno'
   | 'Responsável'
+  | 'Paciente'
 
 export type Address = {
   zipCode: string
@@ -128,8 +129,9 @@ export type SystemNotification = {
   message: string
   type: 'Success' | 'Warning' | 'Info'
   date: string
-  target: 'Todos' | 'Alunos' | 'Professores' | 'Staff' | 'Financeiro'
+  target: 'Todos' | 'Alunos' | 'Professores' | 'Staff' | 'Financeiro' | 'Pacientes'
   read: boolean
+  userId?: string
 }
 
 export type CommunicationLog = {

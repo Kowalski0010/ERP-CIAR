@@ -33,6 +33,8 @@ export default function Login() {
       navigate('/student/dashboard')
     } else if (role === 'Responsável') {
       navigate('/parent/dashboard')
+    } else if (role === 'Paciente') {
+      navigate('/portal')
     } else {
       navigate('/')
     }
@@ -65,6 +67,7 @@ export default function Login() {
                   <SelectItem value="Professor">Corpo Docente</SelectItem>
                   <SelectItem value="Aluno">Portal do Aluno</SelectItem>
                   <SelectItem value="Responsável">Portal do Responsável</SelectItem>
+                  <SelectItem value="Paciente">Portal do Paciente (Clínica)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

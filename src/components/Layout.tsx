@@ -18,6 +18,8 @@ export default function Layout() {
         navigate('/student/dashboard', { replace: true })
       } else if (currentUserRole === 'Responsável' && location.pathname === '/') {
         navigate('/parent/dashboard', { replace: true })
+      } else if (currentUserRole === 'Paciente' && location.pathname === '/') {
+        navigate('/portal', { replace: true })
       }
     }
   }, [currentUserRole, location.pathname, navigate, isAuthenticated])
@@ -41,6 +43,7 @@ export default function Layout() {
     Professor: ['/academic', '/utilities', '/library', '/acr'],
     Aluno: ['/student', '/utilities', '/library'],
     Responsável: ['/parent', '/utilities'],
+    Paciente: ['/portal', '/utilities'],
     Gestao: ['/'], // Has access to everything
     Admin: ['/'], // Has access to everything
   }
@@ -57,14 +60,16 @@ export default function Layout() {
         ? '/student/dashboard'
         : currentUserRole === 'Responsável'
           ? '/parent/dashboard'
-          : '/'
+          : currentUserRole === 'Paciente'
+            ? '/portal'
+            : '/'
 
     return (
-      <div className="flex min-h-screen w-full flex-col items-center justify-center bg-[#f4f6f8] font-sans">
+      <div className="flex min-h-screen w-full flex-col items-center justify-center bg-[#f4f6f8] font-sans p-4 text-center">
         <ShieldAlert className="h-16 w-16 text-rose-500 mb-4" />
         <h1 className="text-2xl font-bold text-zinc-900">Acesso Negado</h1>
-        <p className="text-zinc-500 mt-2 mb-6">
-          Seu perfil ({currentUserRole}) não possui permissão para acessar esta área.
+        <p className="text-zinc-500 mt-2 mb-6 max-w-sm mx-auto">
+          Seu perfil ({currentUserRole}) não possui permissão para acessar esta área restrita.
         </p>
         <div className="flex gap-4">
           <Button variant="outline" onClick={() => navigate(-1)}>
