@@ -1,4 +1,4 @@
-import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate, Navigate } from 'react-router-dom'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { AppSidebar } from './AppSidebar'
 import { AppHeader } from './AppHeader'
@@ -8,22 +8,33 @@ import { Button } from '@/components/ui/button'
 import { useEffect } from 'react'
 
 export default function Layout() {
-  const { currentUserRole } = useAppStore()
+  const { currentUserRole, isAuthenticated } = useAppStore()
   const location = useLocation()
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (currentUserRole === 'Aluno' && location.pathname === '/') {
+    if (isAuthenticated && currentUserRole === 'Aluno' && location.pathname === '/') {
       navigate('/student/dashboard', { replace: true })
     }
-  }, [currentUserRole, location.pathname, navigate])
+  }, [currentUserRole, location.pathname, navigate, isAuthenticated])
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
 
   // RBAC logic map
   const rolePermissions: Record<string, string[]> = {
-    Secretaria: ['/secretaria', '/academic', '/admin/registry', '/utilities', '/reports'],
+    Secretaria: [
+      '/secretaria',
+      '/academic',
+      '/admin/registry',
+      '/utilities',
+      '/reports',
+      '/library',
+    ],
     Financeiro: ['/financial', '/utilities', '/reports'],
-    Professor: ['/academic', '/utilities'],
-    Aluno: ['/student', '/utilities'],
+    Professor: ['/academic', '/utilities', '/library'],
+    Aluno: ['/student', '/utilities', '/library'],
     Gestao: ['/'], // Has access to everything
     Admin: ['/'], // Has access to everything
   }

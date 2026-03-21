@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { useAppStore } from '@/contexts/AppContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,11 +13,25 @@ import {
 import { useToast } from '@/hooks/use-toast'
 
 export function AvaliacaoForm({ onCancel }: { onCancel: () => void }) {
+  const { addAvaliacao, disciplinas } = useAppStore()
   const { toast } = useToast()
 
-  const handleSave = (e: React.FormEvent) => {
+  const [subject, setSubject] = useState('')
+  const [type, setType] = useState('Prova Escrita')
+
+  const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    toast({ title: 'Avaliação Salva', description: 'Registro de avaliação salvo com sucesso.' })
+    const fd = new FormData(e.currentTarget)
+    addAvaliacao({
+      name: fd.get('name') as string,
+      subject: subject || 'Geral',
+      type,
+      date: fd.get('date') as string,
+    })
+    toast({
+      title: 'Avaliação Salva',
+      description: 'Registro de avaliação persistido com sucesso.',
+    })
     onCancel()
   }
 
@@ -24,6 +40,7 @@ export function AvaliacaoForm({ onCancel }: { onCancel: () => void }) {
       <div className="space-y-2">
         <Label className="text-xs font-semibold text-zinc-700">Nome / Descrição da Avaliação</Label>
         <Input
+          name="name"
           required
           placeholder="Ex: Prova N1, Seminário Integrador..."
           className="bg-zinc-50"
@@ -33,28 +50,34 @@ export function AvaliacaoForm({ onCancel }: { onCancel: () => void }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label className="text-xs font-semibold text-zinc-700">Disciplina Vinculada</Label>
-          <Select required>
+          <Select required value={subject} onValueChange={setSubject}>
             <SelectTrigger className="bg-zinc-50">
               <SelectValue placeholder="Selecione a disciplina..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="calc">Cálculo Avançado</SelectItem>
-              <SelectItem value="eng">Engenharia de Software</SelectItem>
-              <SelectItem value="logica">Lógica de Programação</SelectItem>
+              {disciplinas.length > 0 ? (
+                disciplinas.map((d) => (
+                  <SelectItem key={d.id} value={d.name}>
+                    {d.name}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="Cálculo Avançado">Cálculo Avançado</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-2">
           <Label className="text-xs font-semibold text-zinc-700">Tipo de Avaliação</Label>
-          <Select required>
+          <Select required value={type} onValueChange={setType}>
             <SelectTrigger className="bg-zinc-50">
               <SelectValue placeholder="Selecione o tipo..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="prova">Prova Escrita</SelectItem>
-              <SelectItem value="trabalho">Trabalho / Seminário</SelectItem>
-              <SelectItem value="projeto">Projeto Prático</SelectItem>
-              <SelectItem value="exame">Exame Final</SelectItem>
+              <SelectItem value="Prova Escrita">Prova Escrita</SelectItem>
+              <SelectItem value="Trabalho / Seminário">Trabalho / Seminário</SelectItem>
+              <SelectItem value="Projeto Prático">Projeto Prático</SelectItem>
+              <SelectItem value="Exame Final">Exame Final</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -63,11 +86,12 @@ export function AvaliacaoForm({ onCancel }: { onCancel: () => void }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label className="text-xs font-semibold text-zinc-700">Data de Aplicação / Entrega</Label>
-          <Input type="date" required className="bg-zinc-50" />
+          <Input name="date" type="date" required className="bg-zinc-50" />
         </div>
         <div className="space-y-2">
           <Label className="text-xs font-semibold text-zinc-700">Peso / Valor Máximo</Label>
           <Input
+            name="weight"
             type="number"
             step="0.1"
             max="10"

@@ -19,6 +19,13 @@ import {
   Supplier,
   PurchaseOrder,
   ChatMessage,
+  Curso,
+  Avaliacao,
+  Convenio,
+  CepRecord,
+  Disciplina,
+  Book,
+  Loan,
 } from '@/lib/types'
 import {
   mockStudents,
@@ -37,9 +44,18 @@ import {
   mockSuppliers,
   mockOrders,
   mockChatMessages,
+  mockCursos,
+  mockAvaliacoes,
+  mockConvenios,
+  mockCeps,
+  mockDisciplinas,
+  mockBooks,
+  mockLoans,
 } from '@/lib/mockData'
 
 interface AppContextType extends AppState {
+  login: () => void
+  logout: () => void
   setCurrentUserRole: (role: Role) => void
   addLead: (lead: Lead) => void
   updateLeadStatus: (id: string, status: Lead['status']) => void
@@ -47,6 +63,7 @@ interface AppContextType extends AppState {
   suspendStudent: (studentId: string, reason: string) => void
   registerPayment: (payment: Payment) => void
   addTeacher: (teacher: Teacher) => void
+  addClass: (cls: Partial<ClassRoom>) => void
   addSchedule: (schedule: Schedule) => void
   enrollStudent: (student: Student, plan: FinancialPlan, leadId?: string) => void
   addLog: (log: Omit<AuditLog, 'id' | 'timestamp'>) => void
@@ -58,11 +75,27 @@ interface AppContextType extends AppState {
   generateContract: (studentId: string) => void
   signDocument: (studentId: string, documentId: string) => void
   sendChatMessage: (content: string) => void
+
+  // Registry functions
+  addCurso: (data: Partial<Curso>) => void
+  addAvaliacao: (data: Partial<Avaliacao>) => void
+  addConvenio: (data: Partial<Convenio>) => void
+  addCep: (data: Partial<CepRecord>) => void
+  addDisciplina: (data: Partial<Disciplina>) => void
+
+  // Library functions
+  addBook: (book: Omit<Book, 'id'>) => void
+  addLoan: (loan: Omit<Loan, 'id' | 'status'>) => void
+  returnLoan: (loanId: string) => void
+
+  // Finance integration
+  simulatePaymentReconciliation: () => void
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [currentUserRole, setCurrentUserRole] = useState<Role>('Admin')
   const [students, setStudents] = useState<Student[]>(mockStudents)
   const [leads, setLeads] = useState<Lead[]>(mockLeads)
@@ -81,6 +114,168 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [suppliers] = useState<Supplier[]>(mockSuppliers)
   const [purchaseOrders] = useState<PurchaseOrder[]>(mockOrders)
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(mockChatMessages)
+
+  // Registries & Library
+  const [cursos, setCursos] = useState<Curso[]>(mockCursos)
+  const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>(mockAvaliacoes)
+  const [convenios, setConvenios] = useState<Convenio[]>(mockConvenios)
+  const [ceps, setCeps] = useState<CepRecord[]>(mockCeps)
+  const [disciplinas, setDisciplinas] = useState<Disciplina[]>(mockDisciplinas)
+  const [books, setBooks] = useState<Book[]>(mockBooks)
+  const [loans, setLoans] = useState<Loan[]>(mockLoans)
+
+  const login = () => setIsAuthenticated(true)
+  const logout = () => setIsAuthenticated(false)
+
+  const generateId = (prefix: string) => `${prefix}${Math.floor(Math.random() * 10000)}`
+
+  const addCurso = (data: Partial<Curso>) => {
+    setCursos((prev) => [
+      {
+        id: generateId('C'),
+        name: data.name!,
+        mode: data.mode!,
+        duration: data.duration!,
+        status: 'Ativo',
+        date: new Date().toLocaleDateString(),
+        description: data.description,
+      },
+      ...prev,
+    ])
+  }
+  const addAvaliacao = (data: Partial<Avaliacao>) => {
+    setAvaliacoes((prev) => [
+      {
+        id: generateId('A'),
+        name: data.name!,
+        subject: data.subject!,
+        type: data.type!,
+        status: 'Ativo',
+        date: data.date || new Date().toLocaleDateString(),
+      },
+      ...prev,
+    ])
+  }
+  const addConvenio = (data: Partial<Convenio>) => {
+    setConvenios((prev) => [
+      {
+        id: generateId('CV'),
+        name: data.name!,
+        contract: data.contract!,
+        discount: data.discount!,
+        status: 'Ativo',
+        date: data.date || new Date().toLocaleDateString(),
+      },
+      ...prev,
+    ])
+  }
+  const addCep = (data: Partial<CepRecord>) => {
+    setCeps((prev) => [
+      {
+        id: generateId('CEP'),
+        cep: data.cep!,
+        street: data.street!,
+        neighborhood: data.neighborhood!,
+        city: data.city!,
+        state: data.state!,
+        status: 'Ativo',
+        date: new Date().toLocaleDateString(),
+      },
+      ...prev,
+    ])
+  }
+  const addDisciplina = (data: Partial<Disciplina>) => {
+    setDisciplinas((prev) => [
+      {
+        id: generateId('D'),
+        name: data.name!,
+        workload: data.workload!,
+        status: 'Ativo',
+        date: new Date().toLocaleDateString(),
+      },
+      ...prev,
+    ])
+  }
+  const addClass = (cls: Partial<ClassRoom>) => {
+    setClasses((prev) => [
+      {
+        id: cls.id!,
+        name: cls.name!,
+        course: cls.course!,
+        semester: cls.semester!,
+        capacity: cls.capacity,
+      },
+      ...prev,
+    ])
+  }
+
+  const addBook = (book: Omit<Book, 'id'>) => {
+    setBooks((prev) => [{ ...book, id: generateId('B') }, ...prev])
+  }
+
+  const addLoan = (loan: Omit<Loan, 'id' | 'status'>) => {
+    setLoans((prev) => [{ ...loan, id: generateId('L'), status: 'Ativo' }, ...prev])
+    setBooks((prev) =>
+      prev.map((b) =>
+        b.id === loan.bookId ? { ...b, availableCopies: Math.max(0, b.availableCopies - 1) } : b,
+      ),
+    )
+  }
+
+  const returnLoan = (loanId: string) => {
+    setLoans((prev) =>
+      prev.map((l) => {
+        if (l.id === loanId) {
+          const isLate = new Date() > new Date(l.expectedReturnDate)
+          if (isLate) {
+            generateInvoice(l.studentId, 15.0) // Fine for late return
+            addCommunicationLog({
+              recipient: l.studentName,
+              channel: 'Email',
+              subject: 'Multa de Biblioteca Registrada',
+              status: 'Entregue',
+              body: `Prezado aluno, o livro "${l.bookTitle}" foi devolvido com atraso. Uma multa de R$ 15,00 foi adicionada ao seu painel financeiro.`,
+            })
+          }
+          setBooks((booksPrev) =>
+            booksPrev.map((b) =>
+              b.id === l.bookId ? { ...b, availableCopies: b.availableCopies + 1 } : b,
+            ),
+          )
+          return { ...l, status: 'Devolvido', returnDate: new Date().toISOString() }
+        }
+        return l
+      }),
+    )
+  }
+
+  const simulatePaymentReconciliation = () => {
+    let count = 0
+    setPayments((prev) =>
+      prev.map((p) => {
+        if (p.status === 'Pendente' && Math.random() > 0.4) {
+          count++
+          addLog({
+            user: 'Sistema / Gateway',
+            action: 'Conciliação de Pagamentos',
+            entity: `Fatura: ${p.id}`,
+            oldValue: 'Pendente',
+            newValue: 'Pago',
+          })
+          return { ...p, status: 'Pago' }
+        }
+        return p
+      }),
+    )
+    if (count > 0) {
+      sendNotification({
+        title: 'Conciliação Concluída',
+        message: `${count} faturas foram marcadas como "Pago" através da integração com o Gateway.`,
+        target: 'Financeiro',
+        type: 'Success',
+      })
+    }
+  }
 
   const addLog = (log: Omit<AuditLog, 'id' | 'timestamp'>) => {
     const newLog: AuditLog = {
@@ -105,18 +300,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return s
       }),
     )
-
-    const student = students.find((s) => s.id === studentId)
-    const doc = student?.documents?.find((d) => d.id === documentId)
-
-    addLog({
-      user: currentUserRole,
-      action: 'Assinatura Digital',
-      entity: `Documento: ${doc?.title}`,
-      targetStudent: student?.name,
-      oldValue: 'Pendente',
-      newValue: 'Assinado',
-    })
   }
 
   const sendChatMessage = (content: string) => {
@@ -189,50 +372,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     setStudents((prev) =>
       prev.map((s) =>
-        s.id === studentId
-          ? {
-              ...s,
-              observations: [...(s.observations || []), newObs],
-            }
-          : s,
+        s.id === studentId ? { ...s, observations: [...(s.observations || []), newObs] } : s,
       ),
     )
-
     addLog({
       user: currentUserRole,
       action: 'Registro de Ocorrência',
       entity: `Módulo: Secretaria`,
       targetStudent: student.name,
-      details: `Nova ocorrência registrada: "${text}"`,
     })
-
     addCommunicationLog({
       recipient: student.email,
       channel: 'Email',
-      subject: 'Nova Ocorrência Registrada',
+      subject: 'Nova Ocorrência',
       status: 'Entregue',
-      body: `Prezado(a) responsável, informamos que uma nova ocorrência foi registrada para o(a) aluno(a) ${student.name}: \n\n${text}`,
+      body: `Aviso: ${text}`,
     })
   }
 
   const generateContract = (studentId: string) => {
     const student = students.find((s) => s.id === studentId)
     if (!student) return
-
     addLog({
       user: currentUserRole,
       action: 'Emissão de Contrato',
       entity: `Módulo: Secretaria`,
       targetStudent: student.name,
-      details: `Novo contrato letivo gerado e enviado por email.`,
     })
-
     addCommunicationLog({
       recipient: student.email,
       channel: 'Email',
-      subject: 'Confirmação de Matrícula e Contrato',
+      subject: 'Contrato',
       status: 'Entregue',
-      body: `Olá ${student.name}, sua matrícula foi efetivada. Segue em anexo a cópia do seu contrato de prestação de serviços educacionais.`,
+      body: `Olá ${student.name}, seu contrato...`,
     })
   }
 
@@ -260,40 +432,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateStudent = (id: string, partial: Partial<Student>) => {
     const student = students.find((s) => s.id === id)
     setStudents((prev) => prev.map((s) => (s.id === id ? { ...s, ...partial } : s)))
-
-    const oldStr = student ? JSON.stringify(student).substring(0, 20) + '...' : undefined
-    const newStr = JSON.stringify({ ...student, ...partial }).substring(0, 20) + '...'
-
     addLog({
       user: currentUserRole,
       action: 'Atualizou Aluno',
       entity: `Módulo: Secretaria`,
       targetStudent: student?.name,
-      details: `Campos atualizados: ${Object.keys(partial).join(', ')}`,
-      oldValue: oldStr,
-      newValue: newStr,
     })
   }
 
   const suspendStudent = (studentId: string, reason: string) => {
     setStudents((prev) => prev.map((s) => (s.id === studentId ? { ...s, status: 'Inativo' } : s)))
     const student = students.find((s) => s.id === studentId)
-
     sendNotification({
-      title: 'Aviso Financeiro: Trancamento de Matrícula',
-      message: `A matrícula do aluno ${student?.name} (ID: ${student?.id}) foi trancada. Motivo: ${reason}. Favor revisar as faturas pendentes.`,
+      title: 'Aviso Financeiro: Trancamento',
+      message: `A matrícula do aluno ${student?.name} foi trancada.`,
       target: 'Financeiro',
       type: 'Warning',
     })
-
     addLog({
       user: currentUserRole,
       action: 'Trancamento de Matrícula',
       entity: `Módulo: Secretaria`,
       targetStudent: student?.name,
-      oldValue: 'Ativo',
-      newValue: 'Inativo',
-      details: `Motivo: ${reason}. Fluxo automático disparado.`,
     })
   }
 
@@ -313,17 +473,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const enrollStudent = (student: Student, plan: FinancialPlan, leadId?: string) => {
     setStudents((prev) => [student, ...prev])
-
-    if (leadId) {
-      updateLeadStatus(leadId, 'Ganho')
-    }
-
+    if (leadId) updateLeadStatus(leadId, 'Ganho')
     addLog({
       user: currentUserRole,
       action: 'Realizou Matrícula',
-      entity: `Módulo: Comercial/Secretaria`,
+      entity: `Comercial/Secretaria`,
       targetStudent: student.name,
-      details: `Nova matrícula no curso: ${student.course}`,
     })
 
     if (plan.installments > 0) {
@@ -353,6 +508,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AppContext.Provider
       value={{
+        isAuthenticated,
+        login,
+        logout,
         currentUserRole,
         setCurrentUserRole,
         students,
@@ -371,12 +529,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
         suppliers,
         purchaseOrders,
         chatMessages,
+        cursos,
+        avaliacoes,
+        convenios,
+        ceps,
+        disciplinas,
+        books,
+        loans,
         addLead,
         updateLeadStatus,
         updateStudent,
         suspendStudent,
         registerPayment,
         addTeacher,
+        addClass,
         addSchedule,
         enrollStudent,
         addLog,
@@ -388,6 +554,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         generateContract,
         signDocument,
         sendChatMessage,
+        addCurso,
+        addAvaliacao,
+        addConvenio,
+        addCep,
+        addDisciplina,
+        addBook,
+        addLoan,
+        returnLoan,
+        simulatePaymentReconciliation,
       }}
     >
       {children}

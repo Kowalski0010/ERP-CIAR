@@ -1,3 +1,4 @@
+import { useAppStore } from '@/contexts/AppContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -5,13 +6,21 @@ import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 
 export function ConvenioForm({ onCancel }: { onCancel: () => void }) {
+  const { addConvenio } = useAppStore()
   const { toast } = useToast()
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    const fd = new FormData(e.currentTarget)
+    addConvenio({
+      name: fd.get('name') as string,
+      contract: fd.get('contract') as string,
+      discount: Number(fd.get('discount')),
+      date: fd.get('date') as string,
+    })
     toast({
       title: 'Convênio Salvo',
-      description: 'Registro de convênio ou parceria cadastrado com sucesso.',
+      description: 'Registro de parceria persistido com sucesso.',
     })
     onCancel()
   }
@@ -21,11 +30,21 @@ export function ConvenioForm({ onCancel }: { onCancel: () => void }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label className="text-xs font-semibold text-zinc-700">Nome da Entidade Parceira</Label>
-          <Input required placeholder="Ex: Sindicato dos Bancários" className="bg-zinc-50" />
+          <Input
+            name="name"
+            required
+            placeholder="Ex: Sindicato dos Bancários"
+            className="bg-zinc-50"
+          />
         </div>
         <div className="space-y-2">
           <Label className="text-xs font-semibold text-zinc-700">Número do Contrato / Termo</Label>
-          <Input required placeholder="Ex: CONV-2023-001" className="bg-zinc-50 font-mono" />
+          <Input
+            name="contract"
+            required
+            placeholder="Ex: CONV-2023-001"
+            className="bg-zinc-50 font-mono"
+          />
         </div>
       </div>
 
@@ -33,6 +52,7 @@ export function ConvenioForm({ onCancel }: { onCancel: () => void }) {
         <div className="space-y-2">
           <Label className="text-xs font-semibold text-zinc-700">Desconto Concedido (%)</Label>
           <Input
+            name="discount"
             type="number"
             required
             placeholder="Ex: 15"
@@ -45,7 +65,7 @@ export function ConvenioForm({ onCancel }: { onCancel: () => void }) {
           <Label className="text-xs font-semibold text-zinc-700">
             Data de Expiração da Vigência
           </Label>
-          <Input type="date" required className="bg-zinc-50" />
+          <Input name="date" type="date" required className="bg-zinc-50" />
         </div>
       </div>
 
@@ -54,6 +74,7 @@ export function ConvenioForm({ onCancel }: { onCancel: () => void }) {
           Detalhes Contratuais e Observações
         </Label>
         <Textarea
+          name="notes"
           placeholder="Regras para concessão, limite de alunos beneficiados..."
           className="bg-zinc-50 min-h-[80px] resize-none"
         />

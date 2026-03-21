@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useAppStore } from '@/contexts/AppContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -6,6 +7,7 @@ import { useToast } from '@/hooks/use-toast'
 import { Search } from 'lucide-react'
 
 export function CepForm({ onCancel }: { onCancel: () => void }) {
+  const { addCep } = useAppStore()
   const { toast } = useToast()
 
   const [cep, setCep] = useState('')
@@ -39,9 +41,16 @@ export function CepForm({ onCancel }: { onCancel: () => void }) {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault()
+    addCep({
+      cep,
+      street,
+      neighborhood,
+      city,
+      state,
+    })
     toast({
       title: 'Endereço Registrado',
-      description: 'O logradouro foi salvo no banco de dados local.',
+      description: 'O logradouro foi persistido no banco de dados local.',
     })
     onCancel()
   }

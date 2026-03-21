@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAppStore } from '@/contexts/AppContext'
 import {
   Search,
@@ -16,6 +16,8 @@ import {
   Megaphone,
   DollarSign,
   ChevronRight,
+  BookOpen,
+  LogOut,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -56,34 +58,11 @@ const appModules = [
           { title: 'Agenda Acadêmica', url: '/academic/agenda' },
           { title: 'Atribuir professor', url: '/academic/control/alocar-professor' },
           { title: 'Consultar notas', url: '/academic/grades' },
-          { title: 'Controle de TCC', url: '/academic/control/tcc' },
-          { title: 'Dispensar disciplina', url: '/academic/control/dispensa' },
           { title: 'Editar perfil de aluno', url: '/academic/control/editar-aluno' },
           { title: 'Gerenciar disciplinas', url: '/academic/control/vincular-disciplina' },
           { title: 'Gerenciar turma', url: '/academic/control/trocar-turma' },
-          { title: 'Histórico Escolar', url: '/academic/control/historico' },
-          { title: 'Lançar afastamento', url: '/academic/control/afastamento' },
-          { title: 'Lançar estágio', url: '/academic/control/estagio' },
-          { title: 'Lançar forma de ingresso', url: '/academic/control/forma-ingresso' },
           { title: 'Lançar frequência', url: '/academic/control/lancar-frequencia' },
           { title: 'Lançar notas', url: '/academic/control/lancar-notas' },
-          { title: 'Lançar planejamento', url: '/academic/control/planejamento' },
-        ],
-      },
-      {
-        title: 'Relatórios',
-        items: [
-          { title: 'Alunos ingressantes', url: '/reports/alunos-ingressantes' },
-          { title: 'Diário de classe', url: '/academic/grades' },
-          { title: 'Edital de notas', url: '/reports/edital-notas' },
-          { title: 'Documento pendentes', url: '/admin/documents' },
-          { title: 'Relação de alunos com faltas', url: '/reports/alunos-faltas' },
-          { title: 'Relação de alunos por turma', url: '/academic/classes' },
-          { title: 'Relação de aluno bloqueados', url: '/reports/alunos-bloqueados' },
-          { title: 'Relação de alunos concluintes', url: '/reports/alunos-concluintes' },
-          { title: 'Relação de disciplinas por aluno', url: '/academic/students' },
-          { title: 'Relação de turmas', url: '/academic/classes' },
-          { title: 'Situação geral do aluno', url: '/academic/students' },
         ],
       },
       {
@@ -91,17 +70,21 @@ const appModules = [
         items: [
           { title: '2ª via de contrato', url: '/secretaria/2a-via-contrato' },
           { title: 'Bloquear matrícula', url: '/secretaria/bloquear-matricula' },
-          { title: 'Trancar matrícula', url: '/secretaria/manutencao-matricula' },
           { title: 'Cadastrar horário', url: '/secretaria/cadastrar-horario' },
           { title: 'Consultar aluno', url: '/secretaria/consultar-aluno' },
           { title: 'Consultar curso', url: '/secretaria/consultar-curso' },
-          { title: 'Consultar turma', url: '/secretaria/consultar-horario-curso' },
           { title: 'Consultar matrícula', url: '/secretaria/consultar-matricula' },
-          { title: 'Efetuar matrícula na turma', url: '/secretaria/efetuar-matricula-disciplina' },
-          { title: 'Manutenção de matrícula', url: '/secretaria/manutencao-matricula' },
-          { title: 'Transferência de aluno de turma', url: '/secretaria/trocar-aluno-turma' },
+          { title: 'Transferência de turma', url: '/secretaria/trocar-aluno-turma' },
         ],
       },
+    ],
+  },
+  {
+    title: 'BIBLIOTECA',
+    icon: BookOpen,
+    items: [
+      { title: 'Acervo e Catálogo', url: '/library/catalog' },
+      { title: 'Empréstimos e Devoluções', url: '/library/loans' },
     ],
   },
   {
@@ -119,19 +102,11 @@ const appModules = [
       {
         title: 'Cadastro',
         items: [
-          { title: 'Alunos', url: '/academic/students' },
           { title: 'Avaliações', url: '/admin/registry/avaliacoes' },
-          { title: 'Curso', url: '/admin/registry/curso' },
-          { title: 'Convênio', url: '/admin/registry/convenio' },
-          { title: 'CEP', url: '/admin/registry/cep' },
-          { title: 'Disciplina', url: '/admin/registry/disciplina' },
-          { title: 'Documentos', url: '/admin/documents' },
-          { title: 'Funcionários', url: '/hr/employees' },
-          { title: 'Perfil Professor', url: '/academic/teachers' },
-          { title: 'Plano de pagamento do curso', url: '/admin/registry/planos-pagamento' },
-          { title: 'Produtos e serviços', url: '/inventory/stock' },
-          { title: 'Professores', url: '/academic/teachers' },
-          { title: 'Requerimentos', url: '/secretaria/requerimentos' },
+          { title: 'Cursos', url: '/admin/registry/curso' },
+          { title: 'Convênios', url: '/admin/registry/convenio' },
+          { title: 'CEP (Logradouros)', url: '/admin/registry/cep' },
+          { title: 'Disciplinas', url: '/admin/registry/disciplina' },
           { title: 'Turmas', url: '/admin/registry/turmas' },
         ],
       },
@@ -143,11 +118,7 @@ const appModules = [
     subGroups: [
       {
         title: 'Atendimento',
-        items: [
-          { title: 'Analise de atendimento', url: '/commercial/leads' },
-          { title: 'Cadastro de atendimento', url: '/commercial/leads' },
-          { title: 'Relatório de atendimento', url: '/reports/atendimento' },
-        ],
+        items: [{ title: 'Pipeline Comercial', url: '/commercial/leads' }],
       },
     ],
   },
@@ -155,18 +126,17 @@ const appModules = [
     title: 'FINANCEIRO',
     icon: DollarSign,
     items: [
-      { title: 'Manutenção de cancelamento', url: '/financial/payments' },
-      { title: 'Manutenção de parcelas', url: '/financial/payments' },
-      { title: 'Manutenção de produto', url: '/inventory/stock' },
-      { title: 'Relatórios financeiros', url: '/financial/cash-flow' },
+      { title: 'Gestão de Faturas', url: '/financial/payments' },
+      { title: 'Fluxo de Caixa', url: '/financial/cash-flow' },
     ],
   },
 ]
 
 export function AppSidebar() {
   const { toggleSidebar } = useSidebar()
-  const { currentUserRole } = useAppStore()
+  const { currentUserRole, logout } = useAppStore()
   const location = useLocation()
+  const navigate = useNavigate()
 
   // Filter modules based on RBAC logic
   const filteredModules = appModules.filter((module) => {
@@ -175,14 +145,15 @@ export function AppSidebar() {
     }
 
     if (currentUserRole === 'Aluno') {
-      return module.title === 'PORTAL DO ALUNO'
+      return module.title === 'PORTAL DO ALUNO' || module.title === 'BIBLIOTECA'
     }
 
     if (currentUserRole === 'Secretaria') {
       return (
         module.title === 'ACADÊMICO' ||
         module.title === 'ADMINISTRAÇÃO DO SISTEMA' ||
-        module.title === 'COMUNICAÇÃO'
+        module.title === 'COMUNICAÇÃO' ||
+        module.title === 'BIBLIOTECA'
       )
     }
 
@@ -195,7 +166,11 @@ export function AppSidebar() {
     }
 
     if (currentUserRole === 'Professor') {
-      return module.title === 'ACADÊMICO' || module.title === 'COMUNICAÇÃO'
+      return (
+        module.title === 'ACADÊMICO' ||
+        module.title === 'COMUNICAÇÃO' ||
+        module.title === 'BIBLIOTECA'
+      )
     }
 
     return true
@@ -239,32 +214,6 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="p-0 gap-0">
-        {currentUserRole !== 'Aluno' && (
-          <>
-            <SidebarGroup className="p-0">
-              <SidebarGroupLabel className="px-4 py-2 h-auto text-[11px] font-bold text-zinc-500 tracking-wider group-data-[collapsible=icon]:hidden flex items-center gap-2">
-                <Star className="h-4 w-4 text-[#1e3a8a] fill-[#1e3a8a]" /> FAVORITOS
-              </SidebarGroupLabel>
-              <SidebarMenu className="gap-0">
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    className="rounded-none h-10 px-4 text-zinc-600 hover:bg-zinc-100 hover:text-[#1e3a8a] text-[13px]"
-                  >
-                    <Link to="/secretaria/cadastrar-horario">
-                      <span className="group-data-[collapsible=icon]:hidden">
-                        Cadastrar Horário
-                      </span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroup>
-
-            <div className="h-px bg-zinc-200 my-2 group-data-[collapsible=icon]:hidden" />
-          </>
-        )}
-
         <SidebarGroup className="p-0">
           <SidebarMenu className="gap-0">
             {currentUserRole !== 'Aluno' && (
@@ -315,55 +264,21 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            {currentUserRole !== 'Aluno' && (
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-zinc-600 hover:bg-zinc-50 text-[13px]"
-                >
-                  <Link to="/secretaria/consultar-aluno">
-                    <Users className="h-[18px] w-[18px]" />
-                    <span>CONSULTA ALUNO</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-
             <SidebarMenuItem>
               <SidebarMenuButton
-                asChild
-                className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-zinc-600 hover:bg-zinc-50 text-[13px]"
+                onClick={() => {
+                  logout()
+                  navigate('/login')
+                }}
+                className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-rose-600 font-semibold hover:bg-rose-50 text-[13px] cursor-pointer"
               >
-                <Link to="/utilities/news">
-                  <Newspaper className="h-[18px] w-[18px]" />
-                  <span>NEWS</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={toggleSidebar}
-                className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-[#1e3a8a] font-semibold hover:bg-zinc-50 text-[13px] cursor-pointer"
-              >
-                <PlayCircle className="h-[18px] w-[18px]" />
-                <span>RECOLHER MENU</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-zinc-600 hover:bg-zinc-50 text-[13px]"
-              >
-                <Link to="/utilities/change-password">
-                  <Lock className="h-[18px] w-[18px]" />
-                  <span>TROCAR SENHA</span>
-                </Link>
+                <LogOut className="h-[18px] w-[18px]" />
+                <span>SAIR DO SISTEMA</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
 
-        {/* Dark Modules Section with Multi-level Navigation */}
         <div className="mt-2 bg-[#2d3e50] flex-1 pb-4 group-data-[collapsible=icon]:bg-transparent">
           <SidebarGroup className="p-0">
             <SidebarMenu className="gap-0">

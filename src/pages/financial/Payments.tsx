@@ -9,6 +9,7 @@ import {
   Plus,
   FileSpreadsheet,
   BellRing,
+  RefreshCw,
 } from 'lucide-react'
 import {
   Table,
@@ -25,7 +26,13 @@ import { useToast } from '@/hooks/use-toast'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export default function Payments() {
-  const { payments, notifications, markNotificationsAsRead, addCommunicationLog } = useAppStore()
+  const {
+    payments,
+    notifications,
+    markNotificationsAsRead,
+    addCommunicationLog,
+    simulatePaymentReconciliation,
+  } = useAppStore()
   const { toast } = useToast()
 
   const recentSuspensions = notifications.filter(
@@ -51,6 +58,15 @@ export default function Payments() {
       title: 'Notificações Enviadas',
       description:
         'Alertas de vencimento disparados por email e push notification para os responsáveis.',
+    })
+  }
+
+  const handleReconciliation = () => {
+    simulatePaymentReconciliation()
+    toast({
+      title: 'Conciliação Concluída',
+      description:
+        'Pagamentos pendentes foram processados simulando integração com Gateway PIX/Cartão.',
     })
   }
 
@@ -89,7 +105,7 @@ export default function Payments() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Gestão de Faturas</h1>
           <p className="text-sm text-zinc-500 mt-1">
-            Controle centralizado de recebíveis, boletos e mensalidades.
+            Controle centralizado de recebíveis, boletos e conciliação de gateway.
           </p>
         </div>
         <div className="flex gap-2 w-full sm:w-auto overflow-x-auto pb-1">
@@ -102,17 +118,16 @@ export default function Payments() {
           </Button>
           <Button
             variant="outline"
-            className="shadow-sm h-10 px-4 text-xs font-semibold shrink-0"
-            onClick={() => handleExport('PDF')}
-          >
-            <Download className="mr-2 h-4 w-4" /> PDF
-          </Button>
-          <Button
-            variant="outline"
-            className="shadow-sm h-10 px-4 text-xs font-semibold shrink-0 border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 hover:text-amber-900"
+            className="shadow-sm h-10 px-4 text-xs font-semibold shrink-0 border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100"
             onClick={handleNotifyExpiring}
           >
             <BellRing className="mr-2 h-4 w-4 text-amber-500" /> Alertar Vencimentos
+          </Button>
+          <Button
+            onClick={handleReconciliation}
+            className="shadow-sm h-10 px-4 shrink-0 font-semibold bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <RefreshCw className="mr-2 h-4 w-4" /> Baixa Automática
           </Button>
           <Button className="shadow-sm h-10 px-4 shrink-0 font-semibold">
             <Plus className="mr-2 h-4 w-4" /> Nova Fatura
@@ -179,7 +194,7 @@ export default function Payments() {
                   <TableCell className="text-zinc-500 text-xs font-medium">
                     {payment.installmentNumber && payment.totalInstallments
                       ? `Parc. ${payment.installmentNumber}/${payment.totalInstallments}`
-                      : 'Avulsa'}
+                      : 'Avulsa/Multa'}
                   </TableCell>
                   <TableCell className="text-sm text-zinc-700">
                     {new Date(payment.dueDate).toLocaleDateString('pt-BR')}

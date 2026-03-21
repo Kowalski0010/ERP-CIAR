@@ -5,6 +5,10 @@ import { Toaster } from './components/ui/toaster'
 import { Toaster as Sonner } from './components/ui/sonner'
 import Layout from './components/Layout'
 
+// Auth Pages
+import Login from './pages/auth/Login'
+import ForgotPassword from './pages/auth/ForgotPassword'
+
 // Core Pages
 import Index from './pages/Index'
 import NotFound from './pages/NotFound'
@@ -26,6 +30,10 @@ import ClassOccupancy from './pages/academic/ClassOccupancy'
 import PedagogicalTracking from './pages/academic/PedagogicalTracking'
 import AcademicControlView from './pages/academic-control/AcademicControlView'
 import Agenda from './pages/academic/Agenda'
+
+// Library
+import LibraryCatalog from './pages/library/LibraryCatalog'
+import LibraryLoans from './pages/library/LibraryLoans'
 
 // Secretaria
 import ContratosDocumentos from './pages/secretaria/ContratosDocumentos'
@@ -80,6 +88,10 @@ function App() {
       <AppProvider>
         <Router>
           <Routes>
+            {/* Public Auth Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+
             <Route element={<Layout />}>
               <Route path="/" element={<Index />} />
 
@@ -105,6 +117,12 @@ function App() {
                 <Route path="control/:id" element={<AcademicControlView />} />
               </Route>
 
+              {/* Library Module */}
+              <Route path="library">
+                <Route path="catalog" element={<LibraryCatalog />} />
+                <Route path="loans" element={<LibraryLoans />} />
+              </Route>
+
               {/* Student Portal */}
               <Route path="student">
                 <Route path="dashboard" element={<StudentDashboard />} />
@@ -117,32 +135,25 @@ function App() {
               <Route path="secretaria">
                 <Route path="2a-via-contrato" element={<ContratosDocumentos />} />
                 <Route path="imprimir-documentos" element={<ContratosDocumentos />} />
-
                 <Route path="bloquear-matricula" element={<MatriculaOperacoes />} />
                 <Route path="manutencao-matricula" element={<MatriculaOperacoes />} />
-
                 <Route path="cadastrar-horario" element={<TurmasHorarios />} />
                 <Route path="compartilhar-turma" element={<TurmasHorarios />} />
                 <Route path="dividir-turma" element={<TurmasHorarios />} />
-
                 <Route path="consultar-aluno" element={<Consultas />} />
                 <Route path="consultar-curso" element={<Consultas />} />
                 <Route path="consultar-horario-curso" element={<Consultas />} />
                 <Route path="consultar-horario-prof" element={<Consultas />} />
                 <Route path="consultar-matricula" element={<Consultas />} />
                 <Route path="consultar-responsavel" element={<Consultas />} />
-
                 <Route path="efetivar-pre-matricula" element={<EnrollmentWorkflow />} />
                 <Route path="efetuar-matricula" element={<EnrollmentWorkflow />} />
                 <Route path="efetuar-matricula-disciplina" element={<EnrollmentWorkflow />} />
                 <Route path="efetuar-pre-matricula" element={<EnrollmentWorkflow />} />
-
                 <Route path="ocorrencias-aluno" element={<AlunoOperacoes />} />
                 <Route path="requerimentos" element={<AlunoOperacoes />} />
-
                 <Route path="trocar-aluno-curso" element={<Transferencias />} />
                 <Route path="trocar-aluno-turma" element={<Transferencias />} />
-
                 <Route path="reabertura-periodo" element={<Administrativo />} />
                 <Route path="recursos-aula" element={<Administrativo />} />
               </Route>

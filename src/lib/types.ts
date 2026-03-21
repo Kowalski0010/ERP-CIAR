@@ -211,7 +211,74 @@ export type ChatMessage = {
   timestamp: string
 }
 
+// Registry Data Types
+export type Curso = {
+  id: string
+  name: string
+  mode: string
+  duration: number
+  status: string
+  date: string
+  description?: string
+}
+export type Avaliacao = {
+  id: string
+  name: string
+  subject: string
+  type: string
+  date: string
+  status: string
+}
+export type Convenio = {
+  id: string
+  name: string
+  contract: string
+  discount: number
+  date: string
+  status: string
+}
+export type CepRecord = {
+  id: string
+  cep: string
+  street: string
+  neighborhood: string
+  city: string
+  state: string
+  date: string
+  status: string
+}
+export type Disciplina = {
+  id: string
+  name: string
+  workload: number
+  status: string
+  date: string
+}
+
+// Library Types
+export type Book = {
+  id: string
+  title: string
+  author: string
+  isbn: string
+  totalCopies: number
+  availableCopies: number
+  coverUrl?: string
+}
+export type Loan = {
+  id: string
+  bookId: string
+  bookTitle: string
+  studentId: string
+  studentName: string
+  loanDate: string
+  expectedReturnDate: string
+  returnDate?: string
+  status: 'Ativo' | 'Devolvido' | 'Atrasado'
+}
+
 export type AppState = {
+  isAuthenticated: boolean
   currentUserRole: Role
   students: Student[]
   leads: Lead[]
@@ -229,4 +296,13 @@ export type AppState = {
   suppliers: Supplier[]
   purchaseOrders: PurchaseOrder[]
   chatMessages: ChatMessage[]
+
+  // Registry & Lib
+  cursos: Curso[]
+  avaliacoes: Avaliacao[]
+  convenios: Convenio[]
+  ceps: CepRecord[]
+  disciplinas: Disciplina[]
+  books: Book[]
+  loans: Loan[]
 }

@@ -15,6 +15,13 @@ import {
   PurchaseOrder,
   CommunicationLog,
   ChatMessage,
+  Curso,
+  Avaliacao,
+  Convenio,
+  CepRecord,
+  Disciplina,
+  Book,
+  Loan,
 } from './types'
 
 const defaultAddress = {
@@ -260,16 +267,6 @@ export const mockLogs: AuditLog[] = [
     oldValue: 'Pendente',
     newValue: 'Pago',
   },
-  {
-    id: 'log4',
-    timestamp: new Date(Date.now() - 172800000).toISOString(),
-    user: 'Prof. Thiago',
-    action: 'Alteração de Notas',
-    entity: 'Diário de Classe: T01 - Cálculo I',
-    targetStudent: 'Ana Silva',
-    oldValue: '7.0',
-    newValue: '8.5',
-  },
 ]
 
 export const mockNotifications: SystemNotification[] = [
@@ -303,30 +300,11 @@ export const mockCommunicationLogs: CommunicationLog[] = [
     date: '2023-10-25 10:30',
     body: 'Olá Ana, sua rematrícula foi processada com sucesso. Acesse o portal...',
   },
-  {
-    id: 'EV-002',
-    recipient: 'Carlos Oliveira',
-    channel: 'SMS',
-    subject: 'Alerta de Boleto',
-    status: 'Falha',
-    date: '2023-10-24 08:15',
-    body: 'TOTVS Edu: Boleto com vencimento em 10/11 disponivel no portal.',
-  },
-  {
-    id: 'EV-003',
-    recipient: 'Todos Alunos',
-    channel: 'Email',
-    subject: 'Manutenção no Sistema',
-    status: 'Entregue',
-    date: '2023-10-20 14:00',
-    body: 'Aviso geral de manutenção no domingo. O portal ficará inativo...',
-  },
 ]
 
 export const mockAttendance: AttendanceRecord[] = [
   { id: 'a1', studentId: '1', subject: 'Cálculo I', totalClasses: 40, absences: 2 },
   { id: 'a2', studentId: '1', subject: 'Física', totalClasses: 40, absences: 8 },
-  { id: 'a3', studentId: '1', subject: 'Lógica de Programação', totalClasses: 60, absences: 0 },
 ]
 
 export const mockEmployees: Employee[] = [
@@ -342,18 +320,6 @@ export const mockEmployees: Employee[] = [
     salary: 5500.0,
     avatar: 'https://img.usecurling.com/ppl/thumbnail?gender=female&seed=20',
   },
-  {
-    id: 'e2',
-    name: 'Jorge Martins',
-    department: 'TI & Suporte',
-    position: 'Analista de Sistemas',
-    status: 'Ativo',
-    email: 'jorge@edusync.com',
-    phone: '(11) 97777-2222',
-    admissionDate: '2021-08-15',
-    salary: 4800.0,
-    avatar: 'https://img.usecurling.com/ppl/thumbnail?gender=male&seed=21',
-  },
 ]
 
 export const mockProducts: Product[] = [
@@ -366,26 +332,6 @@ export const mockProducts: Product[] = [
     minQuantity: 20,
     unit: 'Caixa',
     price: 18.5,
-  },
-  {
-    id: 'pr2',
-    sku: 'INF-102',
-    name: 'Toner Impressora LaserJet',
-    category: 'Informática',
-    currentQuantity: 8,
-    minQuantity: 5,
-    unit: 'Unidade',
-    price: 120.0,
-  },
-  {
-    id: 'pr3',
-    sku: 'LMP-050',
-    name: 'Desinfetante Hospitalar 5L',
-    category: 'Limpeza',
-    currentQuantity: 2,
-    minQuantity: 10,
-    unit: 'Galão',
-    price: 45.0,
   },
 ]
 
@@ -400,16 +346,6 @@ export const mockMovements: StockMovement[] = [
     user: 'Márcia Ferreira',
     reason: 'Uso na Secretaria',
   },
-  {
-    id: 'm2',
-    productId: 'pr2',
-    productName: 'Toner Impressora LaserJet',
-    type: 'Entrada',
-    quantity: 10,
-    date: '2023-10-24T10:00:00Z',
-    user: 'Jorge Martins',
-    reason: 'Recebimento de Pedido #102',
-  },
 ]
 
 export const mockSuppliers: Supplier[] = [
@@ -421,16 +357,6 @@ export const mockSuppliers: Supplier[] = [
     email: 'vendas@kalunga.com.br',
     phone: '(11) 3333-4444',
     rating: 5,
-    status: 'Ativo',
-  },
-  {
-    id: 'sp2',
-    name: 'LimpBem Distribuidora',
-    taxId: '12.345.678/0001-99',
-    contact: 'Carlos Silva',
-    email: 'carlos@limpbem.com.br',
-    phone: '(11) 5555-6666',
-    rating: 3,
     status: 'Ativo',
   },
 ]
@@ -445,24 +371,6 @@ export const mockOrders: PurchaseOrder[] = [
     totalAmount: 1540.0,
     status: 'Recebido',
   },
-  {
-    id: 'PO-1002',
-    supplierId: 'sp2',
-    supplierName: 'LimpBem Distribuidora',
-    date: '2023-10-26',
-    expectedDelivery: '2023-11-02',
-    totalAmount: 850.5,
-    status: 'Enviado',
-  },
-  {
-    id: 'PO-1003',
-    supplierId: 'sp1',
-    supplierName: 'Kalunga Materiais',
-    date: '2023-10-28',
-    expectedDelivery: '2023-11-05',
-    totalAmount: 320.0,
-    status: 'Rascunho',
-  },
 ]
 
 export const mockChatMessages: ChatMessage[] = [
@@ -471,16 +379,109 @@ export const mockChatMessages: ChatMessage[] = [
     senderId: 'e1',
     senderName: 'Márcia Ferreira',
     senderRole: 'Secretaria',
-    content:
-      'Bom dia equipe, os contratos da turma T01 já estão liberados para assinatura digital no portal dos alunos.',
+    content: 'Bom dia equipe, os contratos da turma T01 já estão liberados.',
     timestamp: new Date(Date.now() - 3600000).toISOString(),
   },
+]
+
+export const mockCursos: Curso[] = [
   {
-    id: 'c2',
-    senderId: 't1',
-    senderName: 'Dr. Roberto Lemos',
-    senderRole: 'Professor',
-    content: 'Perfeito Márcia. Vou reforçar o aviso com os alunos na aula de hoje.',
-    timestamp: new Date(Date.now() - 3500000).toISOString(),
+    id: 'C01',
+    name: 'Engenharia de Software',
+    mode: 'Presencial',
+    duration: 3600,
+    status: 'Ativo',
+    date: '2023-01-10',
+  },
+  {
+    id: 'C02',
+    name: 'Direito',
+    mode: 'Presencial',
+    duration: 4000,
+    status: 'Ativo',
+    date: '2023-01-12',
+  },
+]
+
+export const mockAvaliacoes: Avaliacao[] = [
+  {
+    id: 'A01',
+    name: 'Prova N1',
+    subject: 'Cálculo Avançado',
+    type: 'Prova Escrita',
+    date: '2023-04-15',
+    status: 'Ativo',
+  },
+]
+
+export const mockConvenios: Convenio[] = [
+  {
+    id: 'CV01',
+    name: 'Sindicato dos Bancários',
+    contract: 'CONV-2023',
+    discount: 15,
+    date: '2023-02-01',
+    status: 'Ativo',
+  },
+]
+
+export const mockCeps: CepRecord[] = [
+  {
+    id: 'CEP01',
+    cep: '01310-100',
+    street: 'Avenida Paulista',
+    neighborhood: 'Bela Vista',
+    city: 'São Paulo',
+    state: 'SP',
+    date: '2023-05-10',
+    status: 'Ativo',
+  },
+]
+
+export const mockDisciplinas: Disciplina[] = [
+  { id: 'D01', name: 'Banco de Dados', workload: 80, status: 'Ativo', date: '2023-01-15' },
+]
+
+export const mockBooks: Book[] = [
+  {
+    id: 'B001',
+    title: 'Clean Code',
+    author: 'Robert C. Martin',
+    isbn: '978-0132350884',
+    totalCopies: 5,
+    availableCopies: 3,
+    coverUrl: 'https://img.usecurling.com/p/200/300?q=code&color=blue',
+  },
+  {
+    id: 'B002',
+    title: 'The Pragmatic Programmer',
+    author: 'Andrew Hunt',
+    isbn: '978-0201616224',
+    totalCopies: 3,
+    availableCopies: 0,
+    coverUrl: 'https://img.usecurling.com/p/200/300?q=code&color=purple',
+  },
+]
+
+export const mockLoans: Loan[] = [
+  {
+    id: 'L001',
+    bookId: 'B001',
+    bookTitle: 'Clean Code',
+    studentId: '1',
+    studentName: 'Ana Silva',
+    loanDate: '2023-10-01',
+    expectedReturnDate: new Date(Date.now() - 86400000).toISOString(),
+    status: 'Ativo',
+  },
+  {
+    id: 'L002',
+    bookId: 'B002',
+    bookTitle: 'The Pragmatic Programmer',
+    studentId: '2',
+    studentName: 'Carlos Oliveira',
+    loanDate: new Date().toISOString(),
+    expectedReturnDate: new Date(Date.now() + 86400000 * 14).toISOString(),
+    status: 'Ativo',
   },
 ]
