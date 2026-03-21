@@ -9,6 +9,12 @@ import Layout from './components/Layout'
 import Index from './pages/Index'
 import NotFound from './pages/NotFound'
 
+// Sidebar Utilities
+import Notepad from './pages/utilities/Notepad'
+import Messages from './pages/utilities/Messages'
+import News from './pages/utilities/News'
+import ChangePassword from './pages/utilities/ChangePassword'
+
 // Academic
 import Students from './pages/academic/Students'
 import Teachers from './pages/academic/Teachers'
@@ -16,6 +22,8 @@ import Classes from './pages/academic/Classes'
 import Schedules from './pages/academic/Schedules'
 import Grades from './pages/academic/Grades'
 import ClassOccupancy from './pages/academic/ClassOccupancy'
+import PedagogicalTracking from './pages/academic/PedagogicalTracking'
+import AcademicControlView from './pages/academic-control/AcademicControlView'
 
 // Secretaria
 import ContratosDocumentos from './pages/secretaria/ContratosDocumentos'
@@ -35,7 +43,7 @@ import CashFlow from './pages/financial/CashFlow'
 // Commercial
 import Leads from './pages/commercial/Leads'
 
-// Admin
+// Admin / Generic Views
 import Settings from './pages/admin/Settings'
 import AccessControl from './pages/admin/AccessControl'
 import AuditLogs from './pages/admin/AuditLogs'
@@ -44,6 +52,10 @@ import Notifications from './pages/admin/Notifications'
 import Reports from './pages/admin/Reports'
 import Workflows from './pages/admin/Workflows'
 import CommunicationLogs from './pages/admin/CommunicationLogs'
+import RegistryView from './pages/admin/RegistryView'
+
+// Generic Report View
+import ReportView from './pages/reports/ReportView'
 
 // HR
 import Employees from './pages/hr/Employees'
@@ -69,6 +81,15 @@ function App() {
             <Route element={<Layout />}>
               <Route path="/" element={<Index />} />
 
+              {/* Utility Tools */}
+              <Route path="utilities">
+                <Route path="notepad" element={<Notepad />} />
+                <Route path="messages" element={<Messages />} />
+                <Route path="news" element={<News />} />
+                <Route path="change-password" element={<ChangePassword />} />
+              </Route>
+
+              {/* Academic Core */}
               <Route path="academic">
                 <Route path="students" element={<Students />} />
                 <Route path="teachers" element={<Teachers />} />
@@ -76,8 +97,11 @@ function App() {
                 <Route path="schedules" element={<Schedules />} />
                 <Route path="grades" element={<Grades />} />
                 <Route path="occupancy" element={<ClassOccupancy />} />
+                <Route path="pedagogical" element={<PedagogicalTracking />} />
+                <Route path="control/:id" element={<AcademicControlView />} />
               </Route>
 
+              {/* Student Portal */}
               <Route path="student">
                 <Route path="dashboard" element={<StudentDashboard />} />
                 <Route path="schedule" element={<StudentSchedule />} />
@@ -85,6 +109,7 @@ function App() {
                 <Route path="documents" element={<StudentDocuments />} />
               </Route>
 
+              {/* Secretaria Modules */}
               <Route path="secretaria">
                 <Route path="2a-via-contrato" element={<ContratosDocumentos />} />
                 <Route path="imprimir-documentos" element={<ContratosDocumentos />} />
@@ -122,29 +147,35 @@ function App() {
                 <Route path="relatorio-final" element={<RelatorioFinal />} />
               </Route>
 
+              {/* Financial */}
               <Route path="financial">
                 <Route path="payments" element={<Payments />} />
                 <Route path="cash-flow" element={<CashFlow />} />
               </Route>
 
+              {/* Commercial CRM */}
               <Route path="commercial">
                 <Route path="leads" element={<Leads />} />
               </Route>
 
+              {/* HR */}
               <Route path="hr">
                 <Route path="employees" element={<Employees />} />
               </Route>
 
+              {/* Inventory */}
               <Route path="inventory">
                 <Route path="stock" element={<Stock />} />
                 <Route path="movements" element={<Movements />} />
               </Route>
 
+              {/* Purchasing */}
               <Route path="purchasing">
                 <Route path="orders" element={<Orders />} />
                 <Route path="suppliers" element={<Suppliers />} />
               </Route>
 
+              {/* Admin & System Registry */}
               <Route path="admin">
                 <Route path="settings" element={<Settings />} />
                 <Route path="access-control" element={<AccessControl />} />
@@ -154,8 +185,13 @@ function App() {
                 <Route path="reports" element={<Reports />} />
                 <Route path="workflows" element={<Workflows />} />
                 <Route path="communication-logs" element={<CommunicationLogs />} />
+                <Route path="registry/:id" element={<RegistryView />} />
               </Route>
+
+              {/* Generic Reports */}
+              <Route path="reports/:id" element={<ReportView />} />
             </Route>
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Router>

@@ -33,7 +33,6 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Input } from '@/components/ui/input'
 
-// Define the hierarchy according to the acceptance criteria
 const appModules = [
   {
     title: 'ACADÊMICO',
@@ -44,28 +43,28 @@ const appModules = [
         items: [
           { title: 'Acompanhamento pedagógico', url: '/academic/pedagogical' },
           { title: 'Consultar notas', url: '/academic/grades' },
-          { title: 'Controle de TCC', url: '/academic/tcc' },
-          { title: 'Dispensar disciplina', url: '/academic/dispense' },
-          { title: 'Histórico Escolar', url: '/academic/history' },
-          { title: 'Lançara afastamento', url: '/academic/leave' },
-          { title: 'Lançar estágio', url: '/academic/internship' },
-          { title: 'Lançar forma de ingresso', url: '/academic/entry-form' },
+          { title: 'Controle de TCC', url: '/academic/control/tcc' },
+          { title: 'Dispensar disciplina', url: '/academic/control/dispensa' },
+          { title: 'Histórico Escolar', url: '/academic/control/historico' },
+          { title: 'Lançar afastamento', url: '/academic/control/afastamento' },
+          { title: 'Lançar estágio', url: '/academic/control/estagio' },
+          { title: 'Lançar forma de ingresso', url: '/academic/control/forma-ingresso' },
           { title: 'Lançar frequência', url: '/academic/occupancy' },
           { title: 'Lançar notas', url: '/academic/grades' },
-          { title: 'Lançar planejamneo', url: '/academic/planning' },
+          { title: 'Lançar planejamento', url: '/academic/control/planejamento' },
         ],
       },
       {
         title: 'Relatórios',
         items: [
-          { title: 'Alunos ingressantes', url: '/admin/reports' },
+          { title: 'Alunos ingressantes', url: '/reports/alunos-ingressantes' },
           { title: 'Diário de classe', url: '/academic/grades' },
-          { title: 'Edital de notas', url: '/admin/reports' },
+          { title: 'Edital de notas', url: '/reports/edital-notas' },
           { title: 'Documento pendentes', url: '/admin/documents' },
-          { title: 'Relação de alunos com faltas', url: '/admin/reports' },
+          { title: 'Relação de alunos com faltas', url: '/reports/alunos-faltas' },
           { title: 'Relação de alunos por turma', url: '/academic/classes' },
-          { title: 'Relação de aluno bloqueados', url: '/secretaria/bloquear-matricula' },
-          { title: 'Relação de alunos concluintes', url: '/admin/reports' },
+          { title: 'Relação de aluno bloqueados', url: '/reports/alunos-bloqueados' },
+          { title: 'Relação de alunos concluintes', url: '/reports/alunos-concluintes' },
           { title: 'Relação de disciplinas por aluno', url: '/academic/students' },
           { title: 'Relação de turmas', url: '/academic/classes' },
           { title: 'Situação geral do aluno', url: '/academic/students' },
@@ -97,15 +96,15 @@ const appModules = [
         title: 'Cadastro',
         items: [
           { title: 'Alunos', url: '/academic/students' },
-          { title: 'Avaliações', url: '/admin/avaliacoes' },
-          { title: 'Curso', url: '/admin/curso' },
-          { title: 'Convênio', url: '/admin/convenio' },
-          { title: 'CEP', url: '/admin/cep' },
-          { title: 'Disciplina', url: '/admin/disciplina' },
+          { title: 'Avaliações', url: '/admin/registry/avaliacoes' },
+          { title: 'Curso', url: '/admin/registry/cursos' },
+          { title: 'Convênio', url: '/admin/registry/convenios' },
+          { title: 'CEP', url: '/admin/registry/ceps' },
+          { title: 'Disciplina', url: '/admin/registry/disciplinas' },
           { title: 'Documentos', url: '/admin/documents' },
           { title: 'Funcionários', url: '/hr/employees' },
           { title: 'Perfil Professor', url: '/academic/teachers' },
-          { title: 'Plano de pagamento do curso', url: '/admin/plano-pagamento' },
+          { title: 'Plano de pagamento do curso', url: '/admin/registry/planos-pagamento' },
           { title: 'Produtos e serviços', url: '/inventory/stock' },
           { title: 'Professores', url: '/academic/teachers' },
           { title: 'Requerimentos', url: '/secretaria/requerimentos' },
@@ -123,7 +122,7 @@ const appModules = [
         items: [
           { title: 'Analise de atendimento', url: '/commercial/leads' },
           { title: 'Cadastro de atendimento', url: '/commercial/leads' },
-          { title: 'Relatório de atendimento', url: '/admin/reports' },
+          { title: 'Relatório de atendimento', url: '/reports/atendimento' },
         ],
       },
     ],
@@ -206,9 +205,14 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-zinc-600 hover:bg-zinc-50 text-[13px]">
-                <StickyNote className="h-[18px] w-[18px]" />
-                <span>BLOCO DE NOTAS</span>
+              <SidebarMenuButton
+                asChild
+                className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-zinc-600 hover:bg-zinc-50 text-[13px]"
+              >
+                <Link to="/utilities/notepad">
+                  <StickyNote className="h-[18px] w-[18px]" />
+                  <span>BLOCO DE NOTAS</span>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
@@ -234,30 +238,45 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-zinc-600 hover:bg-zinc-50 text-[13px]">
-                <Mail className="h-[18px] w-[18px]" />
-                <span>MENSAGENS</span>
+              <SidebarMenuButton
+                asChild
+                className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-zinc-600 hover:bg-zinc-50 text-[13px]"
+              >
+                <Link to="/utilities/messages">
+                  <Mail className="h-[18px] w-[18px]" />
+                  <span>MENSAGENS</span>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-zinc-600 hover:bg-zinc-50 text-[13px]">
-                <Newspaper className="h-[18px] w-[18px]" />
-                <span>NEWS</span>
+              <SidebarMenuButton
+                asChild
+                className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-zinc-600 hover:bg-zinc-50 text-[13px]"
+              >
+                <Link to="/utilities/news">
+                  <Newspaper className="h-[18px] w-[18px]" />
+                  <span>NEWS</span>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={toggleSidebar}
-                className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-[#1e3a8a] font-semibold hover:bg-zinc-50 text-[13px]"
+                className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-[#1e3a8a] font-semibold hover:bg-zinc-50 text-[13px] cursor-pointer"
               >
                 <PlayCircle className="h-[18px] w-[18px]" />
                 <span>RECOLHER MENU</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-zinc-600 hover:bg-zinc-50 text-[13px]">
-                <Lock className="h-[18px] w-[18px]" />
-                <span>TROCAR SENHA</span>
+              <SidebarMenuButton
+                asChild
+                className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-zinc-600 hover:bg-zinc-50 text-[13px]"
+              >
+                <Link to="/utilities/change-password">
+                  <Lock className="h-[18px] w-[18px]" />
+                  <span>TROCAR SENHA</span>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
