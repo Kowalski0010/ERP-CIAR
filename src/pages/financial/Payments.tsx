@@ -10,6 +10,7 @@ import {
   FileSpreadsheet,
   BellRing,
   RefreshCw,
+  MessageCircle,
 } from 'lucide-react'
 import {
   Table,
@@ -51,7 +52,6 @@ export default function Payments() {
       recipient: 'Alunos com Vencimento Próximo',
       channel: 'Email',
       subject: 'Aviso de Vencimento de Fatura',
-      status: 'Entregue',
       body: 'Lembramos que sua fatura vencerá nos próximos dias. Evite juros acessando o portal para pagamento.',
     })
     toast({
@@ -67,6 +67,19 @@ export default function Payments() {
       title: 'Conciliação Concluída',
       description:
         'Pagamentos pendentes foram processados simulando integração com Gateway PIX/Cartão.',
+    })
+  }
+
+  const sendWhatsApp = (studentName: string) => {
+    toast({
+      title: 'WhatsApp Enviado',
+      description: `Lembrete de pagamento disparado para o responsável de ${studentName}.`,
+    })
+    addCommunicationLog({
+      recipient: studentName,
+      channel: 'WhatsApp',
+      subject: 'Lembrete de Fatura',
+      body: `Envio de lembrete financeiro via WhatsApp.`,
     })
   }
 
@@ -170,7 +183,7 @@ export default function Payments() {
 
       <div className="bg-white border border-zinc-200 rounded-lg shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <Table className="table-compact min-w-[800px]">
+          <Table className="table-compact min-w-[900px]">
             <TableHeader className="bg-zinc-50/80">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-[120px]">Doc. Nº</TableHead>
@@ -179,7 +192,7 @@ export default function Payments() {
                 <TableHead className="w-[140px]">Vencimento</TableHead>
                 <TableHead className="text-right w-[140px]">Valor Líquido</TableHead>
                 <TableHead className="w-[140px]">Situação</TableHead>
-                <TableHead className="text-right w-[120px]">Ações</TableHead>
+                <TableHead className="text-right w-[200px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -203,7 +216,18 @@ export default function Payments() {
                     R$ {payment.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </TableCell>
                   <TableCell>{getStatusBadge(payment.status)}</TableCell>
-                  <TableCell className="text-right p-2">
+                  <TableCell className="text-right p-2 space-x-1">
+                    {payment.status !== 'Pago' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => sendWhatsApp(payment.studentName)}
+                        className="h-8 text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 font-medium px-2"
+                        title="Enviar Lembrete via WhatsApp"
+                      >
+                        <MessageCircle className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -213,7 +237,7 @@ export default function Payments() {
                           description: 'O documento foi baixado e enviado ao cliente.',
                         })
                       }
-                      className="h-8 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-medium"
+                      className="h-8 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-medium px-2"
                     >
                       <FileText className="mr-1.5 h-3.5 w-3.5" /> Boleto
                     </Button>

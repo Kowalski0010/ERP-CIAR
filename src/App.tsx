@@ -66,6 +66,9 @@ import Workflows from './pages/admin/Workflows'
 import CommunicationLogs from './pages/admin/CommunicationLogs'
 import RegistryView from './pages/admin/RegistryView'
 import BackupSettings from './pages/admin/BackupSettings'
+import PendingApprovals from './pages/admin/PendingApprovals'
+import CommunicationSettings from './pages/admin/CommunicationSettings'
+import Integrations from './pages/admin/Integrations'
 
 // Generic Report View
 import ReportView from './pages/reports/ReportView'
@@ -86,6 +89,7 @@ import StudentSchedule from './pages/student/StudentSchedule'
 import StudentFinancial from './pages/student/StudentFinancial'
 import StudentDocuments from './pages/student/StudentDocuments'
 import StudentFeedback from './pages/student/StudentFeedback'
+import StudentProfile from './pages/student/StudentProfile'
 
 function App() {
   return (
@@ -136,6 +140,7 @@ function App() {
                 <Route path="financial" element={<StudentFinancial />} />
                 <Route path="documents" element={<StudentDocuments />} />
                 <Route path="feedback" element={<StudentFeedback />} />
+                <Route path="profile" element={<StudentProfile />} />
               </Route>
 
               {/* Secretaria Modules */}
@@ -200,6 +205,9 @@ function App() {
 
               {/* Admin & System Registry */}
               <Route path="admin">
+                <Route path="approvals" element={<PendingApprovals />} />
+                <Route path="communication-settings" element={<CommunicationSettings />} />
+                <Route path="integrations" element={<Integrations />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="access-control" element={<AccessControl />} />
                 <Route path="audit-logs" element={<AuditLogs />} />

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Select,
   SelectContent,
@@ -24,12 +25,29 @@ export default function Notifications() {
   const [type, setType] = useState<'Info' | 'Warning' | 'Success'>('Info')
   const [target, setTarget] = useState<'Todos' | 'Alunos' | 'Professores' | 'Staff'>('Todos')
 
+  const [channels, setChannels] = useState({ email: true, sms: false, whatsapp: false })
+
+  const handleToggleChannel = (ch: 'email' | 'sms' | 'whatsapp', checked: boolean) => {
+    setChannels((prev) => ({ ...prev, [ch]: checked }))
+  }
+
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault()
     if (!title || !message) return
+    if (!channels.email && !channels.sms && !channels.whatsapp) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Selecione ao menos um canal de envio.',
+      })
+      return
+    }
 
     sendNotification({ title, message, type, target })
-    toast({ title: 'Enviado', description: `Notificação enviada para: ${target}` })
+    toast({
+      title: 'Enviado',
+      description: `Notificação enviada para: ${target} via canais selecionados.`,
+    })
     setTitle('')
     setMessage('')
   }
@@ -46,10 +64,10 @@ export default function Notifications() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900 flex items-center gap-2">
             <BellRing className="h-7 w-7 text-zinc-400" />
-            Central de Alertas
+            Central de Alertas e Broadcast
           </h1>
           <p className="text-sm text-zinc-500 mt-1">
-            Envio e gerenciamento de comunicações para a comunidade.
+            Envio e gerenciamento de comunicações ativas (Email, SMS, WhatsApp).
           </p>
         </div>
       </div>
@@ -80,7 +98,53 @@ export default function Notifications() {
                   className="w-full min-h-[80px] p-2 text-xs rounded-md border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent resize-none"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+
+              <div className="space-y-2 pt-2 border-t border-zinc-100">
+                <Label className="text-xs font-semibold text-zinc-700">Canais de Disparo</Label>
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center space-x-2 bg-zinc-50 p-1.5 rounded border border-zinc-200">
+                    <Checkbox
+                      id="ch-email"
+                      checked={channels.email}
+                      onCheckedChange={(c) => handleToggleChannel('email', !!c)}
+                    />
+                    <label
+                      htmlFor="ch-email"
+                      className="text-[11px] font-medium leading-none cursor-pointer"
+                    >
+                      Email
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2 bg-zinc-50 p-1.5 rounded border border-zinc-200">
+                    <Checkbox
+                      id="ch-sms"
+                      checked={channels.sms}
+                      onCheckedChange={(c) => handleToggleChannel('sms', !!c)}
+                    />
+                    <label
+                      htmlFor="ch-sms"
+                      className="text-[11px] font-medium leading-none cursor-pointer"
+                    >
+                      SMS
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2 bg-emerald-50 p-1.5 rounded border border-emerald-200">
+                    <Checkbox
+                      id="ch-wa"
+                      checked={channels.whatsapp}
+                      onCheckedChange={(c) => handleToggleChannel('whatsapp', !!c)}
+                    />
+                    <label
+                      htmlFor="ch-wa"
+                      className="text-[11px] font-bold text-emerald-800 leading-none cursor-pointer"
+                    >
+                      WhatsApp
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold text-zinc-700">Tipo</Label>
                   <Select value={type} onValueChange={(v: any) => setType(v)}>
@@ -109,7 +173,7 @@ export default function Notifications() {
                   </Select>
                 </div>
               </div>
-              <Button type="submit" className="w-full shadow-sm">
+              <Button type="submit" className="w-full shadow-sm mt-2">
                 <Send className="h-4 w-4 mr-2" /> Disparar Aviso
               </Button>
             </form>

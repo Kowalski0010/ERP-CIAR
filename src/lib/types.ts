@@ -131,7 +131,7 @@ export type SystemNotification = {
 export type CommunicationLog = {
   id: string
   recipient: string
-  channel: 'Email' | 'SMS'
+  channel: 'Email' | 'SMS' | 'WhatsApp'
   subject: string
   status: 'Entregue' | 'Pendente' | 'Falha'
   date: string
@@ -220,6 +220,7 @@ export type Curso = {
   date: string
   description?: string
 }
+
 export type Avaliacao = {
   id: string
   name: string
@@ -228,6 +229,7 @@ export type Avaliacao = {
   date: string
   status: string
 }
+
 export type Convenio = {
   id: string
   name: string
@@ -236,6 +238,7 @@ export type Convenio = {
   date: string
   status: string
 }
+
 export type CepRecord = {
   id: string
   cep: string
@@ -246,6 +249,7 @@ export type CepRecord = {
   date: string
   status: string
 }
+
 export type Disciplina = {
   id: string
   name: string
@@ -263,6 +267,7 @@ export type Book = {
   availableCopies: number
   coverUrl?: string
 }
+
 export type Loan = {
   id: string
   bookId: string
@@ -284,6 +289,16 @@ export type StudentFeedback = {
   status: 'Novo' | 'Lido' | 'Respondido' | 'Arquivado'
   date: string
   reply?: string
+}
+
+export type ApprovalRequest = {
+  id: string
+  requesterName: string
+  type: 'Documento' | 'Mudança de Turma'
+  date: string
+  details: string
+  status: 'Pendente' | 'Aprovado' | 'Rejeitado'
+  rejectionReason?: string
 }
 
 export type AppState = {
@@ -313,4 +328,5 @@ export type AppState = {
   books: Book[]
   loans: Loan[]
   feedbacks: StudentFeedback[]
+  approvalRequests: ApprovalRequest[]
 }

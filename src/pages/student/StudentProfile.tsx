@@ -1,9 +1,10 @@
 import { useAppStore } from '@/contexts/AppContext'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { UserCircle, Save } from 'lucide-react'
+import { UserCircle, Save, SmartphoneNfc } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/hooks/use-toast'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 
@@ -16,8 +17,17 @@ export default function StudentProfile() {
     e.preventDefault()
     toast({
       title: 'Dados Atualizados',
-      description: 'Suas informações de contato foram salvas com sucesso.',
+      description: 'Suas informações de contato e preferências foram salvas com sucesso.',
     })
+  }
+
+  const togglePush = (checked: boolean) => {
+    if (checked) {
+      toast({
+        title: 'Notificações Ativadas',
+        description: 'Você receberá alertas em tempo real no seu dispositivo.',
+      })
+    }
   }
 
   return (
@@ -28,7 +38,7 @@ export default function StudentProfile() {
           Meu Perfil
         </h1>
         <p className="text-sm text-zinc-500 mt-1">
-          Gerencie seus dados cadastrais e informações de contato.
+          Gerencie seus dados cadastrais, informações de contato e preferências do portal.
         </p>
       </div>
 
@@ -47,7 +57,7 @@ export default function StudentProfile() {
         </CardHeader>
         <CardContent className="pt-6">
           <form onSubmit={handleSave} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
                   E-mail Principal
@@ -79,6 +89,21 @@ export default function StudentProfile() {
                   disabled
                   className="h-9 bg-zinc-50 text-zinc-500 font-mono"
                 />
+              </div>
+
+              {/* Push Notifications Toggle */}
+              <div className="md:col-span-2 mt-2 p-4 bg-zinc-50 rounded-lg border border-zinc-200 flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label className="text-sm font-semibold flex items-center gap-2 text-zinc-900">
+                    <SmartphoneNfc className="h-4 w-4 text-blue-600" />
+                    Notificações Push (Aplicativo PWA)
+                  </Label>
+                  <p className="text-xs text-zinc-500 max-w-md">
+                    Autorize o recebimento de alertas diretamente na tela do seu celular sempre que
+                    uma nova nota ou aviso for publicado.
+                  </p>
+                </div>
+                <Switch defaultChecked onCheckedChange={togglePush} />
               </div>
             </div>
 

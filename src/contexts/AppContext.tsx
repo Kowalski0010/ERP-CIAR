@@ -27,6 +27,7 @@ import {
   Book,
   Loan,
   StudentFeedback,
+  ApprovalRequest,
 } from '@/lib/types'
 import {
   mockStudents,
@@ -53,6 +54,7 @@ import {
   mockBooks,
   mockLoans,
   mockFeedbacks,
+  mockApprovalRequests,
 } from '@/lib/mockData'
 
 interface AppContextType extends AppState {
@@ -70,7 +72,7 @@ interface AppContextType extends AppState {
   enrollStudent: (student: Student, plan: FinancialPlan, leadId?: string) => void
   addLog: (log: Omit<AuditLog, 'id' | 'timestamp'>) => void
   sendNotification: (notification: Omit<SystemNotification, 'id' | 'date' | 'read'>) => void
-  addCommunicationLog: (log: Omit<CommunicationLog, 'id' | 'date'>) => void
+  addCommunicationLog: (log: Omit<CommunicationLog, 'id' | 'date' | 'status'>) => void
   generateInvoice: (studentId: string, amount: number) => void
   markNotificationsAsRead: () => void
   registerOccurrence: (studentId: string, text: string) => void
@@ -93,6 +95,9 @@ interface AppContextType extends AppState {
   replyFeedback: (id: string, reply: string) => void
 
   simulatePaymentReconciliation: () => void
+
+  approveRequest: (id: string) => void
+  rejectRequest: (id: string, reason: string) => void
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
@@ -126,6 +131,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [books, setBooks] = useState<Book[]>(mockBooks)
   const [loans, setLoans] = useState<Loan[]>(mockLoans)
   const [feedbacks, setFeedbacks] = useState<StudentFeedback[]>(mockFeedbacks)
+  const [approvalRequests, setApprovalRequests] = useState<ApprovalRequest[]>(mockApprovalRequests)
 
   const login = () => setIsAuthenticated(true)
   const logout = () => setIsAuthenticated(false)
@@ -236,7 +242,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
               recipient: l.studentName,
               channel: 'Email',
               subject: 'Multa de Biblioteca Registrada',
-              status: 'Entregue',
               body: `Prezado aluno, o livro "${l.bookTitle}" foi devolvido com atraso. Uma multa de R$ 15,00 foi adicionada ao seu painel financeiro.`,
             })
           }
@@ -334,11 +339,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setChatMessages((prev) => [...prev, newMsg])
   }
 
-  const addCommunicationLog = (log: Omit<CommunicationLog, 'id' | 'date'>) => {
+  const addCommunicationLog = (log: Omit<CommunicationLog, 'id' | 'date' | 'status'>) => {
     const newLog: CommunicationLog = {
       ...log,
       id: `EV-${Math.floor(Math.random() * 10000)}`,
       date: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      status: 'Entregue',
     }
     setCommunicationLogs((prev) => [newLog, ...prev])
   }
@@ -405,7 +411,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       recipient: student.email,
       channel: 'Email',
       subject: 'Nova Ocorrência',
-      status: 'Entregue',
       body: `Aviso: ${text}`,
     })
   }
@@ -423,7 +428,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       recipient: student.email,
       channel: 'Email',
       subject: 'Contrato',
-      status: 'Entregue',
       body: `Olá ${student.name}, seu contrato...`,
     })
   }
@@ -525,6 +529,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const approveRequest = (id: string) => {
+    setApprovalRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'Aprovado' } : r)))
+    addLog({
+      user: currentUserRole,
+      action: 'Aprovação de Requerimento',
+      entity: `ID: ${id}`,
+      newValue: 'Aprovado',
+    })
+  }
+
+  const rejectRequest = (id: string, reason: string) => {
+    setApprovalRequests((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, status: 'Rejeitado', rejectionReason: reason } : r)),
+    )
+    addLog({
+      user: currentUserRole,
+      action: 'Rejeição de Requerimento',
+      entity: `ID: ${id}`,
+      newValue: 'Rejeitado',
+    })
+  }
+
   return (
     <AppContext.Provider
       value={{
@@ -557,6 +583,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         books,
         loans,
         feedbacks,
+        approvalRequests,
         addLead,
         updateLeadStatus,
         updateStudent,
@@ -587,6 +614,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         updateFeedbackStatus,
         replyFeedback,
         simulatePaymentReconciliation,
+        approveRequest,
+        rejectRequest,
       }}
     >
       {children}

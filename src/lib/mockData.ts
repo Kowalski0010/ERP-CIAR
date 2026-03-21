@@ -23,6 +23,7 @@ import {
   Book,
   Loan,
   StudentFeedback,
+  ApprovalRequest,
 } from './types'
 
 const defaultAddress = {
@@ -553,5 +554,32 @@ export const mockFeedbacks: StudentFeedback[] = [
     message: 'O ar condicionado da sala T02 está com defeito há 3 dias.',
     status: 'Lido',
     date: new Date(Date.now() - 86400000).toISOString(),
+  },
+]
+
+export const mockApprovalRequests: ApprovalRequest[] = [
+  {
+    id: 'REQ-A01',
+    requesterName: 'Ana Silva',
+    type: 'Documento',
+    date: new Date(Date.now() - 3600000).toISOString(),
+    details: 'Emissão de Histórico Escolar Parcial',
+    status: 'Pendente',
+  },
+  {
+    id: 'REQ-A02',
+    requesterName: 'Carlos Oliveira',
+    type: 'Mudança de Turma',
+    date: new Date(Date.now() - 86400000).toISOString(),
+    details: 'Transferência da Turma T01 para T02 (Noturno)',
+    status: 'Pendente',
+  },
+  {
+    id: 'REQ-A03',
+    requesterName: 'Beatriz Souza',
+    type: 'Documento',
+    date: new Date(Date.now() - 172800000).toISOString(),
+    details: 'Declaração de Vínculo com Grade',
+    status: 'Aprovado',
   },
 ]

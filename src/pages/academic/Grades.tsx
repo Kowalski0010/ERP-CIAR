@@ -1,7 +1,8 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '@/contexts/AppContext'
 import { useToast } from '@/hooks/use-toast'
-import { Save, AlertCircle, FileSpreadsheet, Check } from 'lucide-react'
+import { Save, AlertCircle, FileSpreadsheet, Check, Smartphone } from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -34,6 +35,7 @@ const initialGrades = [
 export default function Grades() {
   const { addLog, currentUserRole, addCommunicationLog } = useAppStore()
   const { toast } = useToast()
+  const navigate = useNavigate()
   const [grades, setGrades] = useState(initialGrades)
   const [isSaving, setIsSaving] = useState(false)
 
@@ -64,20 +66,32 @@ export default function Grades() {
         details: 'Salvo em lote via Diário.',
       })
 
-      // Send Notification to Students
+      // Send Notification to Students (Email)
       addCommunicationLog({
         recipient: 'Alunos da Turma T01',
         channel: 'Email',
         subject: 'Atualização no Diário de Classe',
-        status: 'Entregue',
         body: 'As notas da disciplina "Algoritmos Avançados" foram consolidadas no sistema. Acesse o portal do aluno para verificar seu boletim e situação final.',
       })
 
-      setIsSaving(false)
+      // Simulate PWA Push Notification sent to students
       toast({
         title: 'Diário de Classe Salvo',
-        description: 'As notas foram processadas e alertas automáticos foram enviados aos alunos.',
+        description: 'As notas foram processadas e alertas push/email enviados aos alunos.',
       })
+
+      // Visual feedback to teacher about the Push Notification
+      toast({
+        title: '📲 Push Notification Simulada',
+        description: 'Texto enviado aos alunos: "Nova nota disponível: Algoritmos Avançados"',
+        action: (
+          <Button variant="outline" size="sm" onClick={() => navigate('/student/dashboard')}>
+            Ver como Aluno
+          </Button>
+        ),
+      })
+
+      setIsSaving(false)
     }, 800)
   }
 
@@ -87,7 +101,7 @@ export default function Grades() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Diário de Classe</h1>
           <p className="text-sm text-zinc-500 mt-1">
-            Lançamento de avaliações. Alterações disparam notificações aos alunos.
+            Lançamento de avaliações. Alterações disparam PWA Push Notifications aos alunos.
           </p>
         </div>
         <Button variant="outline" className="shadow-sm h-10 px-4 text-sm font-semibold">
@@ -146,7 +160,7 @@ export default function Grades() {
         <AlertCircle className="h-4 w-4 text-blue-600" />
         <AlertDescription className="text-xs font-medium">
           Sistema parametrizado para <strong>Média 7.0</strong>. O salvamento consolida as notas e
-          notifica os responsáveis automaticamente por e-mail.
+          notifica os alunos automaticamente via aplicativo (Push).
         </AlertDescription>
       </Alert>
 
@@ -225,13 +239,13 @@ export default function Grades() {
           <Button
             onClick={handleSave}
             disabled={isSaving}
-            className="shadow-sm w-full sm:w-auto min-w-[200px] h-10 bg-zinc-900 hover:bg-zinc-800 text-white font-semibold"
+            className="shadow-sm w-full sm:w-auto min-w-[250px] h-10 bg-zinc-900 hover:bg-zinc-800 text-white font-semibold"
           >
             {isSaving ? (
               'Processando Notificações...'
             ) : (
               <>
-                <Save className="mr-2 h-4 w-4" /> Consolidar e Notificar Turma
+                <Smartphone className="mr-2 h-4 w-4" /> Salvar e Enviar Push
               </>
             )}
           </Button>

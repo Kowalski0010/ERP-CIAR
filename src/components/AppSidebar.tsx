@@ -11,7 +11,6 @@ import {
   ChevronRight,
   LogOut,
   Plus,
-  BookOpen,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -35,6 +34,7 @@ const appModules = [
     icon: GraduationCap,
     items: [
       { title: 'Meu Painel', url: '/student/dashboard' },
+      { title: 'Meu Perfil', url: '/student/profile' },
       { title: 'Agenda de Aulas', url: '/student/schedule' },
       { title: 'Extrato Financeiro', url: '/student/financial' },
       { title: 'Documentos', url: '/student/documents' },
@@ -69,6 +69,13 @@ const appModules = [
     title: 'CONSULTA / GESTÃO',
     icon: Search,
     subGroups: [
+      {
+        title: 'Gestão Escolar',
+        items: [
+          { title: 'Aprovações Pendentes', url: '/admin/approvals' },
+          { title: 'Integrações Oficiais', url: '/admin/integrations' },
+        ],
+      },
       {
         title: 'Dashboards e BI',
         items: [
@@ -105,6 +112,7 @@ const appModules = [
       { title: 'Chat Interno', url: '/utilities/chat' },
       { title: 'Inbox de Feedback', url: '/secretaria/feedback' },
       { title: 'Mensagens / Avisos', url: '/utilities/messages' },
+      { title: 'Config. WhatsApp', url: '/admin/communication-settings' },
     ],
   },
   {
@@ -160,7 +168,11 @@ export function AppSidebar() {
     }
 
     if (currentUserRole === 'Financeiro') {
-      return module.title === 'FINANCEIRO' || module.title === 'CONSULTA / GESTÃO'
+      return (
+        module.title === 'FINANCEIRO' ||
+        module.title === 'CONSULTA / GESTÃO' ||
+        module.title === 'COMUNICAÇÃO'
+      )
     }
 
     if (currentUserRole === 'Professor') {
