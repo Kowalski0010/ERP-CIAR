@@ -14,6 +14,7 @@ import Notepad from './pages/utilities/Notepad'
 import Messages from './pages/utilities/Messages'
 import News from './pages/utilities/News'
 import ChangePassword from './pages/utilities/ChangePassword'
+import Chat from './pages/utilities/Chat'
 
 // Academic
 import Students from './pages/academic/Students'
@@ -86,6 +87,7 @@ function App() {
               <Route path="utilities">
                 <Route path="notepad" element={<Notepad />} />
                 <Route path="messages" element={<Messages />} />
+                <Route path="chat" element={<Chat />} />
                 <Route path="news" element={<News />} />
                 <Route path="change-password" element={<ChangePassword />} />
               </Route>

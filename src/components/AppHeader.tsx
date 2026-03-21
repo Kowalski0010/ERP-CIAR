@@ -30,7 +30,9 @@ export function AppHeader() {
               <SelectItem value="Admin">Admin</SelectItem>
               <SelectItem value="Gestao">Gestão/Diretoria</SelectItem>
               <SelectItem value="Secretaria">Secretaria</SelectItem>
+              <SelectItem value="Professor">Professor</SelectItem>
               <SelectItem value="Financeiro">Financeiro</SelectItem>
+              <SelectItem value="Aluno">Aluno</SelectItem>
             </SelectContent>
           </Select>
         </div>

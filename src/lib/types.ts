@@ -2,7 +2,7 @@ export type Role =
   | 'Admin'
   | 'Gestao'
   | 'Secretaria'
-  | 'Academico'
+  | 'Professor'
   | 'Financeiro'
   | 'Comercial'
   | 'Aluno'
@@ -23,6 +23,14 @@ export type Observation = {
   text: string
 }
 
+export type DigitalDocument = {
+  id: string
+  title: string
+  status: 'Pendente' | 'Assinado'
+  date: string
+  type: string
+}
+
 export type Student = {
   id: string
   name: string
@@ -36,6 +44,7 @@ export type Student = {
   rg?: string
   address?: Address
   observations?: Observation[]
+  documents?: DigitalDocument[]
 }
 
 export type Teacher = {
@@ -105,6 +114,8 @@ export type AuditLog = {
   entity: string
   details?: string
   targetStudent?: string
+  oldValue?: string
+  newValue?: string
 }
 
 export type SystemNotification = {
@@ -191,6 +202,15 @@ export type PurchaseOrder = {
   status: 'Rascunho' | 'Enviado' | 'Recebido' | 'Cancelado'
 }
 
+export type ChatMessage = {
+  id: string
+  senderId: string
+  senderName: string
+  senderRole: string
+  content: string
+  timestamp: string
+}
+
 export type AppState = {
   currentUserRole: Role
   students: Student[]
@@ -208,4 +228,5 @@ export type AppState = {
   stockMovements: StockMovement[]
   suppliers: Supplier[]
   purchaseOrders: PurchaseOrder[]
+  chatMessages: ChatMessage[]
 }

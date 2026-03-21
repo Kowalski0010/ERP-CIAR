@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useAppStore } from '@/contexts/AppContext'
 import {
   Search,
@@ -35,6 +35,16 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Input } from '@/components/ui/input'
 
 const appModules = [
+  {
+    title: 'PORTAL DO ALUNO',
+    icon: GraduationCap,
+    items: [
+      { title: 'Meu Painel', url: '/student/dashboard' },
+      { title: 'Agenda de Aulas', url: '/student/schedule' },
+      { title: 'Extrato Financeiro', url: '/student/financial' },
+      { title: 'Documentos e Assinaturas', url: '/student/documents' },
+    ],
+  },
   {
     title: 'ACADÊMICO',
     icon: GraduationCap,
@@ -95,6 +105,14 @@ const appModules = [
     ],
   },
   {
+    title: 'COMUNICAÇÃO',
+    icon: Mail,
+    items: [
+      { title: 'Chat Interno', url: '/utilities/chat' },
+      { title: 'Mensagens / Avisos', url: '/utilities/messages' },
+    ],
+  },
+  {
     title: 'ADMINISTRAÇÃO DO SISTEMA',
     icon: Settings,
     subGroups: [
@@ -148,17 +166,36 @@ const appModules = [
 export function AppSidebar() {
   const { toggleSidebar } = useSidebar()
   const { currentUserRole } = useAppStore()
+  const location = useLocation()
 
   // Filter modules based on RBAC logic
   const filteredModules = appModules.filter((module) => {
-    if (currentUserRole === 'Admin' || currentUserRole === 'Gestao') return true
+    if (currentUserRole === 'Admin' || currentUserRole === 'Gestao') {
+      return module.title !== 'PORTAL DO ALUNO'
+    }
+
+    if (currentUserRole === 'Aluno') {
+      return module.title === 'PORTAL DO ALUNO'
+    }
 
     if (currentUserRole === 'Secretaria') {
-      return module.title === 'ACADÊMICO' || module.title === 'ADMINISTRAÇÃO DO SISTEMA'
+      return (
+        module.title === 'ACADÊMICO' ||
+        module.title === 'ADMINISTRAÇÃO DO SISTEMA' ||
+        module.title === 'COMUNICAÇÃO'
+      )
     }
 
     if (currentUserRole === 'Financeiro') {
-      return module.title === 'FINANCEIRO' || module.title === 'ADMINISTRAÇÃO DO SISTEMA'
+      return (
+        module.title === 'FINANCEIRO' ||
+        module.title === 'ADMINISTRAÇÃO DO SISTEMA' ||
+        module.title === 'COMUNICAÇÃO'
+      )
+    }
+
+    if (currentUserRole === 'Professor') {
+      return module.title === 'ACADÊMICO' || module.title === 'COMUNICAÇÃO'
     }
 
     return true
@@ -179,7 +216,6 @@ export function AppSidebar() {
     <Sidebar className="border-r border-zinc-200 bg-white shadow-sm font-sans" collapsible="icon">
       <SidebarHeader className="p-0 border-b-0">
         <div className="flex flex-col items-center justify-center pt-8 pb-4 group-data-[collapsible=icon]:hidden">
-          {/* Mock CIAR Logo */}
           <div className="relative flex items-center justify-center h-20 w-20 mb-2">
             <div className="absolute w-12 h-12 rounded-full bg-[#1e3a8a] top-0 left-2 opacity-90 mix-blend-multiply flex items-center justify-center">
               <div className="w-4 h-4 bg-white rounded-full absolute -top-1 -right-1" />
@@ -203,43 +239,70 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="p-0 gap-0">
-        <SidebarGroup className="p-0">
-          <SidebarGroupLabel className="px-4 py-2 h-auto text-[11px] font-bold text-zinc-500 tracking-wider group-data-[collapsible=icon]:hidden flex items-center gap-2">
-            <Star className="h-4 w-4 text-[#1e3a8a] fill-[#1e3a8a]" /> FAVORITOS
-          </SidebarGroupLabel>
-          <SidebarMenu className="gap-0">
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                className="rounded-none h-10 px-4 text-zinc-600 hover:bg-zinc-100 hover:text-[#1e3a8a] text-[13px]"
-              >
-                <Link to="/secretaria/cadastrar-horario">
-                  <span className="group-data-[collapsible=icon]:hidden">Cadastrar Horário</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
+        {currentUserRole !== 'Aluno' && (
+          <>
+            <SidebarGroup className="p-0">
+              <SidebarGroupLabel className="px-4 py-2 h-auto text-[11px] font-bold text-zinc-500 tracking-wider group-data-[collapsible=icon]:hidden flex items-center gap-2">
+                <Star className="h-4 w-4 text-[#1e3a8a] fill-[#1e3a8a]" /> FAVORITOS
+              </SidebarGroupLabel>
+              <SidebarMenu className="gap-0">
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    className="rounded-none h-10 px-4 text-zinc-600 hover:bg-zinc-100 hover:text-[#1e3a8a] text-[13px]"
+                  >
+                    <Link to="/secretaria/cadastrar-horario">
+                      <span className="group-data-[collapsible=icon]:hidden">
+                        Cadastrar Horário
+                      </span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroup>
 
-        <div className="h-px bg-zinc-200 my-2 group-data-[collapsible=icon]:hidden" />
+            <div className="h-px bg-zinc-200 my-2 group-data-[collapsible=icon]:hidden" />
+          </>
+        )}
 
         <SidebarGroup className="p-0">
           <SidebarMenu className="gap-0">
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                className={`rounded-none h-10 px-4 border-l-4 font-semibold text-[13px] ${
-                  location.pathname === '/'
-                    ? 'border-l-[#1e3a8a] bg-zinc-100 text-[#1e3a8a]'
-                    : 'border-l-transparent text-zinc-600 hover:bg-zinc-50'
-                }`}
-              >
-                <Link to="/">
-                  <CalendarDays className="h-[18px] w-[18px]" />
-                  <span>DASHBOARD</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            {currentUserRole !== 'Aluno' && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  className={`rounded-none h-10 px-4 border-l-4 font-semibold text-[13px] ${
+                    location.pathname === '/'
+                      ? 'border-l-[#1e3a8a] bg-zinc-100 text-[#1e3a8a]'
+                      : 'border-l-transparent text-zinc-600 hover:bg-zinc-50'
+                  }`}
+                >
+                  <Link to="/">
+                    <CalendarDays className="h-[18px] w-[18px]" />
+                    <span>DASHBOARD</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+
+            {currentUserRole === 'Aluno' && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  className={`rounded-none h-10 px-4 border-l-4 font-semibold text-[13px] ${
+                    location.pathname.includes('/student/dashboard')
+                      ? 'border-l-[#1e3a8a] bg-zinc-100 text-[#1e3a8a]'
+                      : 'border-l-transparent text-zinc-600 hover:bg-zinc-50'
+                  }`}
+                >
+                  <Link to="/student/dashboard">
+                    <CalendarDays className="h-[18px] w-[18px]" />
+                    <span>MEU PAINEL</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
@@ -251,39 +314,21 @@ export function AppSidebar() {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-zinc-600 hover:bg-zinc-50 text-[13px]"
-              >
-                <Link to="/secretaria/consultar-aluno">
-                  <Users className="h-[18px] w-[18px]" />
-                  <span>CONSULTA ALUNO</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-zinc-600 hover:bg-zinc-50 text-[13px]"
-              >
-                <Link to="/secretaria/imprimir-documentos">
-                  <Printer className="h-[18px] w-[18px]" />
-                  <span>IMPRIMIR</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-zinc-600 hover:bg-zinc-50 text-[13px]"
-              >
-                <Link to="/utilities/messages">
-                  <Mail className="h-[18px] w-[18px]" />
-                  <span>MENSAGENS</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+
+            {currentUserRole !== 'Aluno' && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-zinc-600 hover:bg-zinc-50 text-[13px]"
+                >
+                  <Link to="/secretaria/consultar-aluno">
+                    <Users className="h-[18px] w-[18px]" />
+                    <span>CONSULTA ALUNO</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild

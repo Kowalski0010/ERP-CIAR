@@ -39,7 +39,6 @@ export default function AuditLogs() {
         log.entity.includes(moduleFilter) ||
         log.action.includes(moduleFilter)
 
-      // Simple date filter logic for mock
       let matchesDate = true
       const logDate = new Date(log.timestamp)
       const now = new Date()
@@ -111,11 +110,12 @@ export default function AuditLogs() {
           <Table className="table-compact">
             <TableHeader className="bg-zinc-50/80">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[160px]">Data / Hora</TableHead>
-                <TableHead className="w-[180px]">Usuário Responsável</TableHead>
-                <TableHead className="w-[200px]">Ação</TableHead>
-                <TableHead className="w-[200px]">Aluno Alvo</TableHead>
-                <TableHead>Detalhes da Modificação</TableHead>
+                <TableHead className="w-[140px]">Data / Hora</TableHead>
+                <TableHead className="w-[140px]">Usuário</TableHead>
+                <TableHead className="w-[180px]">Ação</TableHead>
+                <TableHead>Entidade / Alvo</TableHead>
+                <TableHead className="w-[160px]">Valor Anterior</TableHead>
+                <TableHead className="w-[160px]">Novo Valor</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -135,18 +135,28 @@ export default function AuditLogs() {
                   <TableCell className="font-semibold text-zinc-900 text-xs">
                     {log.action}
                   </TableCell>
-                  <TableCell className="text-xs font-medium text-zinc-700">
-                    {log.targetStudent || <span className="text-zinc-400 italic">N/A</span>}
-                  </TableCell>
                   <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-xs text-zinc-600 font-medium">{log.entity}</span>
-                      {log.details && (
-                        <span className="text-[11px] bg-amber-50 text-amber-800 p-1 rounded border border-amber-200 leading-tight inline-block w-fit">
-                          {log.details}
-                        </span>
+                    <div className="flex flex-col">
+                      <span
+                        className="text-xs font-semibold text-zinc-900 truncate max-w-[200px]"
+                        title={log.entity}
+                      >
+                        {log.entity}
+                      </span>
+                      {log.targetStudent && (
+                        <span className="text-[10px] text-zinc-500">Alvo: {log.targetStudent}</span>
                       )}
                     </div>
+                  </TableCell>
+                  <TableCell className="text-xs font-mono text-rose-600 opacity-80 break-words">
+                    {log.oldValue ? (
+                      <span className="line-through">{log.oldValue}</span>
+                    ) : (
+                      <span className="text-zinc-400 no-underline">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-xs font-mono text-emerald-600 font-medium break-words">
+                    {log.newValue || '-'}
                   </TableCell>
                 </TableRow>
               ))}

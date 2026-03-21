@@ -1,6 +1,6 @@
 import { useAppStore } from '@/contexts/AppContext'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { CalendarDays, Wallet, ClipboardList, BookOpen } from 'lucide-react'
+import { CalendarDays, Wallet, ClipboardList, BookOpen, GraduationCap } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Link } from 'react-router-dom'
@@ -122,9 +122,57 @@ export default function StudentDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Resumo Acadêmico */}
+        <Card className="border-zinc-200 shadow-sm bg-white md:col-span-3 mt-2">
+          <CardHeader className="py-4 border-b border-zinc-100 bg-zinc-50/50">
+            <CardTitle className="text-sm font-semibold text-zinc-900 flex items-center gap-2">
+              <GraduationCap className="h-4 w-4 text-zinc-400" /> Desempenho Acadêmico (Semestre
+              Atual)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y divide-zinc-100">
+              {myAttendances.map((att) => {
+                const isWarning = att.absences / att.totalClasses > 0.25
+                return (
+                  <div
+                    key={att.id}
+                    className="p-4 flex items-center justify-between hover:bg-zinc-50 transition-colors"
+                  >
+                    <div>
+                      <h4 className="font-semibold text-sm text-zinc-900">{att.subject}</h4>
+                      <p
+                        className={`text-xs mt-0.5 ${isWarning ? 'text-rose-600 font-semibold' : 'text-zinc-500'}`}
+                      >
+                        Faltas: {att.absences} / {att.totalClasses}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <p className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">
+                          Média Parcial
+                        </p>
+                        <p className="font-mono font-bold text-lg leading-tight text-zinc-900">
+                          8.5
+                        </p>
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className="w-24 justify-center bg-emerald-50 text-emerald-700 border-emerald-200"
+                      >
+                        Na Média
+                      </Badge>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
         <Card className="border-zinc-200 shadow-sm bg-white">
           <CardHeader className="border-b border-zinc-100 bg-zinc-50/50 py-4">
             <CardTitle className="text-sm font-semibold text-zinc-900">Avisos Recentes</CardTitle>

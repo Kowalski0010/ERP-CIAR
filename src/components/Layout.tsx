@@ -5,16 +5,25 @@ import { AppHeader } from './AppHeader'
 import { useAppStore } from '@/contexts/AppContext'
 import { ShieldAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useEffect } from 'react'
 
 export default function Layout() {
   const { currentUserRole } = useAppStore()
   const location = useLocation()
   const navigate = useNavigate()
 
+  useEffect(() => {
+    if (currentUserRole === 'Aluno' && location.pathname === '/') {
+      navigate('/student/dashboard', { replace: true })
+    }
+  }, [currentUserRole, location.pathname, navigate])
+
   // RBAC logic map
   const rolePermissions: Record<string, string[]> = {
     Secretaria: ['/secretaria', '/academic', '/admin/registry', '/utilities', '/reports'],
     Financeiro: ['/financial', '/utilities', '/reports'],
+    Professor: ['/academic', '/utilities'],
+    Aluno: ['/student', '/utilities'],
     Gestao: ['/'], // Has access to everything
     Admin: ['/'], // Has access to everything
   }
@@ -37,7 +46,11 @@ export default function Layout() {
           <Button variant="outline" onClick={() => navigate(-1)}>
             Voltar
           </Button>
-          <Button onClick={() => navigate('/')}>Ir para Dashboard</Button>
+          <Button
+            onClick={() => navigate(currentUserRole === 'Aluno' ? '/student/dashboard' : '/')}
+          >
+            Ir para Início
+          </Button>
         </div>
       </div>
     )

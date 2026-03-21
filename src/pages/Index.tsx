@@ -10,6 +10,8 @@ import {
   Keyboard,
   TrendingUp,
   AlertTriangle,
+  FileSignature,
+  Laptop,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -38,7 +40,7 @@ const mockAttendanceData = [
 
 export default function Index() {
   const navigate = useNavigate()
-  const { students, payments, logs, notifications } = useAppStore()
+  const { students, payments, logs } = useAppStore()
 
   // Shortcuts Listener
   useEffect(() => {
@@ -67,6 +69,16 @@ export default function Index() {
   const totalDelinquency = payments
     .filter((p) => p.status === 'Atrasado')
     .reduce((acc, curr) => acc + curr.amount, 0)
+
+  // Document Signatures and Portal KPI metrics
+  const totalDocuments = students.reduce((acc, s) => acc + (s.documents?.length || 0), 0)
+  const signedDocuments = students.reduce(
+    (acc, s) => acc + (s.documents?.filter((d) => d.status === 'Assinado').length || 0),
+    0,
+  )
+  const signatureRate =
+    totalDocuments > 0 ? Math.round((signedDocuments / totalDocuments) * 100) : 0
+  const portalAccesses = 1240 // mock value
 
   const financialData = [
     { name: 'Receita', value: totalRevenue, fill: '#10b981' },
@@ -136,7 +148,7 @@ export default function Index() {
         </div>
       </section>
 
-      {/* BI KPI Cards */}
+      {/* BI KPI Cards - Row 1 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="shadow-sm border-zinc-200 bg-white">
           <CardContent className="p-5 flex items-center justify-between">
@@ -180,6 +192,42 @@ export default function Index() {
             </div>
             <div className="h-12 w-12 rounded-full bg-rose-50 flex items-center justify-center">
               <AlertTriangle className="h-6 w-6 text-rose-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* BI KPI Cards - Row 2 (New Portal metrics) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="shadow-sm border-zinc-200 bg-white">
+          <CardContent className="p-5 flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                Acessos ao Portal (Mês)
+              </p>
+              <p className="text-3xl font-extrabold text-zinc-900">{portalAccesses}</p>
+            </div>
+            <div className="h-12 w-12 rounded-full bg-cyan-50 flex items-center justify-center">
+              <Laptop className="h-6 w-6 text-cyan-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm border-zinc-200 bg-white">
+          <CardContent className="p-5 flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                Assinaturas Digitais
+              </p>
+              <div className="flex items-baseline gap-2">
+                <p className="text-3xl font-extrabold text-indigo-600">{signatureRate}%</p>
+                <span className="text-xs font-semibold text-zinc-500 tracking-wider">
+                  CONCLUÍDAS
+                </span>
+              </div>
+            </div>
+            <div className="h-12 w-12 rounded-full bg-indigo-50 flex items-center justify-center">
+              <FileSignature className="h-6 w-6 text-indigo-600" />
             </div>
           </CardContent>
         </Card>

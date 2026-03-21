@@ -18,6 +18,7 @@ import {
   StockMovement,
   Supplier,
   PurchaseOrder,
+  ChatMessage,
 } from '@/lib/types'
 import {
   mockStudents,
@@ -35,6 +36,7 @@ import {
   mockMovements,
   mockSuppliers,
   mockOrders,
+  mockChatMessages,
 } from '@/lib/mockData'
 
 interface AppContextType extends AppState {
@@ -54,6 +56,8 @@ interface AppContextType extends AppState {
   markNotificationsAsRead: () => void
   registerOccurrence: (studentId: string, text: string) => void
   generateContract: (studentId: string) => void
+  signDocument: (studentId: string, documentId: string) => void
+  sendChatMessage: (content: string) => void
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
@@ -71,12 +75,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [communicationLogs, setCommunicationLogs] =
     useState<CommunicationLog[]>(mockCommunicationLogs)
   const [attendances] = useState<AttendanceRecord[]>(mockAttendance)
-
   const [employees] = useState<Employee[]>(mockEmployees)
   const [products] = useState<Product[]>(mockProducts)
   const [stockMovements] = useState<StockMovement[]>(mockMovements)
   const [suppliers] = useState<Supplier[]>(mockSuppliers)
   const [purchaseOrders] = useState<PurchaseOrder[]>(mockOrders)
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(mockChatMessages)
 
   const addLog = (log: Omit<AuditLog, 'id' | 'timestamp'>) => {
     const newLog: AuditLog = {
@@ -85,6 +89,46 @@ export function AppProvider({ children }: { children: ReactNode }) {
       timestamp: new Date().toISOString(),
     }
     setLogs((prev) => [newLog, ...prev])
+  }
+
+  const signDocument = (studentId: string, documentId: string) => {
+    setStudents((prev) =>
+      prev.map((s) => {
+        if (s.id === studentId) {
+          return {
+            ...s,
+            documents: s.documents?.map((d) =>
+              d.id === documentId ? { ...d, status: 'Assinado' } : d,
+            ),
+          }
+        }
+        return s
+      }),
+    )
+
+    const student = students.find((s) => s.id === studentId)
+    const doc = student?.documents?.find((d) => d.id === documentId)
+
+    addLog({
+      user: currentUserRole,
+      action: 'Assinatura Digital',
+      entity: `Documento: ${doc?.title}`,
+      targetStudent: student?.name,
+      oldValue: 'Pendente',
+      newValue: 'Assinado',
+    })
+  }
+
+  const sendChatMessage = (content: string) => {
+    const newMsg: ChatMessage = {
+      id: Math.random().toString(36).substr(2, 9),
+      senderId: 'current',
+      senderName: currentUserRole === 'Aluno' ? students[0]?.name : 'Usuário Atual',
+      senderRole: currentUserRole,
+      content,
+      timestamp: new Date().toISOString(),
+    }
+    setChatMessages((prev) => [...prev, newMsg])
   }
 
   const addCommunicationLog = (log: Omit<CommunicationLog, 'id' | 'date'>) => {
@@ -202,19 +246,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   const updateLeadStatus = (id: string, status: Lead['status']) => {
+    const lead = leads.find((l) => l.id === id)
     setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, status } : l)))
-    addLog({ user: currentUserRole, action: `Moveu Lead para ${status}`, entity: `Lead ID: ${id}` })
+    addLog({
+      user: currentUserRole,
+      action: `Atualizou Status do Lead`,
+      entity: `Lead ID: ${id}`,
+      oldValue: lead?.status,
+      newValue: status,
+    })
   }
 
   const updateStudent = (id: string, partial: Partial<Student>) => {
+    const student = students.find((s) => s.id === id)
     setStudents((prev) => prev.map((s) => (s.id === id ? { ...s, ...partial } : s)))
-    const studentName = students.find((s) => s.id === id)?.name
+
+    const oldStr = student ? JSON.stringify(student).substring(0, 20) + '...' : undefined
+    const newStr = JSON.stringify({ ...student, ...partial }).substring(0, 20) + '...'
+
     addLog({
       user: currentUserRole,
       action: 'Atualizou Aluno',
       entity: `Módulo: Secretaria`,
-      targetStudent: studentName,
+      targetStudent: student?.name,
       details: `Campos atualizados: ${Object.keys(partial).join(', ')}`,
+      oldValue: oldStr,
+      newValue: newStr,
     })
   }
 
@@ -222,7 +279,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setStudents((prev) => prev.map((s) => (s.id === studentId ? { ...s, status: 'Inativo' } : s)))
     const student = students.find((s) => s.id === studentId)
 
-    // Workflow Trigger: Alert Finance Module
     sendNotification({
       title: 'Aviso Financeiro: Trancamento de Matrícula',
       message: `A matrícula do aluno ${student?.name} (ID: ${student?.id}) foi trancada. Motivo: ${reason}. Favor revisar as faturas pendentes.`,
@@ -235,7 +291,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       action: 'Trancamento de Matrícula',
       entity: `Módulo: Secretaria`,
       targetStudent: student?.name,
-      details: `Motivo: ${reason}. Fluxo automático disparado para o Financeiro.`,
+      oldValue: 'Ativo',
+      newValue: 'Inativo',
+      details: `Motivo: ${reason}. Fluxo automático disparado.`,
     })
   }
 
@@ -312,6 +370,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         stockMovements,
         suppliers,
         purchaseOrders,
+        chatMessages,
         addLead,
         updateLeadStatus,
         updateStudent,
@@ -327,6 +386,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         markNotificationsAsRead,
         registerOccurrence,
         generateContract,
+        signDocument,
+        sendChatMessage,
       }}
     >
       {children}

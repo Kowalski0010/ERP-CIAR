@@ -14,6 +14,7 @@ import {
   Supplier,
   PurchaseOrder,
   CommunicationLog,
+  ChatMessage,
 } from './types'
 
 const defaultAddress = {
@@ -38,6 +39,22 @@ export const mockStudents: Student[] = [
     cpf: '123.456.789-00',
     rg: '12.345.678-9',
     address: defaultAddress,
+    documents: [
+      {
+        id: 'doc1',
+        title: 'Contrato de Prestação de Serviços Educacionais',
+        status: 'Pendente',
+        date: '2023-02-15',
+        type: 'Contrato',
+      },
+      {
+        id: 'doc2',
+        title: 'Termo de Aceite do Regulamento',
+        status: 'Assinado',
+        date: '2023-02-16',
+        type: 'Termo',
+      },
+    ],
     observations: [
       {
         id: 'obs1',
@@ -59,6 +76,15 @@ export const mockStudents: Student[] = [
     cpf: '098.765.432-11',
     rg: '98.765.432-1',
     address: defaultAddress,
+    documents: [
+      {
+        id: 'doc3',
+        title: 'Contrato de Prestação de Serviços Educacionais',
+        status: 'Pendente',
+        date: '2023-03-01',
+        type: 'Contrato',
+      },
+    ],
   },
 ]
 
@@ -214,6 +240,8 @@ export const mockLogs: AuditLog[] = [
     user: 'Admin Master',
     action: 'Atualizou Status',
     entity: 'Lead: João Pedro',
+    oldValue: 'Novo',
+    newValue: 'Contatado',
   },
   {
     id: 'log2',
@@ -221,6 +249,7 @@ export const mockLogs: AuditLog[] = [
     user: 'Gestor Acadêmico',
     action: 'Criou Turma',
     entity: 'Turma: T03 - Administração',
+    newValue: 'Capacidade: 50',
   },
   {
     id: 'log3',
@@ -228,6 +257,8 @@ export const mockLogs: AuditLog[] = [
     user: 'Analista Financeiro',
     action: 'Confirmou Pagamento',
     entity: 'Fatura: INV-8829',
+    oldValue: 'Pendente',
+    newValue: 'Pago',
   },
   {
     id: 'log4',
@@ -235,8 +266,9 @@ export const mockLogs: AuditLog[] = [
     user: 'Prof. Thiago',
     action: 'Alteração de Notas',
     entity: 'Diário de Classe: T01 - Cálculo I',
-    details: 'Nota N1 alterada de 7.0 para 8.5',
     targetStudent: 'Ana Silva',
+    oldValue: '7.0',
+    newValue: '8.5',
   },
 ]
 
@@ -430,5 +462,25 @@ export const mockOrders: PurchaseOrder[] = [
     expectedDelivery: '2023-11-05',
     totalAmount: 320.0,
     status: 'Rascunho',
+  },
+]
+
+export const mockChatMessages: ChatMessage[] = [
+  {
+    id: 'c1',
+    senderId: 'e1',
+    senderName: 'Márcia Ferreira',
+    senderRole: 'Secretaria',
+    content:
+      'Bom dia equipe, os contratos da turma T01 já estão liberados para assinatura digital no portal dos alunos.',
+    timestamp: new Date(Date.now() - 3600000).toISOString(),
+  },
+  {
+    id: 'c2',
+    senderId: 't1',
+    senderName: 'Dr. Roberto Lemos',
+    senderRole: 'Professor',
+    content: 'Perfeito Márcia. Vou reforçar o aviso com os alunos na aula de hoje.',
+    timestamp: new Date(Date.now() - 3500000).toISOString(),
   },
 ]
