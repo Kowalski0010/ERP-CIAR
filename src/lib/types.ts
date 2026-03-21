@@ -211,6 +211,7 @@ export type ChatMessage = {
   senderId: string
   senderName: string
   senderRole: string
+  receiverId?: string
   content: string
   timestamp: string
 }
@@ -335,6 +336,26 @@ export type Candidate = {
   dateApplied: string
 }
 
+export type SchoolEvent = {
+  id: string
+  title: string
+  category: string
+  date: string
+  time: string
+  description: string
+  rsvp: { yes: number; no: number; pending: number }
+}
+
+export type NPSSurvey = {
+  id: string
+  title: string
+  target: string
+  triggerBimester: string
+  status: 'Ativo' | 'Rascunho' | 'Encerrado'
+  results: { score: number; promoters: number; passives: number; detractors: number; total: number }
+  comments: { id: string; text: string; date: string }[]
+}
+
 export type AppState = {
   isAuthenticated: boolean
   currentUserRole: Role
@@ -366,4 +387,6 @@ export type AppState = {
   extracurricularActivities: ExtracurricularActivity[]
   extracurricularEnrollments: ExtracurricularEnrollment[]
   candidates: Candidate[]
+  schoolEvents: SchoolEvent[]
+  surveys: NPSSurvey[]
 }

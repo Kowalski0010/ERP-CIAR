@@ -56,6 +56,7 @@ import Certificados from './pages/secretaria/Certificados'
 // Financial
 import Payments from './pages/financial/Payments'
 import CashFlow from './pages/financial/CashFlow'
+import FinancialAnalytics from './pages/financial/FinancialAnalytics'
 
 // Commercial
 import Leads from './pages/commercial/Leads'
@@ -75,6 +76,8 @@ import PendingApprovals from './pages/admin/PendingApprovals'
 import CommunicationSettings from './pages/admin/CommunicationSettings'
 import Integrations from './pages/admin/Integrations'
 import SecurityCameras from './pages/admin/SecurityCameras'
+import Events from './pages/admin/Events'
+import Surveys from './pages/admin/Surveys'
 
 // Generic Report View
 import ReportView from './pages/reports/ReportView'
@@ -202,6 +205,7 @@ function App() {
               <Route path="financial">
                 <Route path="payments" element={<Payments />} />
                 <Route path="cash-flow" element={<CashFlow />} />
+                <Route path="analytics" element={<FinancialAnalytics />} />
               </Route>
 
               {/* Commercial CRM */}
@@ -243,6 +247,8 @@ function App() {
                 <Route path="registry/:id" element={<RegistryView />} />
                 <Route path="backup" element={<BackupSettings />} />
                 <Route path="security" element={<SecurityCameras />} />
+                <Route path="events" element={<Events />} />
+                <Route path="surveys" element={<Surveys />} />
               </Route>
 
               {/* Generic Reports */}

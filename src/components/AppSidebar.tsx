@@ -80,6 +80,7 @@ const appModules = [
       { title: 'Aprovações Pendentes', url: '/admin/approvals' },
       { title: 'Pagamentos e Faturas', url: '/financial/payments' },
       { title: 'Fluxo de Caixa', url: '/financial/cash-flow' },
+      { title: 'Análise Financeira (BI)', url: '/financial/analytics' },
       { title: 'Biblioteca Central', url: '/library/dashboard' },
       { title: 'Auditoria de Acessos', url: '/admin/audit-logs' },
       { title: 'Monitoramento CFTV', url: '/admin/security' },
@@ -109,11 +110,13 @@ const appModules = [
     title: 'COMUNICAÇÃO',
     icon: Mail,
     items: [
+      { title: 'Chat Interno', url: '/utilities/chat' },
       { title: 'Caixa de Feedback', url: '/secretaria/feedback' },
+      { title: 'Pesquisas de Satisfação', url: '/admin/surveys' },
+      { title: 'Eventos e RSVP', url: '/admin/events' },
       { title: 'Notificações WhatsApp', url: '/admin/communication-settings' },
       { title: 'Agenda e Calendário', url: '/academic/agenda' },
       { title: 'Alertas em Massa', url: '/admin/notifications' },
-      { title: 'Chat Interno', url: '/utilities/chat' },
     ],
   },
   {
@@ -135,7 +138,6 @@ export function AppSidebar() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  // Filter modules based on RBAC logic
   const filteredModules = appModules.filter((module) => {
     if (currentUserRole === 'Admin' || currentUserRole === 'Gestao') {
       return module.title !== 'PORTAL DO ALUNO' && module.title !== 'PORTAL DO RESPONSÁVEL'

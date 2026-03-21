@@ -27,6 +27,8 @@ import {
   ExtracurricularActivity,
   ExtracurricularEnrollment,
   Candidate,
+  SchoolEvent,
+  NPSSurvey,
 } from './types'
 
 const defaultAddress = {
@@ -387,6 +389,15 @@ export const mockChatMessages: ChatMessage[] = [
     content: 'Bom dia equipe, os contratos da turma T01 já estão liberados.',
     timestamp: new Date(Date.now() - 3600000).toISOString(),
   },
+  {
+    id: 'c2',
+    senderId: 't1',
+    senderName: 'Dr. Roberto Lemos',
+    senderRole: 'Professor',
+    receiverId: 'e1',
+    content: 'Márcia, você pode me enviar a lista de chamada atualizada?',
+    timestamp: new Date(Date.now() - 1800000).toISOString(),
+  },
 ]
 
 export const mockCursos: Curso[] = [
@@ -647,5 +658,54 @@ export const mockCandidates: Candidate[] = [
     subjects: 'Lógica de Programação, Banco de Dados',
     status: 'Entrevista',
     dateApplied: new Date(Date.now() - 259200000).toISOString(),
+  },
+]
+
+export const mockSchoolEvents: SchoolEvent[] = [
+  {
+    id: 'E1',
+    title: 'Feira de Ciências 2024',
+    category: 'Feira Institucional',
+    date: new Date().toISOString().split('T')[0],
+    time: '08:00',
+    description: 'Apresentação anual de projetos desenvolvidos pelas turmas.',
+    rsvp: { yes: 145, no: 12, pending: 30 },
+  },
+  {
+    id: 'E2',
+    title: 'Reunião de Pais e Mestres',
+    category: 'Reunião',
+    date: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
+    time: '19:00',
+    description: 'Alinhamento sobre desempenho acadêmico e avaliações formativas.',
+    rsvp: { yes: 85, no: 20, pending: 40 },
+  },
+]
+
+export const mockSurveys: NPSSurvey[] = [
+  {
+    id: 'S1',
+    title: 'Avaliação Institucional - 1º Bimestre',
+    target: 'Ambos',
+    triggerBimester: '1º Bimestre',
+    status: 'Encerrado',
+    results: { score: 72, promoters: 80, passives: 15, detractors: 5, total: 100 },
+    comments: [
+      {
+        id: 'c1',
+        text: 'Professores excelentes, mas a cantina precisa melhorar.',
+        date: '2023-04-10',
+      },
+      { id: 'c2', text: 'Aplicativo muito prático para ver as notas.', date: '2023-04-11' },
+    ],
+  },
+  {
+    id: 'S2',
+    title: 'Pesquisa de Clima Escolar - 2º Bimestre',
+    target: 'Alunos',
+    triggerBimester: '2º Bimestre',
+    status: 'Ativo',
+    results: { score: 0, promoters: 0, passives: 0, detractors: 0, total: 0 },
+    comments: [],
   },
 ]

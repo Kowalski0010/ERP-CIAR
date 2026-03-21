@@ -31,6 +31,8 @@ import {
   ExtracurricularActivity,
   ExtracurricularEnrollment,
   Candidate,
+  SchoolEvent,
+  NPSSurvey,
 } from '@/lib/types'
 import {
   mockStudents,
@@ -61,6 +63,8 @@ import {
   mockExtracurricularActivities,
   mockExtracurricularEnrollments,
   mockCandidates,
+  mockSchoolEvents,
+  mockSurveys,
 } from '@/lib/mockData'
 
 interface AppContextType extends AppState {
@@ -86,7 +90,7 @@ interface AppContextType extends AppState {
   registerOccurrence: (studentId: string, text: string) => void
   generateContract: (studentId: string) => void
   signDocument: (studentId: string, documentId: string) => void
-  sendChatMessage: (content: string) => void
+  sendChatMessage: (content: string, receiverId?: string) => void
 
   addCurso: (data: Partial<Curso>) => void
   addAvaliacao: (data: Partial<Avaliacao>) => void
@@ -115,6 +119,10 @@ interface AppContextType extends AppState {
 
   addCandidate: (candidate: Omit<Candidate, 'id' | 'status' | 'dateApplied'>) => void
   updateCandidateStatus: (id: string, status: Candidate['status']) => void
+
+  addSchoolEvent: (event: Omit<SchoolEvent, 'id' | 'rsvp'>) => void
+  addSurvey: (survey: Omit<NPSSurvey, 'id' | 'status' | 'results' | 'comments'>) => void
+  rsvpEvent: (id: string, response: 'yes' | 'no') => void
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
@@ -156,11 +164,58 @@ export function AppProvider({ children }: { children: ReactNode }) {
     ExtracurricularEnrollment[]
   >(mockExtracurricularEnrollments)
   const [candidates, setCandidates] = useState<Candidate[]>(mockCandidates)
+  const [schoolEvents, setSchoolEvents] = useState<SchoolEvent[]>(mockSchoolEvents)
+  const [surveys, setSurveys] = useState<NPSSurvey[]>(mockSurveys)
 
   const login = () => setIsAuthenticated(true)
   const logout = () => setIsAuthenticated(false)
 
   const generateId = (prefix: string) => `${prefix}${Math.floor(Math.random() * 10000)}`
+
+  const addSchoolEvent = (event: Omit<SchoolEvent, 'id' | 'rsvp'>) => {
+    setSchoolEvents((prev) => [
+      { ...event, id: generateId('EVT'), rsvp: { yes: 0, no: 0, pending: 0 } },
+      ...prev,
+    ])
+    addLog({ user: currentUserRole, action: 'Criou Evento', entity: `Evento: ${event.title}` })
+  }
+
+  const rsvpEvent = (id: string, response: 'yes' | 'no') => {
+    setSchoolEvents((prev) =>
+      prev.map((ev) => {
+        if (ev.id === id) {
+          return {
+            ...ev,
+            rsvp: {
+              ...ev.rsvp,
+              yes: response === 'yes' ? ev.rsvp.yes + 1 : ev.rsvp.yes,
+              no: response === 'no' ? ev.rsvp.no + 1 : ev.rsvp.no,
+              pending: Math.max(0, ev.rsvp.pending - 1),
+            },
+          }
+        }
+        return ev
+      }),
+    )
+  }
+
+  const addSurvey = (survey: Omit<NPSSurvey, 'id' | 'status' | 'results' | 'comments'>) => {
+    setSurveys((prev) => [
+      {
+        ...survey,
+        id: generateId('NPS'),
+        status: 'Ativo',
+        results: { score: 0, promoters: 0, passives: 0, detractors: 0, total: 0 },
+        comments: [],
+      },
+      ...prev,
+    ])
+    addLog({
+      user: currentUserRole,
+      action: 'Criou Pesquisa NPS',
+      entity: `Pesquisa: ${survey.title}`,
+    })
+  }
 
   const addProduct = (product: Omit<Product, 'id'>) => {
     setProducts((prev) => [{ ...product, id: generateId('PRD') }, ...prev])
@@ -422,12 +477,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     )
   }
 
-  const sendChatMessage = (content: string) => {
+  const sendChatMessage = (content: string, receiverId?: string) => {
     const newMsg: ChatMessage = {
       id: Math.random().toString(36).substr(2, 9),
       senderId: 'current',
       senderName: currentUserRole === 'Aluno' ? students[0]?.name : 'Usuário Atual',
       senderRole: currentUserRole,
+      receiverId,
       content,
       timestamp: new Date().toISOString(),
     }
@@ -717,6 +773,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         extracurricularActivities,
         extracurricularEnrollments,
         candidates,
+        schoolEvents,
+        surveys,
         addLead,
         updateLeadStatus,
         updateStudent,
@@ -757,6 +815,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         addStockMovement,
         addCandidate,
         updateCandidateStatus,
+        addSchoolEvent,
+        addSurvey,
+        rsvpEvent,
       }}
     >
       {children}
