@@ -49,7 +49,7 @@ const appModules = [
           { title: 'Lançar afastamento', url: '/academic/control/afastamento' },
           { title: 'Lançar estágio', url: '/academic/control/estagio' },
           { title: 'Lançar forma de ingresso', url: '/academic/control/forma-ingresso' },
-          { title: 'Lançar frequência', url: '/academic/occupancy' },
+          { title: 'Lançar frequência', url: '/academic/control/lancar-frequencia' },
           { title: 'Lançar notas', url: '/academic/grades' },
           { title: 'Lançar planejamento', url: '/academic/control/planejamento' },
         ],
