@@ -42,6 +42,7 @@ interface AppContextType extends AppState {
   addLead: (lead: Lead) => void
   updateLeadStatus: (id: string, status: Lead['status']) => void
   updateStudent: (id: string, partial: Partial<Student>) => void
+  suspendStudent: (studentId: string, reason: string) => void
   registerPayment: (payment: Payment) => void
   addTeacher: (teacher: Teacher) => void
   addSchedule: (schedule: Schedule) => void
@@ -217,6 +218,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
     })
   }
 
+  const suspendStudent = (studentId: string, reason: string) => {
+    setStudents((prev) => prev.map((s) => (s.id === studentId ? { ...s, status: 'Inativo' } : s)))
+    const student = students.find((s) => s.id === studentId)
+
+    // Workflow Trigger: Alert Finance Module
+    sendNotification({
+      title: 'Aviso Financeiro: Trancamento de Matrícula',
+      message: `A matrícula do aluno ${student?.name} (ID: ${student?.id}) foi trancada. Motivo: ${reason}. Favor revisar as faturas pendentes.`,
+      target: 'Financeiro',
+      type: 'Warning',
+    })
+
+    addLog({
+      user: currentUserRole,
+      action: 'Trancamento de Matrícula',
+      entity: `Módulo: Secretaria`,
+      targetStudent: student?.name,
+      details: `Motivo: ${reason}. Fluxo automático disparado para o Financeiro.`,
+    })
+  }
+
   const registerPayment = (payment: Payment) => {
     setPayments((prev) => [payment, ...prev])
   }
@@ -241,7 +263,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addLog({
       user: currentUserRole,
       action: 'Realizou Matrícula',
-      entity: `Módulo: Comercial`,
+      entity: `Módulo: Comercial/Secretaria`,
       targetStudent: student.name,
       details: `Nova matrícula no curso: ${student.course}`,
     })
@@ -293,6 +315,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         addLead,
         updateLeadStatus,
         updateStudent,
+        suspendStudent,
         registerPayment,
         addTeacher,
         addSchedule,

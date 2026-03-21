@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 
 export function ConvenioForm({ onCancel }: { onCancel: () => void }) {
@@ -17,37 +18,44 @@ export function ConvenioForm({ onCancel }: { onCancel: () => void }) {
 
   return (
     <form onSubmit={handleSave} className="space-y-5 max-w-2xl">
-      <div className="space-y-2">
-        <Label className="text-xs font-semibold text-zinc-700">
-          Nome da Instituição / Empresa Parceira
-        </Label>
-        <Input required placeholder="Ex: Sindicato dos Bancários" className="bg-zinc-50" />
-      </div>
-
-      <div className="space-y-2">
-        <Label className="text-xs font-semibold text-zinc-700">Número do Contrato / Termo</Label>
-        <Input required placeholder="Ex: CONV-2023-001" className="bg-zinc-50 font-mono" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="text-xs font-semibold text-zinc-700">Nome da Entidade Parceira</Label>
+          <Input required placeholder="Ex: Sindicato dos Bancários" className="bg-zinc-50" />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-xs font-semibold text-zinc-700">Número do Contrato / Termo</Label>
+          <Input required placeholder="Ex: CONV-2023-001" className="bg-zinc-50 font-mono" />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-xs font-semibold text-zinc-700">Data de Início da Vigência</Label>
-          <Input type="date" required className="bg-zinc-50" />
+          <Label className="text-xs font-semibold text-zinc-700">Desconto Concedido (%)</Label>
+          <Input
+            type="number"
+            required
+            placeholder="Ex: 15"
+            max="100"
+            min="0"
+            className="bg-zinc-50"
+          />
         </div>
         <div className="space-y-2">
-          <Label className="text-xs font-semibold text-zinc-700">Data de Término da Vigência</Label>
+          <Label className="text-xs font-semibold text-zinc-700">
+            Data de Expiração da Vigência
+          </Label>
           <Input type="date" required className="bg-zinc-50" />
         </div>
       </div>
 
       <div className="space-y-2">
         <Label className="text-xs font-semibold text-zinc-700">
-          Benefício (Percentual de Desconto ou Valor Bruto)
+          Detalhes Contratuais e Observações
         </Label>
-        <Input
-          required
-          placeholder="Ex: 15% ou R$ 200,00 off na mensalidade"
-          className="bg-zinc-50"
+        <Textarea
+          placeholder="Regras para concessão, limite de alunos beneficiados..."
+          className="bg-zinc-50 min-h-[80px] resize-none"
         />
       </div>
 

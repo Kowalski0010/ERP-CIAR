@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -10,12 +11,37 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Search } from 'lucide-react'
+import { Search, AlertTriangle } from 'lucide-react'
+import { useAppStore } from '@/contexts/AppContext'
+import { useToast } from '@/hooks/use-toast'
 
 export default function MatriculaOperacoes() {
   const location = useLocation()
   const navigate = useNavigate()
+  const { students, suspendStudent } = useAppStore()
+  const { toast } = useToast()
+
   const activeTab = location.pathname.split('/').pop() || 'manutencao-matricula'
+
+  const [selectedStudent, setSelectedStudent] = useState('')
+  const [blockReason, setBlockReason] = useState('')
+
+  const handleBlock = () => {
+    if (!selectedStudent || !blockReason) {
+      toast({ variant: 'destructive', title: 'Erro', description: 'Selecione o aluno e o motivo.' })
+      return
+    }
+
+    suspendStudent(selectedStudent, blockReason)
+
+    toast({
+      title: 'Matrícula Trancada com Sucesso',
+      description: 'O fluxo de notificação ao módulo Financeiro foi disparado automaticamente.',
+    })
+
+    setSelectedStudent('')
+    setBlockReason('')
+  }
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -29,7 +55,7 @@ export default function MatriculaOperacoes() {
       <Tabs value={activeTab} onValueChange={(v) => navigate(`/secretaria/${v}`)}>
         <TabsList className="w-full justify-start overflow-x-auto">
           <TabsTrigger value="manutencao-matricula">Manutenção Matrícula</TabsTrigger>
-          <TabsTrigger value="bloquear-matricula">Bloquear Matrícula</TabsTrigger>
+          <TabsTrigger value="bloquear-matricula">Bloquear/Trancar Matrícula</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -42,41 +68,53 @@ export default function MatriculaOperacoes() {
           </CardTitle>
           <CardDescription>
             {activeTab === 'bloquear-matricula'
-              ? 'Interrompa temporária ou permanentemente o vínculo do aluno.'
+              ? 'Interrompa temporária ou permanentemente o vínculo do aluno. Esta ação alerta o departamento financeiro.'
               : 'Ajuste os dados acadêmicos e financeiros do vínculo atual.'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2 max-w-md">
             <label className="text-sm font-medium">Buscar Aluno</label>
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Matrícula, CPF ou Nome..." className="pl-8" />
-            </div>
+            <Select value={selectedStudent} onValueChange={setSelectedStudent}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o aluno..." />
+              </SelectTrigger>
+              <SelectContent>
+                {students
+                  .filter((s) => s.status === 'Ativo')
+                  .map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name} - {s.cpf}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {activeTab === 'bloquear-matricula' ? (
             <div className="space-y-4 max-w-md p-4 border rounded-md bg-muted/30">
+              <div className="flex items-center gap-2 text-rose-600 bg-rose-50 p-2 rounded-md border border-rose-200 text-xs font-semibold mb-4">
+                <AlertTriangle className="h-4 w-4" />
+                Um alerta será gerado para o Financeiro avaliar pendências.
+              </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-destructive">Motivo do Bloqueio</label>
-                <Select>
+                <Select value={blockReason} onValueChange={setBlockReason}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione um motivo..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="inadimplencia">Inadimplência</SelectItem>
-                    <SelectItem value="evasao">Evasão Escolar</SelectItem>
-                    <SelectItem value="solicitacao">Solicitação do Responsável</SelectItem>
-                    <SelectItem value="disciplinar">Afastamento Disciplinar</SelectItem>
+                    <SelectItem value="Inadimplência Crítica">Inadimplência</SelectItem>
+                    <SelectItem value="Evasão Escolar">Evasão Escolar</SelectItem>
+                    <SelectItem value="Solicitação do Responsável">
+                      Solicitação do Responsável
+                    </SelectItem>
+                    <SelectItem value="Afastamento Disciplinar">Afastamento Disciplinar</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Observações</label>
-                <Input placeholder="Detalhes adicionais do bloqueio..." />
-              </div>
-              <Button variant="destructive" className="w-full">
-                Efetivar Bloqueio
+              <Button variant="destructive" className="w-full" onClick={handleBlock}>
+                Efetivar Trancamento
               </Button>
             </div>
           ) : (

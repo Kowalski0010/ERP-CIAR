@@ -22,7 +22,7 @@ export function AvaliacaoForm({ onCancel }: { onCancel: () => void }) {
   return (
     <form onSubmit={handleSave} className="space-y-5 max-w-2xl">
       <div className="space-y-2">
-        <Label className="text-xs font-semibold text-zinc-700">Nome da Avaliação</Label>
+        <Label className="text-xs font-semibold text-zinc-700">Nome / Descrição da Avaliação</Label>
         <Input
           required
           placeholder="Ex: Prova N1, Seminário Integrador..."
@@ -31,6 +31,19 @@ export function AvaliacaoForm({ onCancel }: { onCancel: () => void }) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="text-xs font-semibold text-zinc-700">Disciplina Vinculada</Label>
+          <Select required>
+            <SelectTrigger className="bg-zinc-50">
+              <SelectValue placeholder="Selecione a disciplina..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="calc">Cálculo Avançado</SelectItem>
+              <SelectItem value="eng">Engenharia de Software</SelectItem>
+              <SelectItem value="logica">Lógica de Programação</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <div className="space-y-2">
           <Label className="text-xs font-semibold text-zinc-700">Tipo de Avaliação</Label>
           <Select required>
@@ -45,15 +58,25 @@ export function AvaliacaoForm({ onCancel }: { onCancel: () => void }) {
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-2">
-          <Label className="text-xs font-semibold text-zinc-700">Peso / Valor Máximo</Label>
-          <Input type="number" step="0.1" required placeholder="Ex: 10.0" className="bg-zinc-50" />
-        </div>
       </div>
 
-      <div className="space-y-2">
-        <Label className="text-xs font-semibold text-zinc-700">Data de Aplicação / Entrega</Label>
-        <Input type="date" required className="bg-zinc-50" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="text-xs font-semibold text-zinc-700">Data de Aplicação / Entrega</Label>
+          <Input type="date" required className="bg-zinc-50" />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-xs font-semibold text-zinc-700">Peso / Valor Máximo</Label>
+          <Input
+            type="number"
+            step="0.1"
+            max="10"
+            min="0"
+            required
+            placeholder="Ex: 10.0"
+            className="bg-zinc-50"
+          />
+        </div>
       </div>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-zinc-100">

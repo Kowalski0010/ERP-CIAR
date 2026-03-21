@@ -17,7 +17,7 @@ export function TurmaForm({ onCancel }: { onCancel: () => void }) {
     e.preventDefault()
     toast({
       title: 'Turma Salva',
-      description: 'A nova turma foi aberta e está disponível para matrículas.',
+      description: 'A nova turma foi aberta e está disponível para efetivação de matrículas.',
     })
     onCancel()
   }
@@ -25,7 +25,9 @@ export function TurmaForm({ onCancel }: { onCancel: () => void }) {
   return (
     <form onSubmit={handleSave} className="space-y-5 max-w-2xl">
       <div className="space-y-2">
-        <Label className="text-xs font-semibold text-zinc-700">Código / Nome da Turma</Label>
+        <Label className="text-xs font-semibold text-zinc-700">
+          Código / Nome da Turma (Nova Turma)
+        </Label>
         <Input
           required
           placeholder="Ex: T01 - Engenharia de Software"
@@ -35,7 +37,7 @@ export function TurmaForm({ onCancel }: { onCancel: () => void }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-xs font-semibold text-zinc-700">Curso Vinculado</Label>
+          <Label className="text-xs font-semibold text-zinc-700">Curso Associado</Label>
           <Select required>
             <SelectTrigger className="bg-zinc-50">
               <SelectValue placeholder="Selecione o curso..." />
@@ -48,7 +50,7 @@ export function TurmaForm({ onCancel }: { onCancel: () => void }) {
           </Select>
         </div>
         <div className="space-y-2">
-          <Label className="text-xs font-semibold text-zinc-700">Turno (Período)</Label>
+          <Label className="text-xs font-semibold text-zinc-700">Período / Turno</Label>
           <Select required>
             <SelectTrigger className="bg-zinc-50">
               <SelectValue placeholder="Selecione o turno..." />
@@ -64,19 +66,10 @@ export function TurmaForm({ onCancel }: { onCancel: () => void }) {
       </div>
 
       <div className="space-y-2">
-        <Label className="text-xs font-semibold text-zinc-700">Capacidade Máxima de Alunos</Label>
+        <Label className="text-xs font-semibold text-zinc-700">
+          Capacidade Máxima de Alunos na Turma
+        </Label>
         <Input type="number" required placeholder="Ex: 40" className="bg-zinc-50 w-full sm:w-48" />
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label className="text-xs font-semibold text-zinc-700">Data de Início das Aulas</Label>
-          <Input type="date" required className="bg-zinc-50" />
-        </div>
-        <div className="space-y-2">
-          <Label className="text-xs font-semibold text-zinc-700">Data de Término Estimada</Label>
-          <Input type="date" required className="bg-zinc-50" />
-        </div>
       </div>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-zinc-100">
@@ -84,7 +77,7 @@ export function TurmaForm({ onCancel }: { onCancel: () => void }) {
           Cancelar
         </Button>
         <Button type="submit" className="shadow-sm">
-          Salvar Turma
+          Abrir Nova Turma
         </Button>
       </div>
     </form>

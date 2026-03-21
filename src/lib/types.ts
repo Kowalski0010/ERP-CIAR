@@ -1,4 +1,11 @@
-export type Role = 'Admin' | 'Academico' | 'Financeiro' | 'Comercial' | 'Aluno'
+export type Role =
+  | 'Admin'
+  | 'Gestao'
+  | 'Secretaria'
+  | 'Academico'
+  | 'Financeiro'
+  | 'Comercial'
+  | 'Aluno'
 
 export type Address = {
   zipCode: string
@@ -106,7 +113,7 @@ export type SystemNotification = {
   message: string
   type: 'Success' | 'Warning' | 'Info'
   date: string
-  target: 'Todos' | 'Alunos' | 'Professores' | 'Staff'
+  target: 'Todos' | 'Alunos' | 'Professores' | 'Staff' | 'Financeiro'
   read: boolean
 }
 

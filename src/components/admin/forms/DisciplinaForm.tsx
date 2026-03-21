@@ -18,29 +18,29 @@ export function DisciplinaForm({ onCancel }: { onCancel: () => void }) {
 
   return (
     <form onSubmit={handleSave} className="space-y-5 max-w-2xl">
-      <div className="space-y-2">
-        <Label className="text-xs font-semibold text-zinc-700">Nome da Disciplina</Label>
-        <Input required placeholder="Ex: Banco de Dados Avançado" className="bg-zinc-50" />
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="space-y-2 sm:col-span-2">
+          <Label className="text-xs font-semibold text-zinc-700">Nome da Disciplina</Label>
+          <Input required placeholder="Ex: Banco de Dados Avançado" className="bg-zinc-50" />
+        </div>
         <div className="space-y-2">
           <Label className="text-xs font-semibold text-zinc-700">Carga Horária (Horas)</Label>
           <Input type="number" required placeholder="Ex: 80" className="bg-zinc-50" />
         </div>
-        <div className="space-y-2">
-          <Label className="text-xs font-semibold text-zinc-700">Pré-requisitos</Label>
-          <Input placeholder="Ex: Lógica de Programação (Opcional)" className="bg-zinc-50" />
-        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-xs font-semibold text-zinc-700">Pré-requisitos / Exigências</Label>
+        <Input placeholder="Ex: Lógica de Programação (Código: MAT101)" className="bg-zinc-50" />
       </div>
 
       <div className="space-y-2">
         <Label className="text-xs font-semibold text-zinc-700">
-          Ementa / Conteúdo Programático
+          Ementa / Conteúdo Programático Oficial
         </Label>
         <Textarea
           required
-          placeholder="Detalhes do conteúdo que será abordado durante o semestre..."
+          placeholder="Detalhes do conteúdo que será abordado durante o semestre para composição de relatórios..."
           className="bg-zinc-50 min-h-[100px] resize-none"
         />
       </div>

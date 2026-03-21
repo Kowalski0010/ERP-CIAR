@@ -1,189 +1,308 @@
-import { Calendar as CalendarIcon, Mail, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import {
+  Users,
+  Wallet,
+  Activity,
+  UserPlus,
+  ClipboardCheck,
+  GraduationCap,
+  Keyboard,
+  TrendingUp,
+  AlertTriangle,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { useAppStore } from '@/contexts/AppContext'
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip as RechartsTooltip,
+} from 'recharts'
+import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart'
+import { Badge } from '@/components/ui/badge'
 
-const calendarDays = [
-  // Row 1
-  { day: 1, current: true },
-  { day: 2, current: true },
-  { day: 3, current: true },
-  { day: 4, current: true },
-  { day: 5, current: true },
-  { day: 6, current: true },
-  { day: 7, current: true },
-  // Row 2
-  { day: 8, current: true },
-  { day: 9, current: true },
-  { day: 10, current: true },
-  { day: 11, current: true },
-  { day: 12, current: true },
-  { day: 13, current: true },
-  { day: 14, current: true },
-  // Row 3
-  { day: 15, current: true },
-  { day: 16, current: true },
-  { day: 17, current: true },
-  { day: 18, current: true },
-  { day: 19, current: true },
-  { day: 20, current: true, today: true },
-  { day: 21, current: true },
-  // Row 4
-  { day: 22, current: true },
-  { day: 23, current: true },
-  { day: 24, current: true },
-  { day: 25, current: true },
-  { day: 26, current: true },
-  { day: 27, current: true },
-  { day: 28, current: true },
-  // Row 5
-  { day: 29, current: true },
-  { day: 30, current: true },
-  { day: 31, current: true },
-  { day: 1, current: false },
-  { day: 2, current: false },
-  { day: 3, current: false },
-  { day: 4, current: false },
-  // Row 6
-  { day: 5, current: false },
-  { day: 6, current: false },
-  { day: 7, current: false },
-  { day: 8, current: false },
-  { day: 9, current: false },
-  { day: 10, current: false },
-  { day: 11, current: false },
+const mockAttendanceData = [
+  { day: 'Seg', rate: 95 },
+  { day: 'Ter', rate: 92 },
+  { day: 'Qua', rate: 88 },
+  { day: 'Qui', rate: 96 },
+  { day: 'Sex', rate: 90 },
 ]
 
 export default function Index() {
+  const navigate = useNavigate()
+  const { students, payments, logs, notifications } = useAppStore()
+
+  // Shortcuts Listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && e.key.toLowerCase() === 'n') {
+        e.preventDefault()
+        navigate('/academic/students') // Nova Matrícula / Aluno
+      }
+      if (e.altKey && e.key.toLowerCase() === 'f') {
+        e.preventDefault()
+        navigate('/academic/control/lancar-frequencia') // Lançar Frequência
+      }
+      if (e.altKey && e.key.toLowerCase() === 'm') {
+        e.preventDefault()
+        navigate('/secretaria/efetuar-matricula') // Matrícula Direta
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [navigate])
+
+  const activeStudents = students.filter((s) => s.status === 'Ativo').length
+  const totalRevenue = payments
+    .filter((p) => p.status === 'Pago')
+    .reduce((acc, curr) => acc + curr.amount, 0)
+  const totalDelinquency = payments
+    .filter((p) => p.status === 'Atrasado')
+    .reduce((acc, curr) => acc + curr.amount, 0)
+
+  const financialData = [
+    { name: 'Receita', value: totalRevenue, fill: '#10b981' },
+    { name: 'Inadimplência', value: totalDelinquency, fill: '#f43f5e' },
+  ]
+
   return (
-    <div className="space-y-6 animate-fade-in pb-8 font-sans">
+    <div className="space-y-6 animate-fade-in-up pb-8 font-sans max-w-[1400px] mx-auto">
       <div>
-        <h1 className="text-3xl font-normal text-[#1e3a8a] tracking-tight">Agenda</h1>
+        <h1 className="text-3xl font-bold text-[#1e3a8a] tracking-tight">Dashboard de Decisão</h1>
+        <p className="text-sm text-zinc-500 mt-1">
+          Visão consolidada e atalhos rápidos para gestão operacional.
+        </p>
       </div>
 
-      <div className="bg-white border border-zinc-200 p-6 shadow-sm">
-        <h2 className="text-2xl font-normal text-[#1e3a8a] mb-6">Agenda</h2>
-
-        {/* Calendar Controls */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-          <div className="flex rounded-md border border-zinc-300 overflow-hidden shadow-sm">
-            <Button
-              variant="ghost"
-              className="rounded-none border-r border-zinc-300 h-9 px-4 text-xs font-medium bg-zinc-100 hover:bg-zinc-200 text-zinc-700"
-            >
-              Mês
-            </Button>
-            <Button
-              variant="ghost"
-              className="rounded-none border-r border-zinc-300 h-9 px-4 text-xs font-medium hover:bg-zinc-100 text-zinc-700"
-            >
-              Semana
-            </Button>
-            <Button
-              variant="ghost"
-              className="rounded-none h-9 px-4 text-xs font-medium hover:bg-zinc-100 text-zinc-700"
-            >
-              Dia
-            </Button>
-          </div>
-
-          <div className="text-lg font-bold text-zinc-600 uppercase tracking-widest">
-            Março 2026
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              className="h-9 px-4 text-xs font-medium text-zinc-600 shadow-sm"
-            >
-              Hoje
-            </Button>
-            <Button
-              variant="outline"
-              className="h-9 px-4 text-xs font-medium text-zinc-600 shadow-sm bg-zinc-50"
-            >
-              Mostrar Aniversariantes
-            </Button>
-            <div className="flex rounded-md border border-zinc-300 overflow-hidden shadow-sm ml-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-none border-r border-zinc-300 h-9 w-10 hover:bg-zinc-100"
-              >
-                <ChevronLeft className="h-4 w-4 text-zinc-600" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-none h-9 w-10 hover:bg-zinc-100"
-              >
-                <ChevronRight className="h-4 w-4 text-zinc-600" />
-              </Button>
-            </div>
+      {/* Smart Actions / FABs equivalent */}
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-bold text-zinc-800">Ações Rápidas (Atalhos)</h2>
+          <div className="flex items-center gap-1.5 text-xs text-zinc-500 font-medium bg-zinc-100 px-2 py-1 rounded border border-zinc-200">
+            <Keyboard className="w-3.5 h-3.5" /> Pressione{' '}
+            <kbd className="font-mono">Alt + Letra</kbd>
           </div>
         </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Button
+            variant="outline"
+            className="h-auto py-4 flex flex-col items-center justify-center gap-2 border-blue-200 bg-blue-50/50 hover:bg-blue-100 hover:border-blue-300 transition-all group"
+            onClick={() => navigate('/academic/students')}
+          >
+            <div className="p-2 rounded-full bg-blue-100 text-blue-600 group-hover:scale-110 transition-transform">
+              <UserPlus className="h-5 w-5" />
+            </div>
+            <div className="text-center">
+              <span className="block font-bold text-blue-900">Novo Aluno</span>
+              <span className="text-[10px] text-blue-600/70 font-mono mt-1">Alt + N</span>
+            </div>
+          </Button>
 
-        {/* Calendar Grid */}
-        <div className="border-t border-l border-zinc-200">
-          <div className="grid grid-cols-7 bg-white">
-            {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'].map((day) => (
-              <div
-                key={day}
-                className="py-3 text-center font-bold text-sm text-zinc-800 border-r border-b border-zinc-200"
-              >
-                {day}
-              </div>
-            ))}
-            {calendarDays.map((date, i) => (
-              <div
-                key={i}
-                className={`min-h-[100px] p-2 border-r border-b border-zinc-200 relative transition-colors
-                  ${date.today ? 'bg-[#fff9c4]' : 'bg-white'}
-                `}
-              >
-                <span
-                  className={`absolute top-2 right-3 text-xl ${
-                    date.current ? 'text-zinc-800' : 'text-zinc-300'
-                  }`}
+          <Button
+            variant="outline"
+            className="h-auto py-4 flex flex-col items-center justify-center gap-2 border-emerald-200 bg-emerald-50/50 hover:bg-emerald-100 hover:border-emerald-300 transition-all group"
+            onClick={() => navigate('/academic/control/lancar-frequencia')}
+          >
+            <div className="p-2 rounded-full bg-emerald-100 text-emerald-600 group-hover:scale-110 transition-transform">
+              <ClipboardCheck className="h-5 w-5" />
+            </div>
+            <div className="text-center">
+              <span className="block font-bold text-emerald-900">Lançar Frequência</span>
+              <span className="text-[10px] text-emerald-600/70 font-mono mt-1">Alt + F</span>
+            </div>
+          </Button>
+
+          <Button
+            variant="outline"
+            className="h-auto py-4 flex flex-col items-center justify-center gap-2 border-purple-200 bg-purple-50/50 hover:bg-purple-100 hover:border-purple-300 transition-all group"
+            onClick={() => navigate('/secretaria/efetuar-matricula')}
+          >
+            <div className="p-2 rounded-full bg-purple-100 text-purple-600 group-hover:scale-110 transition-transform">
+              <GraduationCap className="h-5 w-5" />
+            </div>
+            <div className="text-center">
+              <span className="block font-bold text-purple-900">Nova Matrícula</span>
+              <span className="text-[10px] text-purple-600/70 font-mono mt-1">Alt + M</span>
+            </div>
+          </Button>
+        </div>
+      </section>
+
+      {/* BI KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="shadow-sm border-zinc-200 bg-white">
+          <CardContent className="p-5 flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                Matrículas Ativas
+              </p>
+              <p className="text-3xl font-extrabold text-zinc-900">{activeStudents}</p>
+            </div>
+            <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center">
+              <Users className="h-6 w-6 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm border-zinc-200 bg-white">
+          <CardContent className="p-5 flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                Faturamento Consolidado
+              </p>
+              <p className="text-3xl font-extrabold text-emerald-600">
+                R$ {totalRevenue.toLocaleString('pt-BR')}
+              </p>
+            </div>
+            <div className="h-12 w-12 rounded-full bg-emerald-50 flex items-center justify-center">
+              <Wallet className="h-6 w-6 text-emerald-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm border-zinc-200 bg-white">
+          <CardContent className="p-5 flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                Índice de Inadimplência
+              </p>
+              <p className="text-3xl font-extrabold text-rose-600">
+                R$ {totalDelinquency.toLocaleString('pt-BR')}
+              </p>
+            </div>
+            <div className="h-12 w-12 rounded-full bg-rose-50 flex items-center justify-center">
+              <AlertTriangle className="h-6 w-6 text-rose-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="shadow-sm border-zinc-200 bg-white">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Saúde Financeira</CardTitle>
+            <CardDescription className="text-xs">
+              Recebimentos vs. Em Atraso (Mês Atual)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer
+              config={{
+                value: { label: 'Valor R$', color: 'hsl(var(--primary))' },
+              }}
+              className="h-[250px] w-full"
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={financialData} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e4e7" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                  <RechartsTooltip cursor={{ fill: '#f4f4f5' }} content={<ChartTooltipContent />} />
+                  <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={60} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm border-zinc-200 bg-white">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Taxa de Frequência Diária</CardTitle>
+            <CardDescription className="text-xs">Presença global por dia da semana</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer
+              config={{
+                rate: { label: 'Frequência %', color: 'hsl(var(--primary))' },
+              }}
+              className="h-[250px] w-full"
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={mockAttendanceData}
+                  margin={{ top: 20, right: 10, left: -20, bottom: 0 }}
                 >
-                  {date.day}
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e4e7" />
+                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    domain={[0, 100]}
+                    tick={{ fontSize: 12 }}
+                  />
+                  <RechartsTooltip content={<ChartTooltipContent />} />
+                  <Line
+                    type="monotone"
+                    dataKey="rate"
+                    stroke="#3b82f6"
+                    strokeWidth={3}
+                    dot={{ r: 4, fill: '#3b82f6' }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Activities Feed */}
+      <Card className="shadow-sm border-zinc-200 bg-white">
+        <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 py-4">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Activity className="h-4 w-4 text-zinc-400" /> Histórico Recente de Atividades
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="divide-y divide-zinc-100">
+            {logs.slice(0, 5).map((log) => (
+              <div
+                key={log.id}
+                className="p-4 flex items-center justify-between hover:bg-zinc-50 transition-colors"
+              >
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-sm text-zinc-900">{log.action}</span>
+                    <Badge
+                      variant="secondary"
+                      className="bg-zinc-100 text-zinc-600 px-1.5 py-0 text-[10px] font-medium border border-zinc-200"
+                    >
+                      {log.user}
+                    </Badge>
+                  </div>
+                  <span className="text-xs text-zinc-600">
+                    {log.entity} {log.targetStudent ? `(${log.targetStudent})` : ''}
+                  </span>
+                </div>
+                <span className="text-[11px] text-zinc-400 font-mono">
+                  {new Date(log.timestamp).toLocaleString('pt-BR', {
+                    dateStyle: 'short',
+                    timeStyle: 'short',
+                  })}
                 </span>
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Markers Section */}
-        <fieldset className="mt-8 border border-zinc-200 rounded-md p-4 pt-6 relative">
-          <legend className="absolute -top-3 left-4 bg-white px-2 text-xs font-medium text-zinc-500">
-            Marcadores
-          </legend>
-          <div className="flex flex-wrap gap-2">
-            <Button className="bg-[#2d3e50] hover:bg-[#1e2b3c] text-white text-xs h-8 px-4 rounded shadow-sm">
-              Ocultar Agenda Pessoal
-            </Button>
-            <Button className="bg-[#00c0b5] hover:bg-[#009e95] text-white text-xs h-8 px-4 rounded shadow-sm">
-              Ocultar Calendário Escolar
-            </Button>
-            <Button className="bg-[#d32f2f] hover:bg-[#b71c1c] text-white text-xs h-8 px-4 rounded shadow-sm">
-              Ocultar Feriados
+          <div className="p-3 border-t border-zinc-100 bg-zinc-50 flex justify-center">
+            <Button
+              variant="link"
+              className="text-xs text-blue-600 h-auto p-0"
+              onClick={() => navigate('/admin/audit-logs')}
+            >
+              Ver todo o histórico de auditoria &rarr;
             </Button>
           </div>
-        </fieldset>
-
-        {/* Summary Cards */}
-        <div className="mt-6 space-y-3">
-          <div className="p-4 border border-blue-200 bg-[#f0f7ff] rounded-md flex items-center gap-3 shadow-sm">
-            <CalendarIcon className="h-5 w-5 text-blue-800" />
-            <span className="text-sm font-medium text-blue-900">
-              Sem compromissos agendados para hoje!
-            </span>
-          </div>
-
-          <div className="p-4 border border-amber-200 bg-[#fff9c4] rounded-md flex items-center gap-3 shadow-sm">
-            <Mail className="h-5 w-5 text-amber-600" />
-            <span className="text-sm font-medium text-amber-900">Sem novas mensagens!</span>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

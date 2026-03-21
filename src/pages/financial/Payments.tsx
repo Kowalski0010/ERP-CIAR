@@ -1,5 +1,14 @@
 import { useAppStore } from '@/contexts/AppContext'
-import { Search, Download, FileText, CheckCircle2, AlertTriangle, Clock, Plus } from 'lucide-react'
+import {
+  Search,
+  Download,
+  FileText,
+  CheckCircle2,
+  AlertTriangle,
+  Clock,
+  Plus,
+  Link,
+} from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -12,10 +21,15 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export default function Payments() {
-  const { payments } = useAppStore()
+  const { payments, notifications, markNotificationsAsRead } = useAppStore()
   const { toast } = useToast()
+
+  const recentSuspensions = notifications.filter(
+    (n) => n.target === 'Financeiro' && n.title.includes('Trancamento') && !n.read,
+  )
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -64,6 +78,30 @@ export default function Payments() {
           </Button>
         </div>
       </div>
+
+      {/* Dynamic Workflow Alert */}
+      {recentSuspensions.length > 0 && (
+        <Alert className="bg-rose-50 border-rose-200 text-rose-900 shadow-sm animate-fade-in">
+          <AlertTriangle className="h-5 w-5 text-rose-600" />
+          <AlertDescription className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <strong className="block text-sm">Alerta de Workflow: Matrículas Trancadas</strong>
+              <span className="text-xs opacity-90 block mt-0.5">
+                A Secretaria trancou a matrícula de {recentSuspensions.length} aluno(s). Revise as
+                pendências financeiras para possível cobrança extra ou cancelamento.
+              </span>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs border-rose-300 text-rose-700 bg-white hover:bg-rose-100 shrink-0"
+              onClick={markNotificationsAsRead}
+            >
+              Marcar como Revisado
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-3 flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-md">

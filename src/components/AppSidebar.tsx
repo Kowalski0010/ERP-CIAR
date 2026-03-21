@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useAppStore } from '@/contexts/AppContext'
 import {
   Search,
   Star,
@@ -97,10 +98,10 @@ const appModules = [
         items: [
           { title: 'Alunos', url: '/academic/students' },
           { title: 'Avaliações', url: '/admin/registry/avaliacoes' },
-          { title: 'Curso', url: '/admin/registry/cursos' },
-          { title: 'Convênio', url: '/admin/registry/convenios' },
-          { title: 'CEP', url: '/admin/registry/ceps' },
-          { title: 'Disciplina', url: '/admin/registry/disciplinas' },
+          { title: 'Curso', url: '/admin/registry/curso' },
+          { title: 'Convênio', url: '/admin/registry/convenio' },
+          { title: 'CEP', url: '/admin/registry/cep' },
+          { title: 'Disciplina', url: '/admin/registry/disciplina' },
           { title: 'Documentos', url: '/admin/documents' },
           { title: 'Funcionários', url: '/hr/employees' },
           { title: 'Perfil Professor', url: '/academic/teachers' },
@@ -108,7 +109,7 @@ const appModules = [
           { title: 'Produtos e serviços', url: '/inventory/stock' },
           { title: 'Professores', url: '/academic/teachers' },
           { title: 'Requerimentos', url: '/secretaria/requerimentos' },
-          { title: 'Turmas', url: '/academic/classes' },
+          { title: 'Turmas', url: '/admin/registry/turmas' },
         ],
       },
     ],
@@ -141,6 +142,33 @@ const appModules = [
 
 export function AppSidebar() {
   const { toggleSidebar } = useSidebar()
+  const { currentUserRole } = useAppStore()
+
+  // Filter modules based on RBAC logic
+  const filteredModules = appModules.filter((module) => {
+    if (currentUserRole === 'Admin' || currentUserRole === 'Gestao') return true
+
+    if (currentUserRole === 'Secretaria') {
+      return module.title === 'ACADÊMICO' || module.title === 'ADMINISTRAÇÃO DO SISTEMA'
+    }
+
+    if (currentUserRole === 'Financeiro') {
+      return module.title === 'FINANCEIRO' || module.title === 'ADMINISTRAÇÃO DO SISTEMA'
+    }
+
+    return true
+  })
+
+  // Filter subGroups for Secretaria (only show Cadastro in Administração)
+  const renderModules = filteredModules.map((module) => {
+    if (currentUserRole === 'Secretaria' && module.title === 'ADMINISTRAÇÃO DO SISTEMA') {
+      return {
+        ...module,
+        subGroups: module.subGroups?.filter((sg) => sg.title === 'Cadastro'),
+      }
+    }
+    return module
+  })
 
   return (
     <Sidebar className="border-r border-zinc-200 bg-white shadow-sm font-sans" collapsible="icon">
@@ -195,12 +223,15 @@ export function AppSidebar() {
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                isActive
-                className="rounded-none h-10 px-4 border-l-4 border-l-[#1e3a8a] bg-zinc-100 text-[#1e3a8a] font-semibold text-[13px] hover:bg-zinc-100"
+                className={`rounded-none h-10 px-4 border-l-4 font-semibold text-[13px] ${
+                  location.pathname === '/'
+                    ? 'border-l-[#1e3a8a] bg-zinc-100 text-[#1e3a8a]'
+                    : 'border-l-transparent text-zinc-600 hover:bg-zinc-50'
+                }`}
               >
                 <Link to="/">
                   <CalendarDays className="h-[18px] w-[18px]" />
-                  <span>AGENDA</span>
+                  <span>DASHBOARD</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -286,7 +317,7 @@ export function AppSidebar() {
         <div className="mt-2 bg-[#2d3e50] flex-1 pb-4 group-data-[collapsible=icon]:bg-transparent">
           <SidebarGroup className="p-0">
             <SidebarMenu className="gap-0">
-              {appModules.map((module) => (
+              {renderModules.map((module) => (
                 <Collapsible key={module.title} defaultOpen={false} className="group/root">
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
