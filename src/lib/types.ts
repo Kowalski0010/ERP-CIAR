@@ -356,6 +356,35 @@ export type NPSSurvey = {
   comments: { id: string; text: string; date: string }[]
 }
 
+export type AcrPatient = {
+  id: string
+  name: string
+  birthDate: string
+  email: string
+  phone: string
+  background: string
+  registrationDate: string
+}
+
+export type AcrRecord = {
+  id: string
+  patientId: string
+  patientName: string
+  date: string
+  notes: string
+  professional: string
+}
+
+export type AcrAppointment = {
+  id: string
+  patientId: string
+  patientName: string
+  date: string
+  value: number
+  paymentMethod: string
+  status: 'Realizado' | 'Agendado' | 'Cancelado'
+}
+
 export type AppState = {
   isAuthenticated: boolean
   currentUserRole: Role
@@ -389,4 +418,7 @@ export type AppState = {
   candidates: Candidate[]
   schoolEvents: SchoolEvent[]
   surveys: NPSSurvey[]
+  acrPatients: AcrPatient[]
+  acrRecords: AcrRecord[]
+  acrAppointments: AcrAppointment[]
 }

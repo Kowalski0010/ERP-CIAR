@@ -1,3 +1,4 @@
+import { useAppStore } from '@/contexts/AppContext'
 import { ArrowUpRight, ArrowDownRight, Activity, Calendar as CalIcon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -11,36 +12,48 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 
-const mockTransactions = [
-  {
-    id: 1,
-    date: '2023-10-25',
-    description: 'Mensalidade - Ana Silva',
-    type: 'Entrada',
-    amount: 850.0,
-  },
-  {
-    id: 2,
-    date: '2023-10-24',
-    description: 'Pagamento Fornecedor (Luz/Água)',
-    type: 'Saída',
-    amount: 450.0,
-  },
-  {
-    id: 3,
-    date: '2023-10-22',
-    description: 'Mensalidade - Carlos Oliveira',
-    type: 'Entrada',
-    amount: 720.0,
-  },
-  { id: 4, date: '2023-10-20', description: 'Manutenção Predial', type: 'Saída', amount: 150.0 },
-]
-
 export default function CashFlow() {
-  const totalIn = mockTransactions
+  const { payments } = useAppStore()
+
+  // Dynamic inflows from resolved payments across the system
+  const dynamicInflows = payments
+    .filter((p) => p.status === 'Pago')
+    .map((p) => ({
+      id: p.id,
+      date: p.dueDate,
+      description: p.studentName.includes('[Clínica ACR]')
+        ? `Receita Atendimento Clínico - ${p.studentName.replace('[Clínica ACR] ', '')}`
+        : `Receita Mensalidade/Fatura - ${p.studentName}`,
+      type: 'Entrada',
+      amount: p.amount,
+    }))
+
+  // Mock static expenses for demonstration
+  const mockExpenses = [
+    {
+      id: 'e1',
+      date: new Date().toISOString(),
+      description: 'Pagamento Fornecedor (Luz/Água)',
+      type: 'Saída',
+      amount: 450.0,
+    },
+    {
+      id: 'e2',
+      date: new Date(Date.now() - 86400000 * 2).toISOString(),
+      description: 'Manutenção Predial',
+      type: 'Saída',
+      amount: 150.0,
+    },
+  ]
+
+  const allTransactions = [...dynamicInflows, ...mockExpenses].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  )
+
+  const totalIn = allTransactions
     .filter((t) => t.type === 'Entrada')
     .reduce((a, b) => a + b.amount, 0)
-  const totalOut = mockTransactions
+  const totalOut = allTransactions
     .filter((t) => t.type === 'Saída')
     .reduce((a, b) => a + b.amount, 0)
   const balance = totalIn - totalOut
@@ -51,7 +64,7 @@ export default function CashFlow() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Fluxo de Caixa</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Análise de entradas, saídas e resultado operacional.
+            Análise de entradas, saídas e resultado operacional consolidado com demais módulos.
           </p>
         </div>
         <Button variant="outline" className="shadow-sm">
@@ -135,7 +148,7 @@ export default function CashFlow() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockTransactions.map((t) => (
+              {allTransactions.map((t) => (
                 <TableRow key={t.id} className="hover:bg-muted/20">
                   <TableCell className="pl-6 text-muted-foreground text-sm">
                     {new Date(t.date).toLocaleDateString('pt-BR')}
@@ -161,6 +174,13 @@ export default function CashFlow() {
                   </TableCell>
                 </TableRow>
               ))}
+              {allTransactions.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground text-sm">
+                    Nenhuma movimentação no período.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>

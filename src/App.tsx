@@ -35,6 +35,11 @@ import DigitalRollCall from './pages/academic/DigitalRollCall'
 import Extracurricular from './pages/academic/Extracurricular'
 import RoomOccupancy from './pages/academic/RoomOccupancy'
 
+// ACR (Clínica)
+import AcrPatients from './pages/acr/Patients'
+import AcrClinicalRecords from './pages/acr/ClinicalRecords'
+import AcrAppointmentHistory from './pages/acr/AppointmentHistory'
+
 // Library
 import LibraryCatalog from './pages/library/LibraryCatalog'
 import LibraryLoans from './pages/library/LibraryLoans'
@@ -128,6 +133,13 @@ function App() {
                 <Route path="chat" element={<Chat />} />
                 <Route path="news" element={<News />} />
                 <Route path="change-password" element={<ChangePassword />} />
+              </Route>
+
+              {/* ACR Clínica */}
+              <Route path="acr">
+                <Route path="patients" element={<AcrPatients />} />
+                <Route path="records" element={<AcrClinicalRecords />} />
+                <Route path="history" element={<AcrAppointmentHistory />} />
               </Route>
 
               {/* Academic Core */}

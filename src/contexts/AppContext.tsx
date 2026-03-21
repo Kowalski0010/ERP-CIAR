@@ -33,6 +33,9 @@ import {
   Candidate,
   SchoolEvent,
   NPSSurvey,
+  AcrPatient,
+  AcrRecord,
+  AcrAppointment,
 } from '@/lib/types'
 import {
   mockStudents,
@@ -65,6 +68,9 @@ import {
   mockCandidates,
   mockSchoolEvents,
   mockSurveys,
+  mockAcrPatients,
+  mockAcrRecords,
+  mockAcrAppointments,
 } from '@/lib/mockData'
 
 interface AppContextType extends AppState {
@@ -123,6 +129,10 @@ interface AppContextType extends AppState {
   addSchoolEvent: (event: Omit<SchoolEvent, 'id' | 'rsvp'>) => void
   addSurvey: (survey: Omit<NPSSurvey, 'id' | 'status' | 'results' | 'comments'>) => void
   rsvpEvent: (id: string, response: 'yes' | 'no') => void
+
+  addAcrPatient: (patient: Omit<AcrPatient, 'id' | 'registrationDate'>) => void
+  addAcrRecord: (record: Omit<AcrRecord, 'id' | 'date' | 'professional'>) => void
+  addAcrAppointment: (app: Omit<AcrAppointment, 'id'>) => void
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
@@ -167,10 +177,56 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [schoolEvents, setSchoolEvents] = useState<SchoolEvent[]>(mockSchoolEvents)
   const [surveys, setSurveys] = useState<NPSSurvey[]>(mockSurveys)
 
+  const [acrPatients, setAcrPatients] = useState<AcrPatient[]>(mockAcrPatients)
+  const [acrRecords, setAcrRecords] = useState<AcrRecord[]>(mockAcrRecords)
+  const [acrAppointments, setAcrAppointments] = useState<AcrAppointment[]>(mockAcrAppointments)
+
   const login = () => setIsAuthenticated(true)
   const logout = () => setIsAuthenticated(false)
 
   const generateId = (prefix: string) => `${prefix}${Math.floor(Math.random() * 10000)}`
+
+  const addAcrPatient = (patient: Omit<AcrPatient, 'id' | 'registrationDate'>) => {
+    setAcrPatients((prev) => [
+      { ...patient, id: generateId('ACR-P'), registrationDate: new Date().toISOString() },
+      ...prev,
+    ])
+  }
+
+  const addAcrRecord = (record: Omit<AcrRecord, 'id' | 'date' | 'professional'>) => {
+    setAcrRecords((prev) => [
+      {
+        ...record,
+        id: generateId('REC'),
+        date: new Date().toISOString(),
+        professional: currentUserRole,
+      },
+      ...prev,
+    ])
+  }
+
+  const addAcrAppointment = (app: Omit<AcrAppointment, 'id'>) => {
+    const newApp = { ...app, id: generateId('APP') }
+    setAcrAppointments((prev) => [newApp, ...prev])
+
+    // Financial Integration for ACR module
+    if (app.status === 'Realizado' && app.value > 0) {
+      registerPayment({
+        id: generateId('ACR-PAY-'),
+        studentId: app.patientId, // Reusing student ID field to map the financial record to the patient
+        studentName: `[Clínica ACR] ${app.patientName}`,
+        amount: app.value,
+        dueDate: new Date().toISOString().split('T')[0],
+        status: 'Pago',
+      })
+      addLog({
+        user: currentUserRole,
+        action: 'Sincronização Financeira (ACR)',
+        entity: `Atendimento ACR: ${app.patientName}`,
+        newValue: `R$ ${app.value.toFixed(2)} (Pago via ${app.paymentMethod})`,
+      })
+    }
+  }
 
   const addSchoolEvent = (event: Omit<SchoolEvent, 'id' | 'rsvp'>) => {
     setSchoolEvents((prev) => [
@@ -775,6 +831,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         candidates,
         schoolEvents,
         surveys,
+        acrPatients,
+        acrRecords,
+        acrAppointments,
         addLead,
         updateLeadStatus,
         updateStudent,
@@ -818,6 +877,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         addSchoolEvent,
         addSurvey,
         rsvpEvent,
+        addAcrPatient,
+        addAcrRecord,
+        addAcrAppointment,
       }}
     >
       {children}

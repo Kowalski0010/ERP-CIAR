@@ -14,6 +14,7 @@ import {
   Users,
   Briefcase,
   Package,
+  Activity,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -48,6 +49,15 @@ const appModules = [
     title: 'PORTAL DO RESPONSÁVEL',
     icon: Users,
     items: [{ title: 'Meu Painel', url: '/parent/dashboard' }],
+  },
+  {
+    title: 'ACR (CLÍNICA)',
+    icon: Activity,
+    items: [
+      { title: 'Pacientes', url: '/acr/patients' },
+      { title: 'Prontuários', url: '/acr/records' },
+      { title: 'Histórico de Atendimentos', url: '/acr/history' },
+    ],
   },
   {
     title: 'CADASTROS',
@@ -158,7 +168,8 @@ export function AppSidebar() {
         module.title === 'COMUNICAÇÃO' ||
         module.title === 'OPERAÇÕES SECRETARIA' ||
         module.title === 'INVENTÁRIO E PATRIMÔNIO' ||
-        module.title === 'RECURSOS HUMANOS'
+        module.title === 'RECURSOS HUMANOS' ||
+        module.title === 'ACR (CLÍNICA)'
       )
     }
 
@@ -167,7 +178,11 @@ export function AppSidebar() {
     }
 
     if (currentUserRole === 'Professor') {
-      return module.title === 'COMUNICAÇÃO' || module.title === 'PEDAGÓGICO'
+      return (
+        module.title === 'COMUNICAÇÃO' ||
+        module.title === 'PEDAGÓGICO' ||
+        module.title === 'ACR (CLÍNICA)'
+      )
     }
 
     return true

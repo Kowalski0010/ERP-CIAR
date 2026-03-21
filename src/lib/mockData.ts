@@ -29,6 +29,9 @@ import {
   Candidate,
   SchoolEvent,
   NPSSurvey,
+  AcrPatient,
+  AcrRecord,
+  AcrAppointment,
 } from './types'
 
 const defaultAddress = {
@@ -707,5 +710,59 @@ export const mockSurveys: NPSSurvey[] = [
     status: 'Ativo',
     results: { score: 0, promoters: 0, passives: 0, detractors: 0, total: 0 },
     comments: [],
+  },
+]
+
+export const mockAcrPatients: AcrPatient[] = [
+  {
+    id: 'ACR-P01',
+    name: 'Julia Mendes',
+    birthDate: '1995-06-15',
+    email: 'julia.mendes@email.com',
+    phone: '(11) 97777-1234',
+    background: 'Paciente relata ansiedade e dificuldades no ambiente de trabalho.',
+    registrationDate: '2023-09-10',
+  },
+  {
+    id: 'ACR-P02',
+    name: 'Roberto Diniz',
+    birthDate: '1988-11-22',
+    email: 'roberto.diniz@email.com',
+    phone: '(11) 98888-5678',
+    background: 'Busca autoconhecimento e desenvolvimento de habilidades interpessoais.',
+    registrationDate: '2023-10-05',
+  },
+]
+
+export const mockAcrRecords: AcrRecord[] = [
+  {
+    id: 'REC-01',
+    patientId: 'ACR-P01',
+    patientName: 'Julia Mendes',
+    date: new Date(Date.now() - 86400000 * 7).toISOString(),
+    notes:
+      'Sessão inicial. Paciente apresentou resistências iniciais, mas conseguiu articular os principais pontos de estresse.',
+    professional: 'Dr. Roberto Lemos',
+  },
+]
+
+export const mockAcrAppointments: AcrAppointment[] = [
+  {
+    id: 'APP-01',
+    patientId: 'ACR-P01',
+    patientName: 'Julia Mendes',
+    date: new Date(Date.now() - 86400000 * 7).toISOString(),
+    value: 250,
+    paymentMethod: 'PIX',
+    status: 'Realizado',
+  },
+  {
+    id: 'APP-02',
+    patientId: 'ACR-P02',
+    patientName: 'Roberto Diniz',
+    date: new Date(Date.now() + 86400000 * 2).toISOString(),
+    value: 250,
+    paymentMethod: 'Cartão de Crédito',
+    status: 'Agendado',
   },
 ]

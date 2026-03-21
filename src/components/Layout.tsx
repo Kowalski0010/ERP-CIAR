@@ -35,9 +35,10 @@ export default function Layout() {
       '/utilities',
       '/reports',
       '/library',
+      '/acr',
     ],
     Financeiro: ['/financial', '/admin/security', '/utilities', '/reports'],
-    Professor: ['/academic', '/utilities', '/library'],
+    Professor: ['/academic', '/utilities', '/library', '/acr'],
     Aluno: ['/student', '/utilities', '/library'],
     Responsável: ['/parent', '/utilities'],
     Gestao: ['/'], // Has access to everything
