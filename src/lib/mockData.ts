@@ -743,6 +743,17 @@ export const mockAcrRecords: AcrRecord[] = [
     notes:
       'Sessão inicial. Paciente apresentou resistências iniciais, mas conseguiu articular os principais pontos de estresse.',
     professional: 'Dr. Roberto Lemos',
+    signed: true,
+    signedAt: new Date(Date.now() - 86400000 * 7 + 3600000).toISOString(),
+    signedBy: 'Dr. Roberto Lemos',
+    attachments: [
+      {
+        id: 'att-1',
+        name: 'Exame_Neuro_Jul.pdf',
+        date: new Date(Date.now() - 86400000 * 8).toISOString(),
+        url: 'https://img.usecurling.com/p/200/300?q=document',
+      },
+    ],
   },
 ]
 
@@ -755,6 +766,7 @@ export const mockAcrAppointments: AcrAppointment[] = [
     value: 250,
     paymentMethod: 'PIX',
     status: 'Realizado',
+    analysisType: 'Análise Comportamental',
   },
   {
     id: 'APP-02',
@@ -764,5 +776,6 @@ export const mockAcrAppointments: AcrAppointment[] = [
     value: 250,
     paymentMethod: 'Cartão de Crédito',
     status: 'Agendado',
+    analysisType: 'Mapeamento Corporal',
   },
 ]

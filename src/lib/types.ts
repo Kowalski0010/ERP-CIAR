@@ -366,6 +366,13 @@ export type AcrPatient = {
   registrationDate: string
 }
 
+export type AcrAttachment = {
+  id: string
+  name: string
+  date: string
+  url: string
+}
+
 export type AcrRecord = {
   id: string
   patientId: string
@@ -373,6 +380,10 @@ export type AcrRecord = {
   date: string
   notes: string
   professional: string
+  signed?: boolean
+  signedAt?: string
+  signedBy?: string
+  attachments?: AcrAttachment[]
 }
 
 export type AcrAppointment = {
@@ -383,6 +394,7 @@ export type AcrAppointment = {
   value: number
   paymentMethod: string
   status: 'Realizado' | 'Agendado' | 'Cancelado'
+  analysisType?: string
 }
 
 export type AppState = {

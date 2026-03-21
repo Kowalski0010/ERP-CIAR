@@ -36,6 +36,7 @@ import {
   AcrPatient,
   AcrRecord,
   AcrAppointment,
+  AcrAttachment,
 } from '@/lib/types'
 import {
   mockStudents,
@@ -133,6 +134,10 @@ interface AppContextType extends AppState {
   addAcrPatient: (patient: Omit<AcrPatient, 'id' | 'registrationDate'>) => void
   addAcrRecord: (record: Omit<AcrRecord, 'id' | 'date' | 'professional'>) => void
   addAcrAppointment: (app: Omit<AcrAppointment, 'id'>) => void
+  signAcrRecord: (id: string) => void
+  addAcrAttachment: (recordId: string, attachment: Omit<AcrAttachment, 'id' | 'date'>) => void
+
+  bulkImportData: (type: 'students' | 'classes' | 'teachers', data: any[]) => void
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
@@ -186,6 +191,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const generateId = (prefix: string) => `${prefix}${Math.floor(Math.random() * 10000)}`
 
+  const bulkImportData = (type: 'students' | 'classes' | 'teachers', data: any[]) => {
+    if (type === 'students') {
+      const newStudents = data.map((d) => ({
+        ...d,
+        id: generateId('S'),
+        status: 'Ativo',
+        enrollmentDate: new Date().toISOString(),
+      }))
+      setStudents((prev) => [...newStudents, ...prev])
+    } else if (type === 'classes') {
+      const newClasses = data.map((d) => ({ ...d, id: generateId('T') }))
+      setClasses((prev) => [...newClasses, ...prev])
+    } else if (type === 'teachers') {
+      const newTeachers = data.map((d) => ({ ...d, id: generateId('P'), status: 'Ativo' }))
+      setTeachers((prev) => [...newTeachers, ...prev])
+    }
+    addLog({
+      user: currentUserRole,
+      action: 'Importação em Massa',
+      entity: `Módulo: ${type} (${data.length} registros)`,
+    })
+  }
+
   const addAcrPatient = (patient: Omit<AcrPatient, 'id' | 'registrationDate'>) => {
     setAcrPatients((prev) => [
       { ...patient, id: generateId('ACR-P'), registrationDate: new Date().toISOString() },
@@ -200,20 +228,51 @@ export function AppProvider({ children }: { children: ReactNode }) {
         id: generateId('REC'),
         date: new Date().toISOString(),
         professional: currentUserRole,
+        attachments: [],
       },
       ...prev,
     ])
+  }
+
+  const signAcrRecord = (id: string) => {
+    setAcrRecords((prev) =>
+      prev.map((r) =>
+        r.id === id
+          ? { ...r, signed: true, signedAt: new Date().toISOString(), signedBy: currentUserRole }
+          : r,
+      ),
+    )
+    addLog({
+      user: currentUserRole,
+      action: 'Assinatura Digital de Prontuário',
+      entity: `Prontuário: ${id}`,
+    })
+  }
+
+  const addAcrAttachment = (recordId: string, attachment: Omit<AcrAttachment, 'id' | 'date'>) => {
+    setAcrRecords((prev) =>
+      prev.map((r) => {
+        if (r.id === recordId) {
+          const newAtt = {
+            ...attachment,
+            id: generateId('ATT'),
+            date: new Date().toISOString(),
+          }
+          return { ...r, attachments: [...(r.attachments || []), newAtt] }
+        }
+        return r
+      }),
+    )
   }
 
   const addAcrAppointment = (app: Omit<AcrAppointment, 'id'>) => {
     const newApp = { ...app, id: generateId('APP') }
     setAcrAppointments((prev) => [newApp, ...prev])
 
-    // Financial Integration for ACR module
     if (app.status === 'Realizado' && app.value > 0) {
       registerPayment({
         id: generateId('ACR-PAY-'),
-        studentId: app.patientId, // Reusing student ID field to map the financial record to the patient
+        studentId: app.patientId,
         studentName: `[Clínica ACR] ${app.patientName}`,
         amount: app.value,
         dueDate: new Date().toISOString().split('T')[0],
@@ -880,6 +939,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         addAcrPatient,
         addAcrRecord,
         addAcrAppointment,
+        signAcrRecord,
+        addAcrAttachment,
+        bulkImportData,
       }}
     >
       {children}

@@ -55,8 +55,9 @@ const appModules = [
     icon: Activity,
     items: [
       { title: 'Pacientes', url: '/acr/patients' },
+      { title: 'Agenda e Sessões', url: '/acr/agenda' },
       { title: 'Prontuários', url: '/acr/records' },
-      { title: 'Histórico de Atendimentos', url: '/acr/history' },
+      { title: 'Dashboard Clínico', url: '/acr/analytics' },
     ],
   },
   {
@@ -95,6 +96,7 @@ const appModules = [
       { title: 'Auditoria de Acessos', url: '/admin/audit-logs' },
       { title: 'Monitoramento CFTV', url: '/admin/security' },
       { title: 'Backups do Sistema', url: '/admin/backup' },
+      { title: 'Importação em Massa', url: '/admin/data-import' },
       { title: 'Integrações Oficiais', url: '/admin/integrations' },
     ],
   },

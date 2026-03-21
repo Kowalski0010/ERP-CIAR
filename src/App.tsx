@@ -38,7 +38,8 @@ import RoomOccupancy from './pages/academic/RoomOccupancy'
 // ACR (Clínica)
 import AcrPatients from './pages/acr/Patients'
 import AcrClinicalRecords from './pages/acr/ClinicalRecords'
-import AcrAppointmentHistory from './pages/acr/AppointmentHistory'
+import AcrAgenda from './pages/acr/AcrAgenda'
+import AcrAnalytics from './pages/acr/AcrAnalytics'
 
 // Library
 import LibraryCatalog from './pages/library/LibraryCatalog'
@@ -83,6 +84,7 @@ import Integrations from './pages/admin/Integrations'
 import SecurityCameras from './pages/admin/SecurityCameras'
 import Events from './pages/admin/Events'
 import Surveys from './pages/admin/Surveys'
+import AdminDataImport from './pages/admin/AdminDataImport'
 
 // Generic Report View
 import ReportView from './pages/reports/ReportView'
@@ -139,7 +141,8 @@ function App() {
               <Route path="acr">
                 <Route path="patients" element={<AcrPatients />} />
                 <Route path="records" element={<AcrClinicalRecords />} />
-                <Route path="history" element={<AcrAppointmentHistory />} />
+                <Route path="agenda" element={<AcrAgenda />} />
+                <Route path="analytics" element={<AcrAnalytics />} />
               </Route>
 
               {/* Academic Core */}
@@ -261,6 +264,7 @@ function App() {
                 <Route path="security" element={<SecurityCameras />} />
                 <Route path="events" element={<Events />} />
                 <Route path="surveys" element={<Surveys />} />
+                <Route path="data-import" element={<AdminDataImport />} />
               </Route>
 
               {/* Generic Reports */}

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useAppStore } from '@/contexts/AppContext'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -10,15 +10,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { FileText, Save, History, CalendarClock } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import {
+  FileText,
+  Save,
+  History,
+  CalendarClock,
+  PenTool,
+  UploadCloud,
+  Paperclip,
+  Download,
+} from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { Badge } from '@/components/ui/badge'
 
 export default function ClinicalRecords() {
-  const { acrPatients, acrRecords, addAcrRecord } = useAppStore()
+  const { acrPatients, acrRecords, addAcrRecord, signAcrRecord, addAcrAttachment } = useAppStore()
   const { toast } = useToast()
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [selectedPatientId, setSelectedPatientId] = useState<string>('')
   const [newNote, setNewNote] = useState('')
+  const [signingId, setSigningId] = useState<string | null>(null)
 
   const selectedPatient = acrPatients.find((p) => p.id === selectedPatientId)
   const patientRecords = acrRecords
@@ -41,6 +61,32 @@ export default function ClinicalRecords() {
     setNewNote('')
   }
 
+  const confirmSign = () => {
+    if (!signingId) return
+    signAcrRecord(signingId)
+    toast({
+      title: 'Prontuário Assinado',
+      description: 'O registro foi assinado digitalmente e não pode mais ser alterado.',
+    })
+    setSigningId(null)
+  }
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, recordId: string) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    addAcrAttachment(recordId, {
+      name: file.name,
+      url: `https://img.usecurling.com/p/200/300?q=document&seed=${Math.random()}`,
+    })
+
+    toast({
+      title: 'Anexo Salvo',
+      description: `O arquivo ${file.name} foi vinculado ao prontuário.`,
+    })
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
   return (
     <div className="space-y-6 animate-fade-in-up pb-8 max-w-[1400px] mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-2">
@@ -50,7 +96,7 @@ export default function ClinicalRecords() {
             Prontuários Clínicos
           </h1>
           <p className="text-sm text-zinc-500 mt-1">
-            Registro de evoluções, notas e acompanhamento contínuo dos pacientes.
+            Registro de evoluções, notas, anexos de exames e assinatura digital.
           </p>
         </div>
       </div>
@@ -62,7 +108,7 @@ export default function ClinicalRecords() {
           </CardHeader>
           <CardContent className="p-6">
             <Select value={selectedPatientId} onValueChange={setSelectedPatientId}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full bg-zinc-50">
                 <SelectValue placeholder="Busque pelo paciente..." />
               </SelectTrigger>
               <SelectContent>
@@ -83,7 +129,7 @@ export default function ClinicalRecords() {
                     {new Date().getFullYear() - new Date(selectedPatient.birthDate).getFullYear()}{' '}
                     anos
                   </p>
-                  <p className="text-xs text-zinc-700 bg-white p-2 rounded border border-zinc-200 shadow-sm">
+                  <p className="text-xs text-zinc-700 bg-white p-3 rounded border border-zinc-200 shadow-sm leading-relaxed">
                     <strong>Motivo inicial:</strong> {selectedPatient.background}
                   </p>
                 </div>
@@ -92,7 +138,7 @@ export default function ClinicalRecords() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2 border-zinc-200 shadow-sm bg-white flex flex-col h-full min-h-[500px]">
+        <Card className="lg:col-span-2 border-zinc-200 shadow-sm bg-white flex flex-col h-full min-h-[600px]">
           {selectedPatient ? (
             <>
               <CardHeader className="border-b border-zinc-100 bg-zinc-50/50 py-4">
@@ -103,20 +149,89 @@ export default function ClinicalRecords() {
               <CardContent className="p-6 flex-1 flex flex-col">
                 <div className="flex-1 overflow-y-auto space-y-6 mb-6">
                   {patientRecords.map((rec) => (
-                    <div key={rec.id} className="relative pl-6 border-l-2 border-zinc-200 ml-2">
+                    <div
+                      key={rec.id}
+                      className="relative pl-6 border-l-2 border-zinc-200 ml-2 animate-fade-in"
+                    >
                       <div className="absolute w-3 h-3 bg-zinc-300 rounded-full -left-[7px] top-1 border-2 border-white" />
-                      <div className="mb-1 flex items-center gap-2">
-                        <span className="text-xs font-bold text-zinc-900 flex items-center gap-1">
-                          <CalendarClock className="w-3.5 h-3.5 text-zinc-400" />
-                          {new Date(rec.date).toLocaleString('pt-BR')}
-                        </span>
-                        <span className="text-[10px] bg-zinc-100 px-1.5 py-0.5 rounded text-zinc-600 font-medium">
-                          {rec.professional}
-                        </span>
+
+                      <div className="mb-2 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-zinc-900 flex items-center gap-1">
+                            <CalendarClock className="w-3.5 h-3.5 text-zinc-400" />
+                            {new Date(rec.date).toLocaleString('pt-BR')}
+                          </span>
+                          <span className="text-[10px] bg-zinc-100 px-1.5 py-0.5 rounded text-zinc-600 font-medium border border-zinc-200">
+                            {rec.professional}
+                          </span>
+                        </div>
+                        {rec.signed ? (
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] text-emerald-700 border-emerald-200 bg-emerald-50"
+                          >
+                            <PenTool className="w-3 h-3 mr-1" /> Assinado
+                          </Badge>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-6 text-[10px]"
+                            onClick={() => setSigningId(rec.id)}
+                          >
+                            Finalizar e Assinar
+                          </Button>
+                        )}
                       </div>
-                      <p className="text-sm text-zinc-700 bg-zinc-50 p-3 rounded-md border border-zinc-200 whitespace-pre-wrap">
+
+                      <div
+                        className={cn(
+                          'p-4 rounded-md border text-sm leading-relaxed whitespace-pre-wrap',
+                          rec.signed
+                            ? 'bg-zinc-50 border-zinc-200 text-zinc-600'
+                            : 'bg-white border-zinc-300 text-zinc-800 shadow-sm',
+                        )}
+                      >
                         {rec.notes}
-                      </p>
+                      </div>
+
+                      {/* Attachments Section */}
+                      <div className="mt-3 flex flex-wrap gap-2 items-center">
+                        {rec.attachments?.map((att) => (
+                          <div
+                            key={att.id}
+                            className="flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-700 px-2 py-1 rounded text-xs"
+                          >
+                            <Paperclip className="w-3 h-3" />
+                            <span className="font-medium truncate max-w-[150px]">{att.name}</span>
+                            <a
+                              href={att.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="ml-1 text-blue-500 hover:text-blue-900"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                            </a>
+                          </div>
+                        ))}
+                        {!rec.signed && (
+                          <label className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-blue-600 cursor-pointer border border-dashed border-zinc-300 px-2 py-1 rounded hover:bg-zinc-50 transition-colors">
+                            <UploadCloud className="w-3.5 h-3.5" /> Anexar Exame/Doc
+                            <input
+                              type="file"
+                              className="hidden"
+                              onChange={(e) => handleFileUpload(e, rec.id)}
+                            />
+                          </label>
+                        )}
+                      </div>
+
+                      {rec.signed && (
+                        <p className="text-[10px] text-zinc-400 mt-2 font-mono">
+                          Assinado por {rec.signedBy} em{' '}
+                          {new Date(rec.signedAt!).toLocaleString('pt-BR')}
+                        </p>
+                      )}
                     </div>
                   ))}
                   {patientRecords.length === 0 && (
@@ -126,16 +241,23 @@ export default function ClinicalRecords() {
                   )}
                 </div>
 
-                <div className="border-t border-zinc-100 pt-6 mt-auto">
+                <div className="border-t border-zinc-200 pt-6 mt-auto">
                   <h4 className="text-sm font-semibold text-zinc-800 mb-3">Nova Evolução</h4>
                   <Textarea
                     value={newNote}
                     onChange={(e) => setNewNote(e.target.value)}
                     placeholder="Descreva as observações da sessão atual..."
-                    className="min-h-[120px] resize-none mb-3 bg-zinc-50"
+                    className="min-h-[120px] resize-none mb-3 bg-white focus-visible:ring-zinc-400"
                   />
-                  <div className="flex justify-end">
-                    <Button onClick={handleSaveRecord} disabled={!newNote.trim()}>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-zinc-500">
+                      Você poderá anexar arquivos após salvar o rascunho inicial.
+                    </span>
+                    <Button
+                      onClick={handleSaveRecord}
+                      disabled={!newNote.trim()}
+                      className="shadow-sm"
+                    >
                       <Save className="w-4 h-4 mr-2" /> Salvar Prontuário
                     </Button>
                   </div>
@@ -154,6 +276,29 @@ export default function ClinicalRecords() {
           )}
         </Card>
       </div>
+
+      <Dialog open={!!signingId} onOpenChange={(o) => !o && setSigningId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Assinatura Digital de Prontuário</DialogTitle>
+            <DialogDescription>
+              Ao assinar digitalmente este registro, ele será bloqueado contra edições futuras para
+              garantir conformidade legal e integridade dos dados.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setSigningId(null)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={confirmSign}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              <PenTool className="w-4 h-4 mr-2" /> Confirmar e Assinar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
