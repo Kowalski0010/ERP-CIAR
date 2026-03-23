@@ -49,17 +49,32 @@ export default function UserManagement() {
   const handleAddSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const fd = new FormData(e.currentTarget)
-    addSystemUser({
-      name: fd.get('name') as string,
-      email: fd.get('email') as string,
-      role: fd.get('role') as Role,
-      status: 'Ativo',
-    })
-    toast({
-      title: 'Usuário Criado',
-      description: 'O acesso foi gerado. A senha temporária foi enviada por e-mail.',
-    })
+
+    if (editUser) {
+      updateSystemUser(editUser.id, {
+        name: fd.get('name') as string,
+        email: fd.get('email') as string,
+        role: fd.get('role') as Role,
+      })
+      toast({
+        title: 'Usuário Atualizado',
+        description: 'Os dados do usuário foram atualizados com sucesso.',
+      })
+    } else {
+      addSystemUser({
+        name: fd.get('name') as string,
+        email: fd.get('email') as string,
+        role: fd.get('role') as Role,
+        status: 'Ativo',
+      })
+      toast({
+        title: 'Usuário Criado',
+        description: 'O acesso foi gerado. A senha temporária foi enviada por e-mail.',
+      })
+    }
+
     setIsAddOpen(false)
+    setEditUser(null)
   }
 
   const handleToggleStatus = (id: string, currentStatus: string) => {
@@ -90,7 +105,13 @@ export default function UserManagement() {
             Cadastre novos perfis, defina níveis de acesso e controle senhas ativas.
           </p>
         </div>
-        <Button className="shadow-sm h-10 px-4" onClick={() => setIsAddOpen(true)}>
+        <Button
+          className="shadow-sm h-10 px-4"
+          onClick={() => {
+            setEditUser(null)
+            setIsAddOpen(true)
+          }}
+        >
           <Plus className="mr-2 h-4 w-4" /> Novo Usuário
         </Button>
       </div>
@@ -208,7 +229,7 @@ export default function UserManagement() {
           if (!o) setEditUser(null)
         }}
       >
-        <DialogContent className="max-w-md bg-white">
+        <DialogContent className="max-w-md bg-white max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editUser ? 'Atualizar Dados de Acesso' : 'Cadastrar Novo Usuário'}
