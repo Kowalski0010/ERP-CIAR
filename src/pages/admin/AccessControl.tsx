@@ -19,15 +19,16 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useToast } from '@/hooks/use-toast'
-import { Label } from '@/components/ui/label'
+
+const roles = ['Admin', 'Professor', 'Paciente', 'Aluno', 'Secretaria', 'Financeiro']
 
 const modules = [
-  'Acadêmico (Alunos, Turmas)',
-  'Financeiro (Faturas, Caixa)',
-  'Comercial (Leads, CRM)',
-  'Recursos Humanos (Colaboradores)',
-  'Estoque e Compras',
-  'Documentos (GED)',
+  'Dashboard Analytics',
+  'Prontuários Clínicos (ACR)',
+  'Portal do Paciente',
+  'Portal do Aluno',
+  'Gestão Acadêmica (Notas/Frequência)',
+  'Gestão Financeira',
   'Configurações do Sistema',
 ]
 
@@ -35,21 +36,66 @@ const initialPermissions: Record<
   string,
   Record<string, { read: boolean; write: boolean; delete: boolean }>
 > = {
-  Coordenador: modules.reduce(
-    (acc, mod) => ({
-      ...acc,
-      [mod]: { read: true, write: mod.includes('Acadêmico'), delete: false },
-    }),
-    {},
-  ),
-  Secretaria: modules.reduce(
-    (acc, mod) => ({ ...acc, [mod]: { read: true, write: true, delete: false } }),
+  Admin: modules.reduce(
+    (acc, mod) => ({ ...acc, [mod]: { read: true, write: true, delete: true } }),
     {},
   ),
   Professor: modules.reduce(
     (acc, mod) => ({
       ...acc,
-      [mod]: { read: mod.includes('Acadêmico'), write: mod.includes('Acadêmico'), delete: false },
+      [mod]: {
+        read: [
+          'Prontuários Clínicos (ACR)',
+          'Gestão Acadêmica (Notas/Frequência)',
+          'Portal do Aluno',
+        ].includes(mod),
+        write: ['Prontuários Clínicos (ACR)', 'Gestão Acadêmica (Notas/Frequência)'].includes(mod),
+        delete: false,
+      },
+    }),
+    {},
+  ),
+  Paciente: modules.reduce(
+    (acc, mod) => ({
+      ...acc,
+      [mod]: {
+        read: mod === 'Portal do Paciente',
+        write: false,
+        delete: false,
+      },
+    }),
+    {},
+  ),
+  Aluno: modules.reduce(
+    (acc, mod) => ({
+      ...acc,
+      [mod]: {
+        read: mod === 'Portal do Aluno',
+        write: false,
+        delete: false,
+      },
+    }),
+    {},
+  ),
+  Secretaria: modules.reduce(
+    (acc, mod) => ({
+      ...acc,
+      [mod]: {
+        read: !mod.includes('Clínicos'),
+        write: !mod.includes('Clínicos') && !mod.includes('Sistema'),
+        delete: false,
+      },
+    }),
+    {},
+  ),
+  Financeiro: modules.reduce(
+    (acc, mod) => ({
+      ...acc,
+      [mod]: {
+        read: ['Gestão Financeira', 'Dashboard Analytics'].includes(mod),
+        write: mod === 'Gestão Financeira',
+        delete: false,
+      },
     }),
     {},
   ),
@@ -57,7 +103,7 @@ const initialPermissions: Record<
 
 export default function AccessControl() {
   const { toast } = useToast()
-  const [selectedRole, setSelectedRole] = useState('Secretaria')
+  const [selectedRole, setSelectedRole] = useState('Professor')
   const [permissions, setPermissions] = useState(initialPermissions)
 
   const handleToggle = (mod: string, action: 'read' | 'write' | 'delete') => {
@@ -71,7 +117,7 @@ export default function AccessControl() {
   const handleSave = () => {
     toast({
       title: 'Permissões Atualizadas',
-      description: `As regras para o perfil ${selectedRole} foram salvas.`,
+      description: `As regras de acesso para o perfil ${selectedRole} foram aplicadas no sistema.`,
     })
   }
 
@@ -88,10 +134,11 @@ export default function AccessControl() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900 flex items-center gap-2">
             <Key className="h-7 w-7 text-zinc-400" />
-            Controle de Acessos (RBAC)
+            Gestão de Perfis e Permissões (RBAC)
           </h1>
           <p className="text-sm text-zinc-500 mt-1">
-            Matriz de permissões granulares por perfil de usuário.
+            Configure quais módulos cada tipo de usuário (Admin, Professor, Paciente, etc) pode
+            visualizar ou alterar.
           </p>
         </div>
       </div>
@@ -101,7 +148,7 @@ export default function AccessControl() {
           <div>
             <CardTitle className="text-base">Selecionar Perfil</CardTitle>
             <CardDescription className="text-xs">
-              Escolha o grupo para editar as permissões.
+              Escolha o grupo para visualizar ou editar as permissões.
             </CardDescription>
           </div>
           <div className="w-full sm:w-64">
@@ -110,9 +157,11 @@ export default function AccessControl() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Coordenador">Coordenador Pedagógico</SelectItem>
-                <SelectItem value="Secretaria">Secretaria Geral</SelectItem>
-                <SelectItem value="Professor">Corpo Docente</SelectItem>
+                {roles.map((r) => (
+                  <SelectItem key={r} value={r}>
+                    {r}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -161,10 +210,10 @@ export default function AccessControl() {
           <div className="p-4 border-t border-zinc-200 bg-zinc-50 flex items-center justify-between">
             <div className="flex items-center gap-2 text-zinc-500 text-xs">
               <ShieldAlert className="h-4 w-4" />
-              Alterações aplicam-se no próximo login dos usuários afetados.
+              Alterações aplicam-se imediatamente no próximo acesso dos usuários.
             </div>
             <Button onClick={handleSave} className="shadow-sm">
-              <Save className="h-4 w-4 mr-2" /> Salvar Matriz
+              <Save className="h-4 w-4 mr-2" /> Salvar Matriz de Acesso
             </Button>
           </div>
         </CardContent>

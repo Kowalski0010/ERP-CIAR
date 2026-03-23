@@ -75,7 +75,7 @@ import {
 } from '@/lib/mockData'
 
 interface AppContextType extends AppState {
-  login: () => void
+  login: (role?: Role) => void
   logout: () => void
   setCurrentUserRole: (role: Role) => void
   addLead: (lead: Lead) => void
@@ -187,8 +187,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [acrRecords, setAcrRecords] = useState<AcrRecord[]>(mockAcrRecords)
   const [acrAppointments, setAcrAppointments] = useState<AcrAppointment[]>(mockAcrAppointments)
 
-  const login = () => setIsAuthenticated(true)
-  const logout = () => setIsAuthenticated(false)
+  const login = (role?: Role) => {
+    setIsAuthenticated(true)
+    addLog({
+      user: role || currentUserRole,
+      action: 'Acesso ao Sistema',
+      entity: 'Autenticação',
+      details: 'Login realizado com sucesso.',
+    })
+  }
+
+  const logout = () => {
+    setIsAuthenticated(false)
+  }
 
   const generateId = (prefix: string) => `${prefix}${Math.floor(Math.random() * 10000)}`
 

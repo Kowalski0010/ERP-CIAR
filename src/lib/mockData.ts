@@ -277,6 +277,22 @@ export const mockLogs: AuditLog[] = [
     oldValue: 'Pendente',
     newValue: 'Pago',
   },
+  {
+    id: 'log4',
+    timestamp: new Date(Date.now() - 300000).toISOString(),
+    user: 'Admin Master',
+    action: 'Acesso ao Sistema',
+    entity: 'Autenticação',
+    details: 'Login realizado com sucesso via Web.',
+  },
+  {
+    id: 'log5',
+    timestamp: new Date(Date.now() - 86400000 * 1.5).toISOString(),
+    user: 'Paciente',
+    action: 'Acesso ao Sistema',
+    entity: 'Autenticação',
+    details: 'Login realizado no Portal do Paciente.',
+  },
 ]
 
 export const mockNotifications: SystemNotification[] = [

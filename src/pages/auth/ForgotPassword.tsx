@@ -15,7 +15,10 @@ export default function ForgotPassword() {
 
   const handleSendEmail = (e: React.FormEvent) => {
     e.preventDefault()
-    toast({ title: 'Token Enviado', description: 'Verifique sua caixa de entrada para continuar.' })
+    toast({
+      title: 'Token Enviado',
+      description: 'Enviamos instruções seguras para sua caixa de entrada.',
+    })
     setStep(2)
   }
 
@@ -26,7 +29,10 @@ export default function ForgotPassword() {
 
   const handleResetPassword = (e: React.FormEvent) => {
     e.preventDefault()
-    toast({ title: 'Senha Redefinida', description: 'Sua senha foi atualizada com sucesso.' })
+    toast({
+      title: 'Senha Redefinida',
+      description: 'Sua senha foi atualizada com sucesso. Acesse o sistema.',
+    })
     navigate('/login')
   }
 
@@ -40,8 +46,10 @@ export default function ForgotPassword() {
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <CardTitle className="text-xl font-bold">Recuperação de Senha</CardTitle>
-          <CardDescription>Self-service rápido para restaurar seu acesso.</CardDescription>
+          <CardTitle className="text-xl font-bold">Recuperação de Acesso</CardTitle>
+          <CardDescription>
+            Fluxo seguro para redefinir sua senha de forma independente.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {step === 1 && (
@@ -61,14 +69,14 @@ export default function ForgotPassword() {
                 </div>
               </div>
               <Button type="submit" className="w-full bg-[#1e3a8a] hover:bg-[#1e3a8a]/90">
-                Enviar Token de Acesso
+                Enviar Link de Recuperação
               </Button>
             </form>
           )}
           {step === 2 && (
             <form onSubmit={handleValidateToken} className="space-y-4 animate-fade-in">
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-800 mb-4">
-                Enviamos um código de 6 dígitos para <strong>{email}</strong>.
+                Enviamos um código de segurança com 6 dígitos para <strong>{email}</strong>.
               </div>
               <div className="space-y-2">
                 <Label>Token de Validação</Label>
@@ -77,13 +85,13 @@ export default function ForgotPassword() {
                   <Input
                     required
                     placeholder="000000"
-                    className="pl-9 font-mono tracking-[0.5em] text-center"
+                    className="pl-9 font-mono tracking-[0.5em] text-center text-lg"
                     maxLength={6}
                   />
                 </div>
               </div>
               <Button type="submit" className="w-full bg-[#1e3a8a] hover:bg-[#1e3a8a]/90">
-                Validar Código
+                Validar Código Seguro
               </Button>
             </form>
           )}
@@ -98,7 +106,7 @@ export default function ForgotPassword() {
                 <Input required type="password" placeholder="••••••••" />
               </div>
               <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700">
-                <ShieldCheck className="h-4 w-4 mr-2" /> Redefinir Senha
+                <ShieldCheck className="h-4 w-4 mr-2" /> Confirmar Nova Senha
               </Button>
             </form>
           )}

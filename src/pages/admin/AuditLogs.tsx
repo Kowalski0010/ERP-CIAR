@@ -19,15 +19,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export default function AuditLogs() {
   const { logs } = useAppStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [moduleFilter, setModuleFilter] = useState('Todos')
   const [dateFilter, setDateFilter] = useState('Todos')
+  const [activeTab, setActiveTab] = useState('todos')
 
   const filteredLogs = logs
     .filter((log) => {
+      if (activeTab === 'acessos' && log.action !== 'Acesso ao Sistema') return false
+      if (activeTab === 'operacoes' && log.action === 'Acesso ao Sistema') return false
+
       const matchesSearch =
         log.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
         log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -58,122 +63,132 @@ export default function AuditLogs() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900 flex items-center gap-2">
             <ShieldAlert className="h-7 w-7 text-zinc-400" />
-            Auditoria Acadêmica e Sistema
+            Auditoria e Logs de Acesso
           </h1>
           <p className="text-sm text-zinc-500 mt-1">
-            Registro imutável de alterações cadastrais e acadêmicas.
+            Registro imutável de alterações cadastrais, acadêmicas e histórico de logins.
           </p>
         </div>
       </div>
 
-      <Card className="border-zinc-200 shadow-sm bg-white">
-        <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <div className="relative sm:col-span-2">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
-            <Input
-              placeholder="Buscar usuário, aluno alvo ou ação..."
-              className="pl-9 h-9 text-xs"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <div>
-            <Select value={moduleFilter} onValueChange={setModuleFilter}>
-              <SelectTrigger className="h-9 text-xs">
-                <SelectValue placeholder="Módulo/Tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Todos">Todos os Módulos</SelectItem>
-                <SelectItem value="Secretaria">Secretaria (Cadastros)</SelectItem>
-                <SelectItem value="Notas">Acadêmico (Notas)</SelectItem>
-                <SelectItem value="Financeiro">Financeiro</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="h-9 text-xs">
-                <SelectValue placeholder="Período" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Todos">Todo o Histórico</SelectItem>
-                <SelectItem value="Hoje">Hoje</SelectItem>
-                <SelectItem value="7d">Últimos 7 dias</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="todos">Todos os Registros</TabsTrigger>
+          <TabsTrigger value="acessos">Logs de Acesso (Logins)</TabsTrigger>
+          <TabsTrigger value="operacoes">Operações no Sistema</TabsTrigger>
+        </TabsList>
 
-      <div className="bg-white border border-zinc-200 rounded-lg shadow-sm overflow-hidden">
-        {filteredLogs.length > 0 ? (
-          <Table className="table-compact">
-            <TableHeader className="bg-zinc-50/80">
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[140px]">Data / Hora</TableHead>
-                <TableHead className="w-[140px]">Usuário</TableHead>
-                <TableHead className="w-[180px]">Ação</TableHead>
-                <TableHead>Entidade / Alvo</TableHead>
-                <TableHead className="w-[160px]">Valor Anterior</TableHead>
-                <TableHead className="w-[160px]">Novo Valor</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredLogs.map((log) => (
-                <TableRow key={log.id} className="hover:bg-zinc-50/50 transition-colors">
-                  <TableCell className="font-mono text-[11px] text-zinc-500 font-medium">
-                    {new Date(log.timestamp).toLocaleString('pt-BR')}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className="bg-zinc-100 border-zinc-200 text-zinc-700 font-medium text-[10px]"
-                    >
-                      {log.user}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="font-semibold text-zinc-900 text-xs">
-                    {log.action}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span
-                        className="text-xs font-semibold text-zinc-900 truncate max-w-[200px]"
-                        title={log.entity}
-                      >
-                        {log.entity}
-                      </span>
-                      {log.targetStudent && (
-                        <span className="text-[10px] text-zinc-500">Alvo: {log.targetStudent}</span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-xs font-mono text-rose-600 opacity-80 break-words">
-                    {log.oldValue ? (
-                      <span className="line-through">{log.oldValue}</span>
-                    ) : (
-                      <span className="text-zinc-400 no-underline">-</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-xs font-mono text-emerald-600 font-medium break-words">
-                    {log.newValue || '-'}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        ) : (
-          <div className="flex flex-col items-center justify-center p-12 text-center bg-zinc-50/50">
-            <div className="h-12 w-12 bg-white border border-zinc-200 rounded-lg flex items-center justify-center mb-3 shadow-sm">
-              <History className="h-6 w-6 text-zinc-400" />
+        <Card className="border-zinc-200 shadow-sm bg-white mb-6">
+          <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div className="relative sm:col-span-2">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
+              <Input
+                placeholder="Buscar usuário, alvo ou ação..."
+                className="pl-9 h-9 text-xs"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-            <h3 className="text-sm font-semibold text-zinc-900">Nenhum registro encontrado</h3>
-            <p className="text-xs text-zinc-500 mt-1">
-              Ajuste os filtros de busca para ver resultados.
-            </p>
-          </div>
-        )}
-      </div>
+            <div>
+              <Select value={moduleFilter} onValueChange={setModuleFilter}>
+                <SelectTrigger className="h-9 text-xs">
+                  <SelectValue placeholder="Módulo/Tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Todos">Todos os Módulos</SelectItem>
+                  <SelectItem value="Secretaria">Secretaria (Cadastros)</SelectItem>
+                  <SelectItem value="Autenticação">Autenticação (Logins)</SelectItem>
+                  <SelectItem value="Financeiro">Financeiro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Select value={dateFilter} onValueChange={setDateFilter}>
+                <SelectTrigger className="h-9 text-xs">
+                  <SelectValue placeholder="Período" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Todos">Todo o Histórico</SelectItem>
+                  <SelectItem value="Hoje">Hoje</SelectItem>
+                  <SelectItem value="7d">Últimos 7 dias</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="bg-white border border-zinc-200 rounded-lg shadow-sm overflow-hidden">
+          {filteredLogs.length > 0 ? (
+            <Table className="table-compact">
+              <TableHeader className="bg-zinc-50/80">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="w-[140px]">Data / Hora</TableHead>
+                  <TableHead className="w-[140px]">Usuário</TableHead>
+                  <TableHead className="w-[180px]">Ação / Evento</TableHead>
+                  <TableHead>Módulo / Entidade</TableHead>
+                  <TableHead className="w-[160px]">Status / Detalhe</TableHead>
+                  {activeTab !== 'acessos' && (
+                    <TableHead className="w-[160px]">Novo Valor</TableHead>
+                  )}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredLogs.map((log) => (
+                  <TableRow key={log.id} className="hover:bg-zinc-50/50 transition-colors">
+                    <TableCell className="font-mono text-[11px] text-zinc-500 font-medium">
+                      {new Date(log.timestamp).toLocaleString('pt-BR')}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className="bg-zinc-100 border-zinc-200 text-zinc-700 font-medium text-[10px]"
+                      >
+                        {log.user}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="font-semibold text-zinc-900 text-xs">
+                      {log.action}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span
+                          className="text-xs font-semibold text-zinc-900 truncate max-w-[200px]"
+                          title={log.entity}
+                        >
+                          {log.entity}
+                        </span>
+                        {log.targetStudent && (
+                          <span className="text-[10px] text-zinc-500">
+                            Alvo: {log.targetStudent}
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs text-zinc-600 break-words max-w-[200px]">
+                      {log.details || log.oldValue || '-'}
+                    </TableCell>
+                    {activeTab !== 'acessos' && (
+                      <TableCell className="text-xs font-mono text-emerald-600 font-medium break-words">
+                        {log.newValue || '-'}
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="flex flex-col items-center justify-center p-12 text-center bg-zinc-50/50">
+              <div className="h-12 w-12 bg-white border border-zinc-200 rounded-lg flex items-center justify-center mb-3 shadow-sm">
+                <History className="h-6 w-6 text-zinc-400" />
+              </div>
+              <h3 className="text-sm font-semibold text-zinc-900">Nenhum registro encontrado</h3>
+              <p className="text-xs text-zinc-500 mt-1">
+                Ajuste os filtros de busca para ver resultados ou mude a aba.
+              </p>
+            </div>
+          )}
+        </div>
+      </Tabs>
     </div>
   )
 }
