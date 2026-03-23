@@ -198,27 +198,27 @@ export function AppSidebar() {
   })
 
   return (
-    <Sidebar className="border-r border-zinc-200 bg-white shadow-sm font-sans" collapsible="icon">
+    <Sidebar className="border-r border-border bg-card shadow-sm font-sans" collapsible="icon">
       <SidebarHeader className="p-0 border-b-0">
         <div className="flex flex-col items-center justify-center pt-8 pb-4 group-data-[collapsible=icon]:hidden">
           <div className="relative flex items-center justify-center h-20 w-20 mb-2">
-            <div className="absolute w-12 h-12 rounded-full bg-[#1e3a8a] top-0 left-2 opacity-90 mix-blend-multiply flex items-center justify-center">
-              <div className="w-4 h-4 bg-white rounded-full absolute -top-1 -right-1" />
+            <div className="absolute w-12 h-12 rounded-full bg-primary top-0 left-2 opacity-90 mix-blend-multiply flex items-center justify-center">
+              <div className="w-4 h-4 bg-background rounded-full absolute -top-1 -right-1" />
             </div>
-            <div className="absolute w-14 h-14 rounded-full bg-[#00a651] bottom-0 right-1 opacity-90 mix-blend-multiply flex items-center justify-center">
-              <div className="w-5 h-5 bg-white rounded-full absolute -top-1 -left-1" />
+            <div className="absolute w-14 h-14 rounded-full bg-emerald-500 bottom-0 right-1 opacity-90 mix-blend-multiply flex items-center justify-center">
+              <div className="w-5 h-5 bg-background rounded-full absolute -top-1 -left-1" />
             </div>
           </div>
-          <span className="text-3xl font-extrabold text-[#1e3a8a] tracking-[0.2em] mt-1">CIAR</span>
+          <span className="text-3xl font-extrabold text-primary tracking-[0.2em] mt-1">CIAR</span>
         </div>
         <div className="px-4 pb-4 pt-2 group-data-[collapsible=icon]:hidden">
           <div className="relative">
             <Input
               type="search"
               placeholder="Pesquisar..."
-              className="pl-3 pr-8 h-9 text-xs border-zinc-300 rounded-sm focus-visible:ring-[#1e3a8a]"
+              className="pl-3 pr-8 h-9 text-xs border-input bg-background focus-visible:ring-primary"
             />
-            <Search className="absolute right-2.5 top-2.5 h-4 w-4 text-zinc-400" />
+            <Search className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           </div>
         </div>
       </SidebarHeader>
@@ -234,8 +234,8 @@ export function AppSidebar() {
                     asChild
                     className={`rounded-none h-10 px-4 border-l-4 font-semibold text-[13px] ${
                       location.pathname === '/'
-                        ? 'border-l-[#1e3a8a] bg-zinc-100 text-[#1e3a8a]'
-                        : 'border-l-transparent text-zinc-600 hover:bg-zinc-50'
+                        ? 'border-l-primary bg-muted/50 text-primary'
+                        : 'border-l-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                     }`}
                   >
                     <Link to="/">
@@ -252,8 +252,8 @@ export function AppSidebar() {
                   asChild
                   className={`rounded-none h-10 px-4 border-l-4 font-semibold text-[13px] ${
                     location.pathname.includes('/student/dashboard')
-                      ? 'border-l-[#1e3a8a] bg-zinc-100 text-[#1e3a8a]'
-                      : 'border-l-transparent text-zinc-600 hover:bg-zinc-50'
+                      ? 'border-l-primary bg-muted/50 text-primary'
+                      : 'border-l-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                   }`}
                 >
                   <Link to="/student/dashboard">
@@ -270,8 +270,8 @@ export function AppSidebar() {
                   asChild
                   className={`rounded-none h-10 px-4 border-l-4 font-semibold text-[13px] ${
                     location.pathname.includes('/parent/dashboard')
-                      ? 'border-l-[#1e3a8a] bg-zinc-100 text-[#1e3a8a]'
-                      : 'border-l-transparent text-zinc-600 hover:bg-zinc-50'
+                      ? 'border-l-primary bg-muted/50 text-primary'
+                      : 'border-l-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                   }`}
                 >
                   <Link to="/parent/dashboard">
@@ -288,8 +288,8 @@ export function AppSidebar() {
                   asChild
                   className={`rounded-none h-10 px-4 border-l-4 font-semibold text-[13px] ${
                     location.pathname.includes('/portal')
-                      ? 'border-l-[#1e3a8a] bg-zinc-100 text-[#1e3a8a]'
-                      : 'border-l-transparent text-zinc-600 hover:bg-zinc-50'
+                      ? 'border-l-primary bg-muted/50 text-primary'
+                      : 'border-l-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                   }`}
                 >
                   <Link to="/portal">
@@ -303,7 +303,7 @@ export function AppSidebar() {
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-zinc-600 hover:bg-zinc-50 text-[13px]"
+                className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground text-[13px]"
               >
                 <Link to="/utilities/notepad">
                   <StickyNote className="h-[18px] w-[18px]" />
@@ -318,7 +318,7 @@ export function AppSidebar() {
                   logout()
                   navigate('/login')
                 }}
-                className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-rose-600 font-semibold hover:bg-rose-50 text-[13px] cursor-pointer"
+                className="rounded-none h-10 px-4 border-l-4 border-l-transparent text-destructive font-semibold hover:bg-destructive/10 text-[13px] cursor-pointer"
               >
                 <LogOut className="h-[18px] w-[18px]" />
                 <span>SAIR DO SISTEMA</span>
@@ -327,14 +327,14 @@ export function AppSidebar() {
           </SidebarMenu>
         </SidebarGroup>
 
-        <div className="mt-2 bg-[#2d3e50] flex-1 pb-4 group-data-[collapsible=icon]:bg-transparent overflow-y-auto">
+        <div className="mt-2 bg-zinc-900 dark:bg-zinc-950 flex-1 pb-4 group-data-[collapsible=icon]:bg-transparent overflow-y-auto">
           <SidebarGroup className="p-0">
             <SidebarMenu className="gap-0">
               {filteredModules.map((module) => (
                 <Collapsible key={module.title} defaultOpen={false} className="group/root">
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
-                      <SidebarMenuButton className="rounded-none h-11 px-4 border-b border-[#3b4f63] text-zinc-200 hover:bg-[#3b4f63] hover:text-white text-[13px] font-medium group-data-[collapsible=icon]:text-zinc-600 group-data-[collapsible=icon]:border-none">
+                      <SidebarMenuButton className="rounded-none h-11 px-4 border-b border-zinc-800 dark:border-zinc-800/50 text-zinc-300 hover:bg-zinc-800 hover:text-white dark:hover:bg-zinc-900 text-[13px] font-medium group-data-[collapsible=icon]:text-muted-foreground group-data-[collapsible=icon]:border-none">
                         <module.icon className="h-[18px] w-[18px]" />
                         <span className="group-data-[collapsible=icon]:hidden">{module.title}</span>
                         {module.items && (
@@ -343,13 +343,13 @@ export function AppSidebar() {
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
 
-                    <CollapsibleContent className="bg-[#1e2b3c] group-data-[collapsible=icon]:hidden">
+                    <CollapsibleContent className="bg-zinc-950 dark:bg-zinc-900/50 group-data-[collapsible=icon]:hidden">
                       <SidebarMenuSub className="border-none m-0 p-0">
                         {module.items?.map((item) => (
                           <SidebarMenuSubItem key={item.title}>
                             <SidebarMenuSubButton
                               asChild
-                              className="rounded-none h-10 pl-11 pr-4 text-zinc-300 hover:bg-[#2d3e50] hover:text-white text-[12px] font-medium border-b border-[#2d3e50]"
+                              className="rounded-none h-10 pl-11 pr-4 text-zinc-400 hover:bg-zinc-800 hover:text-white dark:hover:bg-zinc-800/50 text-[12px] font-medium border-b border-zinc-900 dark:border-zinc-800"
                             >
                               <Link to={item.url}>{item.title}</Link>
                             </SidebarMenuSubButton>

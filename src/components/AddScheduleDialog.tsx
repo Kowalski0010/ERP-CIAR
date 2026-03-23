@@ -3,7 +3,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,113 +15,125 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Schedule, ClassRoom, Teacher } from '@/lib/types'
-import { FormEvent } from 'react'
+import { ClassRoom, Teacher } from '@/lib/types'
 
-interface Props {
+interface AddScheduleDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   classes: ClassRoom[]
   teachers: Teacher[]
-  onSubmit: (schedule: Schedule) => void
+  onSubmit: (data: any) => void
 }
 
-export function AddScheduleDialog({ open, onOpenChange, classes, teachers, onSubmit }: Props) {
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+export function AddScheduleDialog({
+  open,
+  onOpenChange,
+  classes,
+  teachers,
+  onSubmit,
+}: AddScheduleDialogProps) {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const fd = new FormData(e.currentTarget)
-
-    const schedule: Schedule = {
-      id: Math.random().toString(36).substr(2, 9),
-      classId: fd.get('classId') as string,
-      teacherId: fd.get('teacherId') as string,
-      subject: fd.get('subject') as string,
-      room: fd.get('room') as string,
-      dayOfWeek: fd.get('dayOfWeek') as string,
-      startTime: fd.get('startTime') as string,
-      endTime: fd.get('endTime') as string,
-    }
-    onSubmit(schedule)
+    onSubmit({
+      id: `S${Math.floor(Math.random() * 10000)}`,
+      classId: fd.get('classId'),
+      subject: fd.get('subject'),
+      teacherId: fd.get('teacherId'),
+      room: fd.get('room'),
+      dayOfWeek: fd.get('dayOfWeek'),
+      startTime: fd.get('startTime'),
+      endTime: fd.get('endTime'),
+    })
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="sm:max-w-[425px] bg-card">
         <DialogHeader>
-          <DialogTitle>Adicionar Aula (Cronograma)</DialogTitle>
+          <DialogTitle>Nova Alocação de Horário</DialogTitle>
+          <DialogDescription>Adicione uma nova disciplina à grade de uma turma.</DialogDescription>
         </DialogHeader>
-        <form id="schedule-form" onSubmit={handleSubmit} className="space-y-4 mt-2">
+
+        <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+          <div className="space-y-2">
+            <Label>Turma</Label>
+            <Select name="classId" required>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a turma..." />
+              </SelectTrigger>
+              <SelectContent>
+                {classes.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Disciplina</Label>
+            <Input name="subject" required placeholder="Ex: Matemática Aplicada" />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Professor</Label>
+            <Select name="teacherId" required>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o professor..." />
+              </SelectTrigger>
+              <SelectContent>
+                {teachers.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <Label>Turma</Label>
-              <Select name="classId" required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {classes.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label>Professor</Label>
-              <Select name="teacherId" required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {teachers.map((t) => (
-                    <SelectItem key={t.id} value={t.id}>
-                      {t.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label>Disciplina</Label>
-              <Input name="subject" required />
-            </div>
-            <div className="space-y-1">
-              <Label>Sala/Local</Label>
-              <Input name="room" required />
-            </div>
-            <div className="space-y-1">
+            <div className="space-y-2">
               <Label>Dia da Semana</Label>
               <Select name="dayOfWeek" required>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Dia..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'].map((d) => (
-                    <SelectItem key={d} value={d}>
-                      {d}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="Segunda">Segunda</SelectItem>
+                  <SelectItem value="Terça">Terça</SelectItem>
+                  <SelectItem value="Quarta">Quarta</SelectItem>
+                  <SelectItem value="Quinta">Quinta</SelectItem>
+                  <SelectItem value="Sexta">Sexta</SelectItem>
+                  <SelectItem value="Sábado">Sábado</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1">
-              <Label>Início / Fim</Label>
-              <div className="flex gap-2">
-                <Input name="startTime" type="time" required />
-                <Input name="endTime" type="time" required />
-              </div>
+            <div className="space-y-2">
+              <Label>Sala / Lab</Label>
+              <Input name="room" required placeholder="Ex: Sala 101" />
             </div>
           </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Horário Inicial</Label>
+              <Input type="time" name="startTime" required />
+            </div>
+            <div className="space-y-2">
+              <Label>Horário Final</Label>
+              <Input type="time" name="endTime" required />
+            </div>
+          </div>
+
+          <div className="pt-4 flex justify-end gap-2 border-t border-border">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit">Salvar Horário</Button>
+          </div>
         </form>
-        <DialogFooter>
-          <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
-          <Button type="submit" form="schedule-form">
-            Salvar Aula
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

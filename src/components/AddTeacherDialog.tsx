@@ -1,288 +1,194 @@
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { Teacher } from '@/lib/types'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { FormEvent, useState } from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Separator } from '@/components/ui/separator'
 
-interface Props {
+const teacherSchema = z.object({
+  name: z.string().min(3, 'Nome obrigatório'),
+  email: z.string().email('E-mail inválido'),
+  phone: z.string().min(10, 'Telefone obrigatório'),
+  cpf: z.string().min(11, 'CPF obrigatório'),
+  rg: z.string().min(5, 'RG obrigatório'),
+  subjects: z.string().min(2, 'Especifique as disciplinas (separadas por vírgula)'),
+  workload: z.coerce.number().min(1, 'Carga horária obrigatória'),
+})
+
+interface AddTeacherDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSuccess: (teacher: Teacher) => void
 }
 
-export function AddTeacherDialog({ open, onOpenChange, onSuccess }: Props) {
-  const [activeTab, setActiveTab] = useState('pessoais')
+export function AddTeacherDialog({ open, onOpenChange, onSuccess }: AddTeacherDialogProps) {
+  const form = useForm<z.infer<typeof teacherSchema>>({
+    resolver: zodResolver(teacherSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
+      cpf: '',
+      rg: '',
+      subjects: '',
+      workload: 20,
+    },
+  })
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const fd = new FormData(e.currentTarget)
-
-    const teacher: Teacher = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: fd.get('name') as string,
-      email: fd.get('email') as string,
-      phone: fd.get('phone') as string,
-      cpf: fd.get('cpf') as string,
-      rg: fd.get('rg') as string,
-      subjects: (fd.get('subjects') as string).split(',').map((s) => s.trim()),
-      workload: Number(fd.get('workload')),
+  const onSubmit = (data: z.infer<typeof teacherSchema>) => {
+    const newTeacher: Teacher = {
+      id: `T${Math.floor(Math.random() * 10000)}`,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      cpf: data.cpf,
+      rg: data.rg,
+      subjects: data.subjects.split(',').map((s) => s.trim()),
+      workload: data.workload,
       status: 'Ativo',
       avatar: `https://img.usecurling.com/ppl/thumbnail?seed=${Math.floor(Math.random() * 100)}`,
-      address: {
-        zipCode: fd.get('zipCode') as string,
-        street: fd.get('street') as string,
-        number: fd.get('number') as string,
-        neighborhood: fd.get('neighborhood') as string,
-        city: fd.get('city') as string,
-        state: fd.get('state') as string,
-      },
     }
-    onSuccess(teacher)
+
+    onSuccess(newTeacher)
     onOpenChange(false)
-    setActiveTab('pessoais')
+    form.reset()
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col p-0 gap-0 overflow-hidden bg-white sm:rounded-xl">
-        <DialogHeader className="px-6 py-4 border-b border-zinc-200 bg-zinc-50/50 shrink-0">
-          <DialogTitle className="text-lg font-bold text-zinc-900">Registro de Docente</DialogTitle>
-          <p className="text-xs text-zinc-500 mt-1">Cadastro completo organizado por módulos.</p>
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto bg-card">
+        <DialogHeader>
+          <DialogTitle>Cadastro de Docente</DialogTitle>
+          <DialogDescription>Preencha os dados do novo professor da instituição.</DialogDescription>
         </DialogHeader>
 
-        <form
-          id="teacher-form"
-          onSubmit={handleSubmit}
-          className="flex flex-col flex-1 overflow-hidden"
-        >
-          <div className="flex flex-1 overflow-hidden">
-            <Tabs
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="flex-1 flex flex-row overflow-hidden"
-              orientation="vertical"
-            >
-              <div className="w-48 border-r border-zinc-200 bg-zinc-50/30 p-4 shrink-0 overflow-y-auto">
-                <TabsList className="flex flex-col h-auto w-full bg-transparent p-0 gap-1 items-stretch">
-                  <TabsTrigger
-                    value="pessoais"
-                    className="justify-start px-3 py-2 h-9 text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:font-semibold border border-transparent data-[state=active]:border-zinc-200"
-                  >
-                    Identificação
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="docs"
-                    className="justify-start px-3 py-2 h-9 text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:font-semibold border border-transparent data-[state=active]:border-zinc-200"
-                  >
-                    Documentação
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="endereco"
-                    className="justify-start px-3 py-2 h-9 text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:font-semibold border border-transparent data-[state=active]:border-zinc-200"
-                  >
-                    Endereço Principal
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="academico"
-                    className="justify-start px-3 py-2 h-9 text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:font-semibold border border-transparent data-[state=active]:border-zinc-200"
-                  >
-                    Alocação Acadêmica
-                  </TabsTrigger>
-                </TabsList>
-              </div>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome Completo</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex: Dr. Roberto Lemos" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <ScrollArea className="flex-1 bg-white">
-                <div className="p-6">
-                  <TabsContent value="pessoais" className="m-0 space-y-6 animate-fade-in">
-                    <div>
-                      <h3 className="text-sm font-semibold text-zinc-900 mb-1">Dados Básicos</h3>
-                      <Separator className="mb-4" />
-                      <div className="grid grid-cols-1 gap-4">
-                        <div className="space-y-1.5">
-                          <Label htmlFor="name" className="text-xs">
-                            Nome Completo *
-                          </Label>
-                          <Input id="name" name="name" className="h-9 text-xs" required />
-                        </div>
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-semibold text-zinc-900 mb-1">Contato</h3>
-                      <Separator className="mb-4" />
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <Label htmlFor="email" className="text-xs">
-                            E-mail Profissional *
-                          </Label>
-                          <Input
-                            id="email"
-                            name="email"
-                            type="email"
-                            className="h-9 text-xs"
-                            required
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label htmlFor="phone" className="text-xs">
-                            Telefone / Celular
-                          </Label>
-                          <Input id="phone" name="phone" className="h-9 text-xs" />
-                        </div>
-                      </div>
-                    </div>
-                  </TabsContent>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="cpf"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CPF</FormLabel>
+                    <FormControl>
+                      <Input placeholder="000.000.000-00" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                  <TabsContent value="docs" className="m-0 space-y-6 animate-fade-in">
-                    <div>
-                      <h3 className="text-sm font-semibold text-zinc-900 mb-1">
-                        Documentos Oficiais
-                      </h3>
-                      <Separator className="mb-4" />
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <Label htmlFor="cpf" className="text-xs">
-                            CPF *
-                          </Label>
-                          <Input
-                            id="cpf"
-                            name="cpf"
-                            pattern="\d{3}\.\d{3}\.\d{3}-\d{2}"
-                            placeholder="000.000.000-00"
-                            className="h-9 text-xs font-mono"
-                            required
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label htmlFor="rg" className="text-xs">
-                            RG / Órgão Emissor
-                          </Label>
-                          <Input
-                            id="rg"
-                            name="rg"
-                            placeholder="00.000.000-0"
-                            className="h-9 text-xs"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </TabsContent>
+              <FormField
+                control={form.control}
+                name="rg"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>RG</FormLabel>
+                    <FormControl>
+                      <Input placeholder="00.000.000-0" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-                  <TabsContent value="endereco" className="m-0 space-y-6 animate-fade-in">
-                    <div>
-                      <h3 className="text-sm font-semibold text-zinc-900 mb-1">Localização</h3>
-                      <Separator className="mb-4" />
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div className="space-y-1.5 md:col-span-1">
-                          <Label htmlFor="zipCode" className="text-xs">
-                            CEP
-                          </Label>
-                          <Input
-                            id="zipCode"
-                            name="zipCode"
-                            placeholder="00000-000"
-                            className="h-9 text-xs"
-                          />
-                        </div>
-                        <div className="space-y-1.5 md:col-span-3">
-                          <Label htmlFor="street" className="text-xs">
-                            Logradouro
-                          </Label>
-                          <Input id="street" name="street" className="h-9 text-xs" />
-                        </div>
-                        <div className="space-y-1.5 md:col-span-1">
-                          <Label htmlFor="number" className="text-xs">
-                            Número
-                          </Label>
-                          <Input id="number" name="number" className="h-9 text-xs" />
-                        </div>
-                        <div className="space-y-1.5 md:col-span-3">
-                          <Label htmlFor="neighborhood" className="text-xs">
-                            Bairro
-                          </Label>
-                          <Input id="neighborhood" name="neighborhood" className="h-9 text-xs" />
-                        </div>
-                        <div className="space-y-1.5 md:col-span-3">
-                          <Label htmlFor="city" className="text-xs">
-                            Cidade
-                          </Label>
-                          <Input id="city" name="city" className="h-9 text-xs" />
-                        </div>
-                        <div className="space-y-1.5 md:col-span-1">
-                          <Label htmlFor="state" className="text-xs">
-                            UF
-                          </Label>
-                          <Input
-                            id="state"
-                            name="state"
-                            maxLength={2}
-                            placeholder="SP"
-                            className="h-9 text-xs uppercase"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </TabsContent>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>E-mail</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="email@instituicao.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                  <TabsContent value="academico" className="m-0 space-y-6 animate-fade-in">
-                    <div>
-                      <h3 className="text-sm font-semibold text-zinc-900 mb-1">
-                        Parametrização Acadêmica
-                      </h3>
-                      <Separator className="mb-4" />
-                      <div className="bg-zinc-50 border border-zinc-200 p-4 rounded-md grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="space-y-1.5 md:col-span-1">
-                          <Label htmlFor="workload" className="text-xs">
-                            Carga Horária (h/sem) *
-                          </Label>
-                          <Input
-                            id="workload"
-                            name="workload"
-                            type="number"
-                            min="1"
-                            max="80"
-                            className="h-9 text-xs"
-                            required
-                          />
-                        </div>
-                        <div className="space-y-1.5 md:col-span-2">
-                          <Label htmlFor="subjects" className="text-xs">
-                            Especialidades (separadas por vírgula) *
-                          </Label>
-                          <Input
-                            id="subjects"
-                            name="subjects"
-                            placeholder="Ex: Engenharia de Software, Algoritmos"
-                            className="h-9 text-xs"
-                            required
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </TabsContent>
-                </div>
-              </ScrollArea>
-            </Tabs>
-          </div>
-        </form>
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Telefone / WhatsApp</FormLabel>
+                    <FormControl>
+                      <Input placeholder="(00) 00000-0000" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-        <DialogFooter className="px-6 py-3 border-t border-zinc-200 bg-zinc-50/80 shrink-0">
-          <Button variant="outline" type="button" size="sm" onClick={() => onOpenChange(false)}>
-            Cancelar Operação
-          </Button>
-          <Button type="submit" form="teacher-form" size="sm" className="font-semibold shadow-sm">
-            Salvar Registro
-          </Button>
-        </DialogFooter>
+            <FormField
+              control={form.control}
+              name="subjects"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Especialidades / Disciplinas (separadas por vírgula)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex: Cálculo I, Física Aplicada" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="workload"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Carga Horária Semanal (h)</FormLabel>
+                  <FormControl>
+                    <Input type="number" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="pt-4 flex justify-end gap-2 border-t border-border">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit">Salvar Docente</Button>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   )

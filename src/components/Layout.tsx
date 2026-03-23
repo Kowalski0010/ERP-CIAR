@@ -13,13 +13,19 @@ export default function Layout() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (isAuthenticated) {
-      if (currentUserRole === 'Aluno' && location.pathname === '/') {
+    if (isAuthenticated && location.pathname === '/') {
+      if (currentUserRole === 'Aluno') {
         navigate('/student/dashboard', { replace: true })
-      } else if (currentUserRole === 'Responsável' && location.pathname === '/') {
+      } else if (currentUserRole === 'Responsável') {
         navigate('/parent/dashboard', { replace: true })
-      } else if (currentUserRole === 'Paciente' && location.pathname === '/') {
+      } else if (currentUserRole === 'Paciente') {
         navigate('/portal', { replace: true })
+      } else if (currentUserRole === 'Secretaria') {
+        navigate('/secretaria/efetuar-matricula', { replace: true })
+      } else if (currentUserRole === 'Financeiro') {
+        navigate('/financial/payments', { replace: true })
+      } else if (currentUserRole === 'Professor') {
+        navigate('/academic/agenda', { replace: true })
       }
     }
   }, [currentUserRole, location.pathname, navigate, isAuthenticated])
@@ -49,8 +55,11 @@ export default function Layout() {
   }
 
   const allowedPaths = rolePermissions[currentUserRole] || ['/']
+
+  // Admin and Gestao bypass restrictions. Others check prefix.
   const isAllowed =
-    allowedPaths.includes('/') ||
+    currentUserRole === 'Admin' ||
+    currentUserRole === 'Gestao' ||
     allowedPaths.some((p) => location.pathname.startsWith(p)) ||
     location.pathname === '/'
 
@@ -62,13 +71,19 @@ export default function Layout() {
           ? '/parent/dashboard'
           : currentUserRole === 'Paciente'
             ? '/portal'
-            : '/'
+            : currentUserRole === 'Secretaria'
+              ? '/secretaria/efetuar-matricula'
+              : currentUserRole === 'Financeiro'
+                ? '/financial/payments'
+                : currentUserRole === 'Professor'
+                  ? '/academic/agenda'
+                  : '/'
 
     return (
-      <div className="flex min-h-screen w-full flex-col items-center justify-center bg-[#f4f6f8] font-sans p-4 text-center">
-        <ShieldAlert className="h-16 w-16 text-rose-500 mb-4" />
-        <h1 className="text-2xl font-bold text-zinc-900">Acesso Negado</h1>
-        <p className="text-zinc-500 mt-2 mb-6 max-w-sm mx-auto">
+      <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/30 dark:bg-background font-sans p-4 text-center">
+        <ShieldAlert className="h-16 w-16 text-destructive mb-4" />
+        <h1 className="text-2xl font-bold text-foreground">Acesso Negado</h1>
+        <p className="text-muted-foreground mt-2 mb-6 max-w-sm mx-auto">
           Seu perfil ({currentUserRole}) não possui permissão para acessar esta área restrita.
         </p>
         <div className="flex gap-4">
@@ -83,7 +98,7 @@ export default function Layout() {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-[#f4f6f8] font-sans overflow-hidden">
+      <div className="flex min-h-screen w-full bg-muted/30 dark:bg-background font-sans overflow-hidden text-foreground">
         <AppSidebar />
         <SidebarInset className="flex flex-col flex-1 w-full min-w-0 bg-transparent">
           <AppHeader />

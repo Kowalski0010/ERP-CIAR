@@ -101,11 +101,11 @@ export default function Patients() {
     <div className="space-y-6 animate-fade-in-up pb-8 max-w-[1400px] mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-2">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 flex items-center gap-2">
-            <UserCircle className="h-7 w-7 text-zinc-400" />
+          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <UserCircle className="h-7 w-7 text-muted-foreground" />
             Pacientes (Clínica ACR)
           </h1>
-          <p className="text-sm text-zinc-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Gerencie perfis e dados cadastrais de pacientes do módulo de clínica.
           </p>
         </div>
@@ -121,22 +121,22 @@ export default function Patients() {
         </Button>
       </div>
 
-      <Card className="border-zinc-200 shadow-sm p-3 bg-white">
+      <Card className="border-border shadow-sm p-3 bg-card">
         <div className="relative max-w-md">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por nome ou e-mail..."
-            className="pl-9 h-10 bg-zinc-50/50 border-zinc-200 focus-visible:border-zinc-300 w-full text-sm"
+            className="pl-9 h-10 bg-muted/50 border-input w-full text-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </Card>
 
-      <Card className="border-zinc-200 shadow-sm bg-white overflow-hidden">
+      <Card className="border-border shadow-sm bg-card overflow-hidden">
         <CardContent className="p-0">
           <Table className="table-compact">
-            <TableHeader className="bg-zinc-50/80">
+            <TableHeader className="bg-muted/50">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-[120px]">Código</TableHead>
                 <TableHead>Nome Completo</TableHead>
@@ -147,28 +147,28 @@ export default function Patients() {
             </TableHeader>
             <TableBody>
               {filteredPatients.map((p) => (
-                <TableRow key={p.id} className="hover:bg-zinc-50/50 transition-colors">
-                  <TableCell className="font-mono text-xs text-zinc-500 font-medium">
+                <TableRow key={p.id} className="hover:bg-muted/30 transition-colors">
+                  <TableCell className="font-mono text-xs text-muted-foreground font-medium">
                     {p.id}
                   </TableCell>
-                  <TableCell className="font-semibold text-zinc-900 text-sm">{p.name}</TableCell>
+                  <TableCell className="font-semibold text-foreground text-sm">{p.name}</TableCell>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="text-xs text-zinc-700">{p.email}</span>
-                      <span className="text-[10px] text-zinc-500">{p.phone}</span>
+                      <span className="text-xs text-foreground/80">{p.email}</span>
+                      <span className="text-[10px] text-muted-foreground">{p.phone}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-xs text-zinc-600">
+                  <TableCell className="text-xs text-foreground/70">
                     {new Date(p.birthDate).toLocaleDateString('pt-BR')}
                   </TableCell>
-                  <TableCell className="text-xs text-zinc-600">
+                  <TableCell className="text-xs text-foreground/70">
                     {new Date(p.registrationDate).toLocaleDateString('pt-BR')}
                   </TableCell>
                 </TableRow>
               ))}
               {filteredPatients.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-zinc-500">
+                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                     Nenhum paciente encontrado.
                   </TableCell>
                 </TableRow>
@@ -179,7 +179,7 @@ export default function Patients() {
       </Card>
 
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="max-w-md bg-white max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md bg-card max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Cadastrar Novo Paciente</DialogTitle>
           </DialogHeader>
@@ -261,7 +261,7 @@ export default function Patients() {
                 )}
               />
 
-              <DialogFooter className="pt-2 border-t border-zinc-100">
+              <DialogFooter className="pt-2 border-t border-border">
                 <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>
                   Cancelar
                 </Button>

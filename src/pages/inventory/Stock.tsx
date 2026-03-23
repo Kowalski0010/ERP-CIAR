@@ -134,8 +134,10 @@ export default function Stock() {
     <div className="space-y-6 animate-fade-in-up pb-8 max-w-[1400px] mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-2">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Estoque e Patrimônio</h1>
-          <p className="text-sm text-zinc-500 mt-1">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            Estoque e Patrimônio
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Controle de insumos, materiais pedagógicos e equipamentos.
           </p>
         </div>
@@ -145,7 +147,8 @@ export default function Stock() {
             className="shadow-sm h-10 px-4"
             onClick={() => setIsMovementOpen(true)}
           >
-            <ArrowRightLeft className="mr-2 h-4 w-4 text-blue-600" /> Movimentação Lote
+            <ArrowRightLeft className="mr-2 h-4 w-4 text-blue-600 dark:text-blue-400" />{' '}
+            Movimentação Lote
           </Button>
           <Button
             className="shadow-sm h-10 px-4 group"
@@ -160,21 +163,21 @@ export default function Stock() {
         </div>
       </div>
 
-      <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-3">
+      <div className="bg-card border border-border rounded-lg shadow-sm p-3">
         <div className="relative max-w-md">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por nome ou SKU..."
-            className="pl-9 h-10 bg-zinc-50/50 border-zinc-200 focus-visible:border-zinc-300 w-full text-sm"
+            className="pl-9 h-10 bg-muted/50 border-input w-full text-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
 
-      <div className="bg-white border border-zinc-200 rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
         <Table className="table-compact">
-          <TableHeader className="bg-zinc-50/50">
+          <TableHeader className="bg-muted/50">
             <TableRow className="hover:bg-transparent">
               <TableHead className="w-[100px]">Código</TableHead>
               <TableHead>Descrição do Item</TableHead>
@@ -189,32 +192,36 @@ export default function Stock() {
             {filtered.map((prod) => {
               const isLowStock = prod.currentQuantity <= prod.minQuantity
               return (
-                <TableRow key={prod.id} className="hover:bg-zinc-50/80 transition-colors group">
-                  <TableCell className="font-mono text-xs text-zinc-500 font-medium">
+                <TableRow key={prod.id} className="hover:bg-muted/30 transition-colors group">
+                  <TableCell className="font-mono text-xs text-muted-foreground font-medium">
                     {prod.sku}
                   </TableCell>
-                  <TableCell className="font-semibold text-zinc-900 text-xs">{prod.name}</TableCell>
-                  <TableCell className="text-xs text-zinc-600">
-                    <Badge variant="secondary" className="bg-zinc-100 text-zinc-600 px-1.5 py-0">
+                  <TableCell className="font-semibold text-foreground text-xs">
+                    {prod.name}
+                  </TableCell>
+                  <TableCell className="text-xs text-foreground/80">
+                    <Badge variant="secondary" className="bg-muted text-foreground px-1.5 py-0">
                       {prod.category}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right text-xs text-zinc-600">{prod.unit}</TableCell>
-                  <TableCell className="text-right font-bold text-zinc-900 text-sm">
+                  <TableCell className="text-right text-xs text-foreground/80">
+                    {prod.unit}
+                  </TableCell>
+                  <TableCell className="text-right font-bold text-foreground text-sm">
                     {prod.currentQuantity}
                   </TableCell>
                   <TableCell className="text-center">
                     {isLowStock ? (
                       <Badge
                         variant="outline"
-                        className="border-rose-200 bg-rose-50 text-rose-700 whitespace-nowrap px-1.5 py-0"
+                        className="border-rose-200 bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 whitespace-nowrap px-1.5 py-0"
                       >
                         <AlertTriangle className="w-3 h-3 mr-1" /> Crítico
                       </Badge>
                     ) : (
                       <Badge
                         variant="outline"
-                        className="border-emerald-200 bg-emerald-50 text-emerald-700 px-1.5 py-0"
+                        className="border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 px-1.5 py-0"
                       >
                         Normal
                       </Badge>
@@ -224,7 +231,7 @@ export default function Stock() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 text-xs opacity-0 group-hover:opacity-100 transition-opacity text-blue-600 font-medium"
+                      className="h-8 text-xs opacity-0 group-hover:opacity-100 transition-opacity text-blue-600 dark:text-blue-400 font-medium"
                       onClick={() => openMovementForProduct(prod.id)}
                     >
                       Mover
@@ -239,7 +246,7 @@ export default function Stock() {
 
       {/* Dialog Novo Item */}
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto bg-card">
           <DialogHeader>
             <DialogTitle>Cadastrar Novo Item</DialogTitle>
           </DialogHeader>
@@ -266,7 +273,11 @@ export default function Stock() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Unidade de Medida</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione..." />
@@ -305,18 +316,24 @@ export default function Stock() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Categoria</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      value={field.value}
+                    >
                       <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione..." />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Material de Escritório">Material de Escritório</SelectItem>
-                          <SelectItem value="Pedagógico">Pedagógico / Didático</SelectItem>
-                          <SelectItem value="Limpeza">Limpeza e Manutenção</SelectItem>
-                          <SelectItem value="TI e Eletrônicos">TI e Eletrônicos</SelectItem>
-                        </SelectContent>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Material de Escritório">
+                          Material de Escritório
+                        </SelectItem>
+                        <SelectItem value="Pedagógico">Pedagógico / Didático</SelectItem>
+                        <SelectItem value="Limpeza">Limpeza e Manutenção</SelectItem>
+                        <SelectItem value="TI e Eletrônicos">TI e Eletrônicos</SelectItem>
+                      </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>
@@ -353,7 +370,7 @@ export default function Stock() {
                 />
               </div>
 
-              <div className="pt-4 flex justify-end gap-2 border-t border-zinc-100">
+              <div className="pt-4 flex justify-end gap-2 border-t border-border">
                 <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>
                   Cancelar
                 </Button>
@@ -372,7 +389,7 @@ export default function Stock() {
           if (!open) setSelectedProductId('')
         }}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md bg-card">
           <DialogHeader>
             <DialogTitle>Registrar Movimentação</DialogTitle>
           </DialogHeader>
@@ -426,7 +443,7 @@ export default function Stock() {
                 className="h-10"
               />
             </div>
-            <div className="pt-4 flex justify-end gap-2 border-t border-zinc-100">
+            <div className="pt-4 flex justify-end gap-2 border-t border-border">
               <Button type="button" variant="outline" onClick={() => setIsMovementOpen(false)}>
                 Cancelar
               </Button>

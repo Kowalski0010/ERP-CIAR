@@ -148,11 +148,11 @@ export default function UserManagement() {
     <div className="space-y-6 animate-fade-in-up pb-8 max-w-[1200px] mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-2">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 flex items-center gap-2">
-            <Shield className="h-7 w-7 text-zinc-400" />
+          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <Shield className="h-7 w-7 text-muted-foreground" />
             Gestão de Usuários e Acessos
           </h1>
-          <p className="text-sm text-zinc-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Cadastre novos perfis, defina níveis de acesso e controle senhas ativas.
           </p>
         </div>
@@ -171,22 +171,22 @@ export default function UserManagement() {
         </Button>
       </div>
 
-      <Card className="border-zinc-200 shadow-sm p-3 bg-white">
+      <Card className="border-border shadow-sm p-3 bg-card">
         <div className="relative max-w-md">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por nome, e-mail ou perfil..."
-            className="pl-9 h-10 bg-zinc-50/50 border-zinc-200 focus-visible:border-zinc-300 w-full text-sm"
+            className="pl-9 h-10 bg-muted/50 border-input focus-visible:border-ring w-full text-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </Card>
 
-      <Card className="border-zinc-200 shadow-sm bg-white overflow-hidden">
+      <Card className="border-border shadow-sm bg-card overflow-hidden">
         <CardContent className="p-0">
           <Table className="table-compact">
-            <TableHeader className="bg-zinc-50/80">
+            <TableHeader className="bg-muted/50">
               <TableRow className="hover:bg-transparent">
                 <TableHead>Nome e Contato</TableHead>
                 <TableHead className="w-[160px]">Perfil de Acesso</TableHead>
@@ -197,19 +197,19 @@ export default function UserManagement() {
             </TableHeader>
             <TableBody>
               {filteredUsers.map((user) => (
-                <TableRow key={user.id} className="hover:bg-zinc-50/50 transition-colors group">
+                <TableRow key={user.id} className="hover:bg-muted/30 transition-colors group">
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="font-semibold text-zinc-900 text-sm">{user.name}</span>
-                      <span className="text-xs text-zinc-500">{user.email}</span>
+                      <span className="font-semibold text-foreground text-sm">{user.name}</span>
+                      <span className="text-xs text-muted-foreground">{user.email}</span>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="secondary" className="bg-zinc-100 text-zinc-700 font-medium">
+                    <Badge variant="secondary" className="bg-muted text-foreground font-medium">
                       {user.role}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-xs text-zinc-500 font-mono">
+                  <TableCell className="text-xs text-muted-foreground font-mono">
                     {user.lastLogin
                       ? new Date(user.lastLogin).toLocaleString('pt-BR', {
                           dateStyle: 'short',
@@ -222,8 +222,8 @@ export default function UserManagement() {
                       variant="outline"
                       className={
                         user.status === 'Ativo'
-                          ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                          : 'border-rose-200 bg-rose-50 text-rose-700'
+                          ? 'border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400'
+                          : 'border-rose-200 bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400'
                       }
                     >
                       {user.status}
@@ -234,7 +234,7 @@ export default function UserManagement() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-zinc-500 hover:text-blue-600"
+                        className="h-8 w-8 text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400"
                         title="Redefinir Senha"
                         onClick={handleResetPassword}
                       >
@@ -243,7 +243,7 @@ export default function UserManagement() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-zinc-500 hover:text-zinc-900"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
                         title="Editar Permissões"
                         onClick={() => {
                           setEditUser(user)
@@ -255,7 +255,7 @@ export default function UserManagement() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className={`h-8 w-8 ${user.status === 'Ativo' ? 'text-zinc-500 hover:text-rose-600' : 'text-rose-500 hover:text-emerald-600'}`}
+                        className={`h-8 w-8 ${user.status === 'Ativo' ? 'text-muted-foreground hover:text-rose-600 dark:hover:text-rose-400' : 'text-rose-500 hover:text-emerald-600 dark:hover:text-emerald-400'}`}
                         title={user.status === 'Ativo' ? 'Suspender Acesso' : 'Reativar Acesso'}
                         onClick={() => handleToggleStatus(user.id, user.status)}
                       >
@@ -267,7 +267,7 @@ export default function UserManagement() {
               ))}
               {filteredUsers.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-zinc-500">
+                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                     Nenhum usuário encontrado para a busca.
                   </TableCell>
                 </TableRow>
@@ -284,7 +284,7 @@ export default function UserManagement() {
           if (!o) setEditUser(null)
         }}
       >
-        <DialogContent className="max-w-md bg-white max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md bg-card max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editUser ? 'Atualizar Dados de Acesso' : 'Cadastrar Novo Usuário'}
@@ -331,7 +331,11 @@ export default function UserManagement() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Perfil de Permissão</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      value={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione..." />
@@ -353,12 +357,12 @@ export default function UserManagement() {
               />
 
               {!editUser && (
-                <div className="bg-blue-50 border border-blue-200 text-blue-800 text-xs p-3 rounded-md">
-                  Uma senha forte temporária será gerada e enviada para o e-mail cadastrado. O usuário
-                  deverá alterá-la no primeiro acesso.
+                <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 text-blue-800 dark:text-blue-300 text-xs p-3 rounded-md">
+                  Uma senha forte temporária será gerada e enviada para o e-mail cadastrado. O
+                  usuário deverá alterá-la no primeiro acesso.
                 </div>
               )}
-              <div className="pt-4 flex justify-end gap-2 border-t border-zinc-100">
+              <div className="pt-4 flex justify-end gap-2 border-t border-border">
                 <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>
                   Cancelar
                 </Button>

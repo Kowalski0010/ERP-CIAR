@@ -117,7 +117,11 @@ export function AppHeader() {
         {/* Notifications Popover */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative h-8 w-8 text-zinc-700 dark:text-zinc-300">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative h-8 w-8 text-zinc-700 dark:text-zinc-300"
+            >
               <Bell className="h-4 w-4" />
               {unreadCount > 0 && (
                 <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-zinc-950"></span>
@@ -126,9 +130,14 @@ export function AppHeader() {
           </PopoverTrigger>
           <PopoverContent className="w-80 p-0" align="end">
             <div className="p-3 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/80 dark:bg-zinc-900/80">
-              <span className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">Notificações</span>
+              <span className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">
+                Notificações
+              </span>
               {unreadCount > 0 && (
-                <Badge variant="secondary" className="text-[10px] bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700">
+                <Badge
+                  variant="secondary"
+                  className="text-[10px] bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700"
+                >
                   {unreadCount} novas
                 </Badge>
               )}

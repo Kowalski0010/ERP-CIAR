@@ -114,6 +114,14 @@ export type Payment = {
   totalInstallments?: number
 }
 
+export type CashFlowTransaction = {
+  id: string
+  date: string
+  description: string
+  type: 'Entrada' | 'Saída'
+  amount: number
+}
+
 export type FinancialPlan = {
   installments: number
   value: number
@@ -415,6 +423,7 @@ export type AppState = {
   students: Student[]
   leads: Lead[]
   payments: Payment[]
+  manualTransactions: CashFlowTransaction[]
   teachers: Teacher[]
   classes: ClassRoom[]
   schedules: Schedule[]

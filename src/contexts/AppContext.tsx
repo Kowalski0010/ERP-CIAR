@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react'
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
 import {
   AppState,
   Student,
@@ -38,6 +38,7 @@ import {
   AcrAppointment,
   AcrAttachment,
   SystemUser,
+  CashFlowTransaction,
 } from '@/lib/types'
 import {
   mockStudents,
@@ -87,6 +88,7 @@ interface AppContextType extends AppState {
   updateStudent: (id: string, partial: Partial<Student>) => void
   suspendStudent: (studentId: string, reason: string) => void
   registerPayment: (payment: Payment) => void
+  addManualTransaction: (tx: Omit<CashFlowTransaction, 'id'>) => void
   addTeacher: (teacher: Teacher) => void
   addClass: (cls: Partial<ClassRoom>) => void
   updateClass: (id: string, cls: Partial<ClassRoom>) => void
@@ -148,8 +150,59 @@ interface AppContextType extends AppState {
 const AppContext = createContext<AppContextType | undefined>(undefined)
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [currentUserRole, setCurrentUserRole] = useState<Role>('Admin')
+  // Persist authentication state across reloads for shared links stability
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('sio_auth') === 'true'
+    } catch {
+      return false
+    }
+  })
+
+  const [currentUserRole, setCurrentUserRoleState] = useState<Role>(() => {
+    try {
+      return (localStorage.getItem('sio_role') as Role) || 'Admin'
+    } catch {
+      return 'Admin'
+    }
+  })
+
+  const setCurrentUserRole = (role: Role) => {
+    setCurrentUserRoleState(role)
+    try {
+      localStorage.setItem('sio_role', role)
+    } catch (e) {
+      console.warn('LocalStorage unavailable')
+    }
+  }
+
+  const login = (role?: Role) => {
+    setIsAuthenticated(true)
+    try {
+      localStorage.setItem('sio_auth', 'true')
+    } catch (e) {
+      console.warn('LocalStorage unavailable')
+    }
+    if (role) setCurrentUserRole(role)
+
+    addLog({
+      user: role || currentUserRole,
+      action: 'Acesso ao Sistema',
+      entity: 'Autenticação',
+      details: 'Login realizado com sucesso.',
+    })
+  }
+
+  const logout = () => {
+    setIsAuthenticated(false)
+    try {
+      localStorage.removeItem('sio_auth')
+      localStorage.removeItem('sio_role')
+    } catch (e) {
+      console.warn('LocalStorage unavailable')
+    }
+  }
+
   const [systemUsers, setSystemUsers] = useState<SystemUser[]>(mockSystemUsers)
   const [students, setStudents] = useState<Student[]>(mockStudents)
   const [leads, setLeads] = useState<Lead[]>(mockLeads)
@@ -168,6 +221,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [suppliers] = useState<Supplier[]>(mockSuppliers)
   const [purchaseOrders] = useState<PurchaseOrder[]>(mockOrders)
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(mockChatMessages)
+
+  const [manualTransactions, setManualTransactions] = useState<CashFlowTransaction[]>([
+    {
+      id: 'e1',
+      date: new Date().toISOString(),
+      description: 'Pagamento Fornecedor (Luz/Água)',
+      type: 'Saída',
+      amount: 450.0,
+    },
+    {
+      id: 'e2',
+      date: new Date(Date.now() - 86400000 * 2).toISOString(),
+      description: 'Manutenção Predial',
+      type: 'Saída',
+      amount: 150.0,
+    },
+  ])
 
   const [cursos, setCursos] = useState<Curso[]>(mockCursos)
   const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>(mockAvaliacoes)
@@ -194,20 +264,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const generateId = (prefix: string) => `${prefix}${Math.floor(Math.random() * 10000)}`
 
-  const login = (role?: Role) => {
-    setIsAuthenticated(true)
-    addLog({
-      user: role || currentUserRole,
-      action: 'Acesso ao Sistema',
-      entity: 'Autenticação',
-      details: 'Login realizado com sucesso.',
-    })
-  }
-
-  const logout = () => {
-    setIsAuthenticated(false)
-  }
-
   const addSystemUser = (user: Omit<SystemUser, 'id'>) => {
     setSystemUsers((prev) => [{ ...user, id: generateId('USR') }, ...prev])
     addLog({
@@ -223,6 +279,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       user: currentUserRole,
       action: 'Atualizou Usuário',
       entity: `Acessos ID: ${id}`,
+    })
+  }
+
+  const addManualTransaction = (tx: Omit<CashFlowTransaction, 'id'>) => {
+    setManualTransactions((prev) => [{ ...tx, id: generateId('TX-') }, ...prev])
+    addLog({
+      user: currentUserRole,
+      action: 'Lançamento Manual de Caixa',
+      entity: `Fluxo de Caixa: ${tx.description}`,
+      newValue: `R$ ${tx.amount} (${tx.type})`,
     })
   }
 
@@ -922,6 +988,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         students,
         leads,
         payments,
+        manualTransactions,
         teachers,
         classes,
         schedules,
@@ -959,6 +1026,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         updateStudent,
         suspendStudent,
         registerPayment,
+        addManualTransaction,
         addTeacher,
         addClass,
         updateClass,
