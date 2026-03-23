@@ -57,6 +57,7 @@ export default function UserManagement() {
 
   const form = useForm<z.infer<typeof userSchema>>({
     resolver: zodResolver(userSchema),
+    mode: 'onChange',
     defaultValues: {
       name: '',
       email: '',
@@ -331,11 +332,7 @@ export default function UserManagement() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Perfil de Permissão</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      value={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione..." />

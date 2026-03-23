@@ -42,6 +42,7 @@ export default function LibraryCatalog() {
 
   const form = useForm<z.infer<typeof bookSchema>>({
     resolver: zodResolver(bookSchema),
+    mode: 'onChange',
     defaultValues: {
       title: '',
       author: '',
@@ -92,11 +93,11 @@ export default function LibraryCatalog() {
     <div className="space-y-6 animate-fade-in-up pb-8 max-w-[1400px] mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-2">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 flex items-center gap-2">
-            <BookOpen className="h-7 w-7 text-zinc-400" />
+          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <BookOpen className="h-7 w-7 text-muted-foreground" />
             Catálogo do Acervo
           </h1>
-          <p className="text-sm text-zinc-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Gestão de livros e disponibilidade da biblioteca.
           </p>
         </div>
@@ -112,12 +113,12 @@ export default function LibraryCatalog() {
         </Button>
       </div>
 
-      <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-3 flex flex-col sm:flex-row gap-3 items-center">
+      <div className="bg-card border border-border rounded-lg shadow-sm p-3 flex flex-col sm:flex-row gap-3 items-center">
         <div className="relative flex-1 w-full max-w-md">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar título, autor ou ISBN..."
-            className="pl-9 h-10 bg-zinc-50/50 border-zinc-200 focus-visible:border-zinc-300 w-full text-sm"
+            className="pl-9 h-10 bg-muted/50 border-input focus-visible:border-ring w-full text-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -127,9 +128,9 @@ export default function LibraryCatalog() {
         </Button>
       </div>
 
-      <div className="bg-white border border-zinc-200 rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
         <Table className="table-compact">
-          <TableHeader className="bg-zinc-50/80">
+          <TableHeader className="bg-muted/50">
             <TableRow className="hover:bg-transparent">
               <TableHead className="w-[120px]">Cód/ISBN</TableHead>
               <TableHead>Título e Autor</TableHead>
@@ -140,25 +141,25 @@ export default function LibraryCatalog() {
           </TableHeader>
           <TableBody>
             {filteredBooks.map((b) => (
-              <TableRow key={b.id} className="hover:bg-zinc-50/50 transition-colors">
-                <TableCell className="font-mono text-xs text-zinc-500">{b.isbn}</TableCell>
+              <TableRow key={b.id} className="hover:bg-muted/30 transition-colors">
+                <TableCell className="font-mono text-xs text-muted-foreground">{b.isbn}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-3">
                     {b.coverUrl && (
                       <img
                         src={b.coverUrl}
                         alt="capa"
-                        className="w-8 h-10 object-cover rounded shadow-sm border border-zinc-200"
+                        className="w-8 h-10 object-cover rounded shadow-sm border border-border"
                       />
                     )}
                     <div className="flex flex-col">
-                      <span className="font-semibold text-zinc-900 text-sm">{b.title}</span>
-                      <span className="text-xs text-zinc-500">{b.author}</span>
+                      <span className="font-semibold text-foreground text-sm">{b.title}</span>
+                      <span className="text-xs text-muted-foreground">{b.author}</span>
                     </div>
                   </div>
                 </TableCell>
                 <TableCell className="text-center font-medium">{b.totalCopies}</TableCell>
-                <TableCell className="text-center font-bold text-blue-600">
+                <TableCell className="text-center font-bold text-blue-600 dark:text-blue-400">
                   {b.availableCopies}
                 </TableCell>
                 <TableCell className="text-center">
@@ -166,8 +167,8 @@ export default function LibraryCatalog() {
                     variant="outline"
                     className={
                       b.availableCopies > 0
-                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                        : 'border-rose-200 bg-rose-50 text-rose-700'
+                        ? 'border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400'
+                        : 'border-rose-200 bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400'
                     }
                   >
                     {b.availableCopies > 0 ? 'Disponível' : 'Indisponível'}
@@ -177,7 +178,7 @@ export default function LibraryCatalog() {
             ))}
             {filteredBooks.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-zinc-500">
+                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                   Nenhum livro encontrado.
                 </TableCell>
               </TableRow>
@@ -187,7 +188,7 @@ export default function LibraryCatalog() {
       </div>
 
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto bg-card">
           <DialogHeader>
             <DialogTitle>Cadastrar Novo Livro</DialogTitle>
           </DialogHeader>
@@ -251,7 +252,7 @@ export default function LibraryCatalog() {
                 />
               </div>
 
-              <div className="pt-4 flex justify-end gap-2 border-t border-zinc-100">
+              <div className="pt-4 flex justify-end gap-2 border-t border-border">
                 <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>
                   Cancelar
                 </Button>

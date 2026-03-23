@@ -1,42 +1,79 @@
-import { Button } from '@/components/ui/button'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { useToast } from '@/hooks/use-toast'
+import { useAppStore } from '@/contexts/AppContext'
+
+const schema = z.object({
+  name: z.string().min(3, 'Nome da disciplina obrigatório'),
+  workload: z.coerce.number().min(1, 'Carga horária deve ser maior que zero'),
+})
 
 export function DisciplinaForm({ onCancel }: { onCancel: () => void }) {
+  const { toast } = useToast()
+  const { addDisciplina } = useAppStore()
+
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    mode: 'onChange',
+    defaultValues: {
+      name: '',
+      workload: 40,
+    },
+  })
+
+  const onSubmit = (data: z.infer<typeof schema>) => {
+    addDisciplina(data)
+    toast({ title: 'Disciplina Salva', description: 'Registro criado com sucesso.' })
+    onCancel()
+  }
+
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault()
-        onCancel()
-      }}
-      className="space-y-4 max-w-2xl"
-    >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2 md:col-span-2">
-          <Label>Nome da Disciplina</Label>
-          <Input
-            required
-            placeholder="Ex: Algoritmos e Estrutura de Dados"
-            className="bg-muted/50"
-          />
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-w-2xl">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nome da Disciplina</FormLabel>
+              <FormControl>
+                <Input placeholder="Ex: Banco de Dados Aplicado" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="workload"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Carga Horária Semestral (h)</FormLabel>
+              <FormControl>
+                <Input type="number" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="flex justify-end gap-2 pt-4 border-t border-border">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancelar
+          </Button>
+          <Button type="submit">Salvar Registro</Button>
         </div>
-        <div className="space-y-2">
-          <Label>Carga Horária Período (h)</Label>
-          <Input required type="number" className="bg-muted/50" />
-        </div>
-        <div className="space-y-2">
-          <Label>Sigla / Código</Label>
-          <Input required placeholder="Ex: ALG-101" className="bg-muted/50 uppercase" />
-        </div>
-      </div>
-      <div className="flex justify-end gap-2 pt-4 border-t border-border">
-        <Button type="button" variant="outline" onClick={onCancel} className="shadow-sm">
-          Cancelar
-        </Button>
-        <Button type="submit" className="shadow-sm">
-          Salvar Disciplina
-        </Button>
-      </div>
-    </form>
+      </form>
+    </Form>
   )
 }

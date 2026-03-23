@@ -1,6 +1,16 @@
-import { Button } from '@/components/ui/button'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import {
   Select,
   SelectContent,
@@ -8,59 +18,110 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useToast } from '@/hooks/use-toast'
+import { useAppStore } from '@/contexts/AppContext'
+
+const schema = z.object({
+  name: z.string().min(3, 'Nome obrigatório'),
+  subject: z.string().min(2, 'Disciplina obrigatória'),
+  type: z.string().min(1, 'Tipo obrigatório'),
+  date: z.string().min(1, 'Data obrigatória'),
+})
 
 export function AvaliacaoForm({ onCancel }: { onCancel: () => void }) {
+  const { toast } = useToast()
+  const { addAvaliacao } = useAppStore()
+
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    mode: 'onChange',
+    defaultValues: {
+      name: '',
+      subject: '',
+      type: 'Prova Escrita',
+      date: new Date().toISOString().split('T')[0],
+    },
+  })
+
+  const onSubmit = (data: z.infer<typeof schema>) => {
+    addAvaliacao(data)
+    toast({ title: 'Avaliação Salva', description: 'Registro criado com sucesso.' })
+    onCancel()
+  }
+
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault()
-        onCancel()
-      }}
-      className="space-y-4 max-w-2xl"
-    >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>Nome da Avaliação</Label>
-          <Input required placeholder="Ex: Prova N1 - Presencial" className="bg-muted/50" />
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-w-2xl">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nome da Avaliação</FormLabel>
+              <FormControl>
+                <Input placeholder="Ex: Prova N1..." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="subject"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Disciplina</FormLabel>
+              <FormControl>
+                <Input placeholder="Ex: Cálculo I" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tipo</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Prova Escrita">Prova Escrita</SelectItem>
+                    <SelectItem value="Trabalho Prático">Trabalho Prático</SelectItem>
+                    <SelectItem value="Seminário">Seminário</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="date"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Data de Aplicação</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
-        <div className="space-y-2">
-          <Label>Disciplina Associada</Label>
-          <Select defaultValue="d1">
-            <SelectTrigger className="bg-muted/50">
-              <SelectValue placeholder="Selecione a disciplina" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="d1">Cálculo Avançado</SelectItem>
-              <SelectItem value="d2">Física Aplicada</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex justify-end gap-2 pt-4 border-t border-border">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancelar
+          </Button>
+          <Button type="submit">Salvar Registro</Button>
         </div>
-        <div className="space-y-2">
-          <Label>Tipo de Avaliação</Label>
-          <Select defaultValue="escrita">
-            <SelectTrigger className="bg-muted/50">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="escrita">Prova Escrita</SelectItem>
-              <SelectItem value="trabalho">Trabalho/Projeto</SelectItem>
-              <SelectItem value="seminario">Seminário</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label>Data Prevista</Label>
-          <Input required type="date" className="bg-muted/50" />
-        </div>
-      </div>
-      <div className="flex justify-end gap-2 pt-4 border-t border-border">
-        <Button type="button" variant="outline" onClick={onCancel} className="shadow-sm">
-          Cancelar
-        </Button>
-        <Button type="submit" className="shadow-sm">
-          Salvar Avaliação
-        </Button>
-      </div>
-    </form>
+      </form>
+    </Form>
   )
 }

@@ -70,11 +70,11 @@ export default function Extracurricular() {
     <div className="space-y-6 animate-fade-in-up pb-8 max-w-[1200px] mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-2">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 flex items-center gap-2">
-            <Trophy className="h-7 w-7 text-zinc-400" />
+          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <Trophy className="h-7 w-7 text-muted-foreground" />
             Atividades Extra-Curriculares
           </h1>
-          <p className="text-sm text-zinc-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Gestão de modalidades complementares (Esportes, Idiomas) e integração financeira.
           </p>
         </div>
@@ -95,9 +95,9 @@ export default function Extracurricular() {
                     <Plus className="mr-2 h-4 w-4" /> Nova Modalidade
                   </Button>
                 </div>
-                <Card className="border-zinc-200 shadow-sm overflow-hidden bg-white">
+                <Card className="border-border shadow-sm overflow-hidden bg-card">
                   <Table className="table-compact">
-                    <TableHeader className="bg-zinc-50">
+                    <TableHeader className="bg-muted/50">
                       <TableRow>
                         <TableHead>Atividade / Categoria</TableHead>
                         <TableHead>Instrutor</TableHead>
@@ -110,21 +110,27 @@ export default function Extracurricular() {
                       {extracurricularActivities.map((act) => (
                         <TableRow key={act.id}>
                           <TableCell>
-                            <div className="font-semibold text-zinc-900 text-sm">{act.name}</div>
-                            <div className="text-[10px] text-zinc-500 uppercase">
+                            <div className="font-semibold text-foreground text-sm">{act.name}</div>
+                            <div className="text-[10px] text-muted-foreground uppercase">
                               {act.category}
                             </div>
                           </TableCell>
-                          <TableCell className="text-xs text-zinc-700">{act.instructor}</TableCell>
-                          <TableCell className="text-xs text-zinc-600">{act.schedule}</TableCell>
-                          <TableCell className="text-right font-bold text-zinc-900">
+                          <TableCell className="text-xs text-foreground/80">
+                            {act.instructor}
+                          </TableCell>
+                          <TableCell className="text-xs text-foreground/80">
+                            {act.schedule}
+                          </TableCell>
+                          <TableCell className="text-right font-bold text-foreground">
                             R${' '}
-                            {act.monthlyFee.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            {Number(act.monthlyFee).toLocaleString('pt-BR', {
+                              minimumFractionDigits: 2,
+                            })}
                           </TableCell>
                           <TableCell className="text-center">
                             <Badge
                               variant="outline"
-                              className="border-emerald-200 bg-emerald-50 text-emerald-700"
+                              className="border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400"
                             >
                               {act.status}
                             </Badge>
@@ -136,8 +142,8 @@ export default function Extracurricular() {
                 </Card>
               </>
             ) : (
-              <Card className="border-zinc-200 shadow-sm bg-white">
-                <CardHeader className="border-b border-zinc-100 bg-zinc-50/50">
+              <Card className="border-border shadow-sm bg-card">
+                <CardHeader className="border-b border-border bg-muted/50">
                   <CardTitle className="text-base">Cadastro de Modalidade</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6">
@@ -188,8 +194,8 @@ export default function Extracurricular() {
 
         {activeTab === 'matriculas' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="border-zinc-200 shadow-sm bg-white lg:col-span-1 h-fit">
-              <CardHeader className="border-b border-zinc-100 bg-zinc-50/50">
+            <Card className="border-border shadow-sm bg-card lg:col-span-1 h-fit">
+              <CardHeader className="border-b border-border bg-muted/50">
                 <CardTitle className="text-base">Matricular Aluno</CardTitle>
                 <CardDescription className="text-xs">
                   Faturas são geradas na confirmação.
@@ -234,8 +240,8 @@ export default function Extracurricular() {
               </CardContent>
             </Card>
 
-            <Card className="border-zinc-200 shadow-sm bg-white lg:col-span-2">
-              <CardHeader className="border-b border-zinc-100 bg-zinc-50/50">
+            <Card className="border-border shadow-sm bg-card lg:col-span-2">
+              <CardHeader className="border-b border-border bg-muted/50">
                 <CardTitle className="text-base">Vínculos Ativos</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
@@ -252,14 +258,16 @@ export default function Extracurricular() {
                     {extracurricularEnrollments.map((enr) => (
                       <TableRow key={enr.id}>
                         <TableCell className="font-semibold text-xs">{enr.studentName}</TableCell>
-                        <TableCell className="text-xs text-zinc-700">{enr.activityName}</TableCell>
-                        <TableCell className="text-xs text-zinc-500">
+                        <TableCell className="text-xs text-foreground/80">
+                          {enr.activityName}
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
                           {new Date(enr.enrollmentDate).toLocaleDateString('pt-BR')}
                         </TableCell>
                         <TableCell>
                           <Badge
                             variant="outline"
-                            className="border-emerald-200 text-emerald-700 bg-emerald-50 px-1.5 py-0"
+                            className="border-emerald-200 text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-1.5 py-0"
                           >
                             <CheckCircle2 className="w-3 h-3 mr-1" /> Ativo
                           </Badge>

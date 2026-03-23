@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { useAppStore } from '@/contexts/AppContext'
 import { ArrowUpRight, ArrowDownRight, Activity, Calendar as CalIcon, Plus } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -55,6 +55,7 @@ export default function CashFlow() {
 
   const form = useForm<z.infer<typeof txSchema>>({
     resolver: zodResolver(txSchema),
+    mode: 'onChange',
     defaultValues: {
       description: '',
       type: 'Saída',
@@ -91,7 +92,7 @@ export default function CashFlow() {
         ? `Receita Atendimento Clínico - ${p.studentName.replace('[Clínica ACR] ', '')}`
         : `Receita Mensalidade/Fatura - ${p.studentName}`,
       type: 'Entrada' as const,
-      amount: p.amount,
+      amount: Number(p.amount) || 0,
     }))
 
   const allTransactions = [...dynamicInflows, ...manualTransactions].sort(
@@ -100,19 +101,33 @@ export default function CashFlow() {
 
   const totalIn = allTransactions
     .filter((t) => t.type === 'Entrada')
-    .reduce((a, b) => a + b.amount, 0)
+    .reduce((a, b) => a + Number(b.amount || 0), 0)
   const totalOut = allTransactions
     .filter((t) => t.type === 'Saída')
-    .reduce((a, b) => a + b.amount, 0)
+    .reduce((a, b) => a + Number(b.amount || 0), 0)
   const balance = totalIn - totalOut
 
   const onSubmit = (data: z.infer<typeof txSchema>) => {
-    addManualTransaction(data)
-    toast({
-      title: 'Lançamento Salvo',
-      description: 'Movimentação manual registrada com sucesso no fluxo de caixa.',
-    })
-    setIsAddOpen(false)
+    try {
+      addManualTransaction({
+        description: data.description,
+        type: data.type,
+        amount: Number(data.amount),
+        date: data.date,
+      })
+      toast({
+        title: 'Lançamento Salvo',
+        description: 'Movimentação manual registrada com sucesso no fluxo de caixa.',
+      })
+      setIsAddOpen(false)
+    } catch (e) {
+      console.error(e)
+      toast({
+        variant: 'destructive',
+        title: 'Erro ao Salvar',
+        description: 'Ocorreu um erro ao processar o lançamento. Verifique os dados.',
+      })
+    }
   }
 
   return (
@@ -239,7 +254,7 @@ export default function CashFlow() {
                     className={`text-right pr-6 font-semibold ${t.type === 'Entrada' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}
                   >
                     {t.type === 'Entrada' ? '+' : '-'}{' '}
-                    {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    {Number(t.amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </TableCell>
                 </TableRow>
               ))}
@@ -286,11 +301,7 @@ export default function CashFlow() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Natureza</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        value={field.value}
-                      >
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />

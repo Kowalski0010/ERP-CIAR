@@ -49,6 +49,7 @@ export default function Patients() {
 
   const form = useForm<z.infer<typeof patientSchema>>({
     resolver: zodResolver(patientSchema),
+    mode: 'onChange',
     defaultValues: {
       name: '',
       email: '',

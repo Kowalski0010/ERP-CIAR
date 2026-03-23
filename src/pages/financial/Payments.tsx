@@ -75,6 +75,7 @@ export default function Payments() {
 
   const form = useForm<z.infer<typeof paymentSchema>>({
     resolver: zodResolver(paymentSchema),
+    mode: 'onChange',
     defaultValues: {
       studentId: '',
       amount: 0,
@@ -159,7 +160,7 @@ export default function Payments() {
       id: `INV-${Math.floor(Math.random() * 10000)}`,
       studentId: student.id,
       studentName: student.name,
-      amount: data.amount,
+      amount: Number(data.amount),
       dueDate: data.dueDate,
       status: 'Pendente',
     })
@@ -204,8 +205,8 @@ export default function Payments() {
     <div className="space-y-6 animate-fade-in-up pb-8 max-w-[1400px] mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-2">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Gestão de Faturas</h1>
-          <p className="text-sm text-zinc-500 mt-1">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Gestão de Faturas</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Controle centralizado de recebíveis, boletos e conciliação de gateway.
           </p>
         </div>
@@ -215,11 +216,12 @@ export default function Payments() {
             className="shadow-sm h-10 px-4 text-xs font-semibold shrink-0"
             onClick={() => handleExport('Excel')}
           >
-            <FileSpreadsheet className="mr-2 h-4 w-4 text-emerald-600" /> Excel
+            <FileSpreadsheet className="mr-2 h-4 w-4 text-emerald-600 dark:text-emerald-400" />{' '}
+            Excel
           </Button>
           <Button
             variant="outline"
-            className="shadow-sm h-10 px-4 text-xs font-semibold shrink-0 border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100"
+            className="shadow-sm h-10 px-4 text-xs font-semibold shrink-0 border-amber-200 bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-400 hover:bg-amber-100"
             onClick={handleNotifyExpiring}
           >
             <BellRing className="mr-2 h-4 w-4 text-amber-500" /> Alertar Vencimentos
@@ -266,22 +268,22 @@ export default function Payments() {
         </Alert>
       )}
 
-      <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-3 flex flex-col sm:flex-row gap-3">
+      <div className="bg-card border border-border rounded-lg shadow-sm p-3 flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por sacado..."
-            className="pl-9 h-10 bg-zinc-50/50 border-zinc-200 focus-visible:border-zinc-300 w-full text-sm"
+            className="pl-9 h-10 bg-muted/50 border-input focus-visible:border-ring w-full text-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
 
-      <div className="bg-white border border-zinc-200 rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <Table className="table-compact min-w-[900px]">
-            <TableHeader className="bg-zinc-50/80">
+            <TableHeader className="bg-muted/50">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-[120px]">Doc. Nº</TableHead>
                 <TableHead>Sacado (Aluno)</TableHead>
@@ -294,25 +296,26 @@ export default function Payments() {
             </TableHeader>
             <TableBody>
               {filteredPayments.map((payment) => (
-                <TableRow key={payment.id} className="group hover:bg-zinc-50/80 transition-colors">
-                  <TableCell className="font-mono text-xs text-zinc-500 font-medium">
+                <TableRow key={payment.id} className="group hover:bg-muted/30 transition-colors">
+                  <TableCell className="font-mono text-xs text-muted-foreground font-medium">
                     {payment.id.startsWith('INV') || payment.id.startsWith('ACR')
                       ? payment.id
                       : payment.id.padStart(6, '0')}
                   </TableCell>
-                  <TableCell className="font-semibold text-zinc-900 text-sm">
+                  <TableCell className="font-semibold text-foreground text-sm">
                     {payment.studentName}
                   </TableCell>
-                  <TableCell className="text-zinc-500 text-xs font-medium">
+                  <TableCell className="text-muted-foreground text-xs font-medium">
                     {payment.installmentNumber && payment.totalInstallments
                       ? `Parc. ${payment.installmentNumber}/${payment.totalInstallments}`
                       : 'Avulsa/Multa'}
                   </TableCell>
-                  <TableCell className="text-sm text-zinc-700">
+                  <TableCell className="text-sm text-foreground/80">
                     {new Date(payment.dueDate).toLocaleDateString('pt-BR')}
                   </TableCell>
-                  <TableCell className="font-bold text-zinc-900 text-right">
-                    R$ {payment.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  <TableCell className="font-bold text-foreground text-right">
+                    R${' '}
+                    {Number(payment.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </TableCell>
                   <TableCell>{getStatusBadge(payment.status)}</TableCell>
                   <TableCell className="text-right p-2 space-x-1">
@@ -321,7 +324,7 @@ export default function Payments() {
                         variant="ghost"
                         size="sm"
                         onClick={() => sendWhatsApp(payment.studentName)}
-                        className="h-8 text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 font-medium px-2"
+                        className="h-8 text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 font-medium px-2"
                         title="Enviar Lembrete via WhatsApp"
                       >
                         <MessageCircle className="h-3.5 w-3.5" />
@@ -336,7 +339,7 @@ export default function Payments() {
                           description: 'O documento foi baixado e enviado ao cliente.',
                         })
                       }
-                      className="h-8 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-medium px-2"
+                      className="h-8 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/50 font-medium px-2"
                     >
                       <FileText className="mr-1.5 h-3.5 w-3.5" /> Boleto
                     </Button>
@@ -345,7 +348,7 @@ export default function Payments() {
               ))}
               {filteredPayments.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center text-zinc-500">
+                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                     Nenhum lançamento encontrado.
                   </TableCell>
                 </TableRow>
@@ -371,7 +374,7 @@ export default function Payments() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Sacado (Aluno)</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione o aluno" />
@@ -420,7 +423,7 @@ export default function Payments() {
                 />
               </div>
 
-              <div className="pt-4 flex justify-end gap-2 border-t border-zinc-100">
+              <div className="pt-4 flex justify-end gap-2 border-t border-border">
                 <Button type="button" variant="outline" onClick={() => setIsAddPaymentOpen(false)}>
                   Cancelar
                 </Button>

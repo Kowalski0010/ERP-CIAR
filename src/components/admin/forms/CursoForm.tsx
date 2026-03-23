@@ -1,6 +1,17 @@
-import { Button } from '@/components/ui/button'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import {
   Select,
   SelectContent,
@@ -8,47 +19,110 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useToast } from '@/hooks/use-toast'
+import { useAppStore } from '@/contexts/AppContext'
+
+const schema = z.object({
+  name: z.string().min(3, 'Nome do curso é obrigatório'),
+  mode: z.string().min(1, 'Modalidade obrigatória'),
+  duration: z.coerce.number().min(1, 'Duração deve ser maior que zero'),
+  description: z.string().optional(),
+})
 
 export function CursoForm({ onCancel }: { onCancel: () => void }) {
+  const { toast } = useToast()
+  const { addCurso } = useAppStore()
+
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    mode: 'onChange',
+    defaultValues: {
+      name: '',
+      mode: 'Presencial',
+      duration: 3600,
+      description: '',
+    },
+  })
+
+  const onSubmit = (data: z.infer<typeof schema>) => {
+    addCurso(data)
+    toast({ title: 'Curso Salvo', description: 'Registro criado com sucesso.' })
+    onCancel()
+  }
+
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault()
-        onCancel()
-      }}
-      className="space-y-4 max-w-2xl"
-    >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2 md:col-span-2">
-          <Label>Nome do Curso</Label>
-          <Input required placeholder="Ex: Bacharelado em Engenharia" className="bg-muted/50" />
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-w-2xl">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nome do Curso</FormLabel>
+              <FormControl>
+                <Input placeholder="Ex: Engenharia de Software" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="mode"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Modalidade</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Presencial">Presencial</SelectItem>
+                    <SelectItem value="EAD">EAD</SelectItem>
+                    <SelectItem value="Híbrido">Híbrido</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="duration"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Carga Horária Total (h)</FormLabel>
+                <FormControl>
+                  <Input type="number" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
-        <div className="space-y-2">
-          <Label>Modalidade</Label>
-          <Select defaultValue="Presencial">
-            <SelectTrigger className="bg-muted/50">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Presencial">Presencial</SelectItem>
-              <SelectItem value="EAD">EAD / Online</SelectItem>
-              <SelectItem value="Hibrido">Híbrido</SelectItem>
-            </SelectContent>
-          </Select>
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Descrição / Ementa Base</FormLabel>
+              <FormControl>
+                <Textarea placeholder="Detalhes do curso..." className="resize-none" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="flex justify-end gap-2 pt-4 border-t border-border">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancelar
+          </Button>
+          <Button type="submit">Salvar Registro</Button>
         </div>
-        <div className="space-y-2">
-          <Label>Carga Horária Total (h)</Label>
-          <Input required type="number" className="bg-muted/50" />
-        </div>
-      </div>
-      <div className="flex justify-end gap-2 pt-4 border-t border-border">
-        <Button type="button" variant="outline" onClick={onCancel} className="shadow-sm">
-          Cancelar
-        </Button>
-        <Button type="submit" className="shadow-sm">
-          Salvar Curso
-        </Button>
-      </div>
-    </form>
+      </form>
+    </Form>
   )
 }

@@ -1,108 +1,188 @@
-import { Button } from '@/components/ui/button'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useAppStore } from '@/contexts/AppContext'
+import { Button } from '@/components/ui/button'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
+import { useAppStore } from '@/contexts/AppContext'
+import { ClassRoom } from '@/lib/types'
 
-export function TurmaForm({ onCancel, initialData }: { onCancel: () => void; initialData?: any }) {
-  const { addClass, updateClass } = useAppStore()
+const schema = z.object({
+  name: z.string().min(3, 'Nome da turma obrigatório'),
+  course: z.string().min(2, 'Curso obrigatório'),
+  semester: z.string().min(1, 'Semestre obrigatório'),
+  capacity: z.coerce.number().min(1, 'Capacidade deve ser maior que zero'),
+  room: z.string().optional(),
+  year: z.string().optional(),
+  shift: z.string().optional(),
+})
+
+export function TurmaForm({
+  onCancel,
+  initialData,
+}: {
+  onCancel: () => void
+  initialData?: ClassRoom | null
+}) {
   const { toast } = useToast()
+  const { addClass, updateClass } = useAppStore()
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const fd = new FormData(e.currentTarget)
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    mode: 'onChange',
+    defaultValues: {
+      name: initialData?.name || '',
+      course: initialData?.course || '',
+      semester: initialData?.semester || '',
+      capacity: initialData?.capacity || 40,
+      room: initialData?.room || '',
+      year: initialData?.year || new Date().getFullYear().toString(),
+      shift: initialData?.shift || 'Noturno',
+    },
+  })
 
-    const payload = {
-      name: fd.get('name') as string,
-      course: fd.get('course') as string,
-      semester: fd.get('semester') as string,
-      capacity: Number(fd.get('capacity')),
-      room: fd.get('room') as string,
-      year: fd.get('year') as string,
-      shift: fd.get('shift') as string,
-    }
-
-    if (initialData) {
-      updateClass(initialData.id, payload)
-      toast({ title: 'Turma Atualizada', description: 'Dados alterados com sucesso.' })
+  const onSubmit = (data: z.infer<typeof schema>) => {
+    if (initialData?.id) {
+      updateClass(initialData.id, data)
+      toast({ title: 'Turma Atualizada', description: 'Registro atualizado com sucesso.' })
     } else {
-      addClass({ ...payload, id: `T${Math.floor(Math.random() * 1000)}` })
-      toast({ title: 'Turma Cadastrada', description: 'Nova turma disponível para matrículas.' })
+      addClass({
+        ...data,
+        id: `T${Math.floor(Math.random() * 1000)}`,
+      })
+      toast({ title: 'Turma Salva', description: 'Registro criado com sucesso.' })
     }
-
     onCancel()
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>Nome/Identificador da Turma</Label>
-          <Input
-            required
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-w-2xl">
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
             name="name"
-            defaultValue={initialData?.name}
-            placeholder="Ex: ENG-T01"
-            className="bg-muted/50"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nome da Turma</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ex: T01 - Turma A" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
-        <div className="space-y-2">
-          <Label>Curso Vinculado</Label>
-          <Input
-            required
+          <FormField
+            control={form.control}
             name="course"
-            defaultValue={initialData?.course}
-            placeholder="Ex: Engenharia de Software"
-            className="bg-muted/50"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Curso Vinculado</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ex: Engenharia de Software" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
-        <div className="space-y-2">
-          <Label>Ano Letivo</Label>
-          <Input
-            required
-            name="year"
-            defaultValue={initialData?.year || new Date().getFullYear()}
-            className="bg-muted/50"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label>Semestre / Período</Label>
-          <Input
-            required
+          <FormField
+            control={form.control}
             name="semester"
-            defaultValue={initialData?.semester || '1º Semestre'}
-            placeholder="Ex: 1º Semestre"
-            className="bg-muted/50"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Semestre de Ingresso</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ex: 1º Semestre" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
-        <div className="space-y-2">
-          <Label>Capacidade Máxima (Alunos)</Label>
-          <Input
-            required
-            type="number"
+          <FormField
+            control={form.control}
+            name="year"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Ano Letivo</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ex: 2024" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="shift"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Turno</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Matutino">Matutino</SelectItem>
+                    <SelectItem value="Vespertino">Vespertino</SelectItem>
+                    <SelectItem value="Noturno">Noturno</SelectItem>
+                    <SelectItem value="Integral">Integral</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
             name="capacity"
-            defaultValue={initialData?.capacity || 40}
-            className="bg-muted/50"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Capacidade (Alunos)</FormLabel>
+                <FormControl>
+                  <Input type="number" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
-        <div className="space-y-2">
-          <Label>Sala Padrão</Label>
-          <Input
+          <FormField
+            control={form.control}
             name="room"
-            defaultValue={initialData?.room}
-            placeholder="Ex: Sala 101, Bloco B"
-            className="bg-muted/50"
+            render={({ field }) => (
+              <FormItem className="col-span-2">
+                <FormLabel>Sala Base (Opcional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ex: Sala 101" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
-      </div>
-      <div className="flex justify-end gap-2 pt-4 border-t border-border">
-        <Button type="button" variant="outline" onClick={onCancel} className="shadow-sm">
-          Cancelar
-        </Button>
-        <Button type="submit" className="shadow-sm">
-          {initialData ? 'Salvar Alterações' : 'Cadastrar Turma'}
-        </Button>
-      </div>
-    </form>
+        <div className="flex justify-end gap-2 pt-4 border-t border-border">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancelar
+          </Button>
+          <Button type="submit">{initialData ? 'Atualizar Turma' : 'Salvar Turma'}</Button>
+        </div>
+      </form>
+    </Form>
   )
 }

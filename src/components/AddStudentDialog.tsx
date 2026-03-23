@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -10,15 +11,6 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Student, FinancialPlan } from '@/lib/types'
 import {
   Form,
   FormControl,
@@ -27,69 +19,93 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Student, FinancialPlan } from '@/lib/types'
 
 const studentSchema = z.object({
-  name: z.string().min(3, 'Nome obrigatório (mínimo 3 caracteres)'),
-  cpf: z.string().min(11, 'CPF obrigatório'),
+  name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
   email: z.string().email('E-mail inválido'),
-  phone: z.string().min(10, 'Telefone obrigatório'),
-  course: z.string().min(1, 'Curso é obrigatório'),
-  planValue: z.coerce.number().min(1, 'Valor do plano obrigatório'),
-  installments: z.coerce.number().min(1, 'Número de parcelas inválido'),
+  phone: z.string().min(10, 'Telefone inválido'),
+  cpf: z.string().min(11, 'CPF inválido'),
+  course: z.string().min(1, 'Selecione um curso'),
+  planInstallments: z.coerce.number().min(1, 'Número de parcelas deve ser maior que 0'),
+  planValue: z.coerce.number().min(0.01, 'Valor da parcela deve ser maior que zero'),
+  planFirstDueDate: z.string().min(1, 'A data do 1º vencimento é obrigatória'),
 })
 
 interface AddStudentDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  initialData?: { name: string; phone: string; course: string }
   onSuccess: (student: Student, plan: FinancialPlan) => void
-  initialData?: {
-    name?: string
-    phone?: string
-    course?: string
-  }
 }
 
 export function AddStudentDialog({
   open,
   onOpenChange,
-  onSuccess,
   initialData,
+  onSuccess,
 }: AddStudentDialogProps) {
   const form = useForm<z.infer<typeof studentSchema>>({
     resolver: zodResolver(studentSchema),
+    mode: 'onChange',
     defaultValues: {
-      name: initialData?.name || '',
-      cpf: '',
+      name: '',
       email: '',
-      phone: initialData?.phone || '',
-      course: initialData?.course || 'Engenharia de Software',
+      phone: '',
+      cpf: '',
+      course: '',
+      planInstallments: 12,
       planValue: 850,
-      installments: 12,
+      planFirstDueDate: new Date().toISOString().split('T')[0],
     },
   })
 
+  useEffect(() => {
+    if (open) {
+      if (initialData) {
+        form.reset({
+          name: initialData.name || '',
+          email: '',
+          phone: initialData.phone || '',
+          cpf: '',
+          course: initialData.course || '',
+          planInstallments: 12,
+          planValue: 850,
+          planFirstDueDate: new Date().toISOString().split('T')[0],
+        })
+      } else {
+        form.reset()
+      }
+    }
+  }, [open, initialData, form])
+
   const onSubmit = (data: z.infer<typeof studentSchema>) => {
     const student: Student = {
-      id: `S${Math.floor(Math.random() * 10000)}`,
+      id: Math.random().toString(36).substr(2, 9),
       name: data.name,
-      cpf: data.cpf,
       email: data.email,
       phone: data.phone,
+      cpf: data.cpf,
       course: data.course,
       status: 'Ativo',
       enrollmentDate: new Date().toISOString(),
-      avatar: `https://img.usecurling.com/ppl/thumbnail?seed=${Math.floor(Math.random() * 100)}`,
     }
 
     const plan: FinancialPlan = {
+      installments: data.planInstallments,
       value: data.planValue,
-      installments: data.installments,
-      firstDueDate: new Date(Date.now() + 86400000 * 5).toISOString().split('T')[0], // 5 days from now
+      firstDueDate: data.planFirstDueDate,
     }
 
     onSuccess(student, plan)
     onOpenChange(false)
-    form.reset()
   }
 
   return (
@@ -98,22 +114,20 @@ export function AddStudentDialog({
         <DialogHeader>
           <DialogTitle>Nova Matrícula</DialogTitle>
           <DialogDescription>
-            Insira os dados do novo aluno e as condições do plano financeiro.
+            Insira os dados do aluno e as informações financeiras.
           </DialogDescription>
         </DialogHeader>
-
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 pt-4">
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-foreground border-b border-border pb-2">
-                Dados Pessoais
-              </h3>
-
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+            <h4 className="text-sm font-semibold text-foreground border-b border-border pb-2">
+              Dados Pessoais
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="sm:col-span-2">
                     <FormLabel>Nome Completo</FormLabel>
                     <FormControl>
                       <Input placeholder="Ex: João da Silva" {...field} />
@@ -122,68 +136,52 @@ export function AddStudentDialog({
                   </FormItem>
                 )}
               />
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="cpf"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>CPF</FormLabel>
-                      <FormControl>
-                        <Input placeholder="000.000.000-00" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Celular / WhatsApp</FormLabel>
-                      <FormControl>
-                        <Input placeholder="(00) 00000-0000" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>E-mail Principal</FormLabel>
+                    <FormLabel>E-mail</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="joao@exemplo.com" {...field} />
+                      <Input type="email" placeholder="joao@email.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
-
-            <div className="space-y-4 pt-2">
-              <h3 className="text-sm font-semibold text-foreground border-b border-border pb-2">
-                Dados Acadêmicos e Financeiros
-              </h3>
-
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Telefone</FormLabel>
+                    <FormControl>
+                      <Input placeholder="(11) 90000-0000" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="cpf"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CPF</FormLabel>
+                    <FormControl>
+                      <Input placeholder="000.000.000-00" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="course"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Curso</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      value={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione o curso" />
@@ -196,49 +194,65 @@ export function AddStudentDialog({
                         <SelectItem value="Administração">Administração</SelectItem>
                         <SelectItem value="Direito">Direito</SelectItem>
                         <SelectItem value="Design Gráfico">Design Gráfico</SelectItem>
+                        <SelectItem value="Marketing">Marketing</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+            </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="planValue"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Valor Mensal (R$)</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.01" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="installments"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nº de Parcelas</FormLabel>
-                      <FormControl>
-                        <Input type="number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+            <h4 className="text-sm font-semibold text-foreground border-b border-border pb-2 mt-4">
+              Plano Financeiro
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="planInstallments"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Qtd. Parcelas</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="planValue"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Valor Mensalidade (R$)</FormLabel>
+                    <FormControl>
+                      <Input type="number" step="0.01" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="planFirstDueDate"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-2">
+                    <FormLabel>1º Vencimento</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <div className="pt-4 flex justify-end gap-2 border-t border-border mt-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar
               </Button>
-              <Button type="submit">Finalizar Matrícula</Button>
+              <Button type="submit">Efetivar Matrícula</Button>
             </div>
           </form>
         </Form>

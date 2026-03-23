@@ -6,6 +6,7 @@ import { useAppStore } from '@/contexts/AppContext'
 import { ShieldAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useEffect } from 'react'
+import { ThemeToggle } from './ThemeToggle'
 
 export default function Layout() {
   const { currentUserRole, isAuthenticated } = useAppStore()
@@ -108,6 +109,7 @@ export default function Layout() {
             </div>
           </main>
         </SidebarInset>
+        <ThemeToggle />
       </div>
     </SidebarProvider>
   )
