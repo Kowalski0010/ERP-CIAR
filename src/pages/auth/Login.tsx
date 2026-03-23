@@ -4,7 +4,14 @@ import { useNavigate, Link, Navigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from '@/components/ui/card'
 import {
   Select,
   SelectContent,
@@ -56,9 +63,10 @@ export default function Login() {
         <CardContent>
           <Alert className="mb-6 bg-blue-50 border-blue-200 text-blue-800">
             <Info className="h-4 w-4 text-blue-600" />
-            <AlertTitle className="text-sm font-semibold">Acesso de Demonstração</CardTitle>
+            <AlertTitle className="text-sm font-semibold">Acesso de Demonstração</AlertTitle>
             <AlertDescription className="text-xs mt-1 text-blue-700">
-              As credenciais já estão preenchidas para facilitar o acesso. Basta escolher o <strong>Perfil de Acesso</strong> desejado e clicar em "Entrar no Sistema".
+              As credenciais já estão preenchidas para facilitar o acesso. Basta escolher o{' '}
+              <strong>Perfil de Acesso</strong> desejado e clicar em "Entrar no Sistema".
             </AlertDescription>
           </Alert>
 
@@ -97,7 +105,13 @@ export default function Login() {
                   Esqueci minha senha
                 </Link>
               </div>
-              <Input required type="password" placeholder="••••••••" defaultValue="demo1234" className="bg-zinc-50" />
+              <Input
+                required
+                type="password"
+                placeholder="••••••••"
+                defaultValue="demo1234"
+                className="bg-zinc-50"
+              />
             </div>
             <Button
               type="submit"
