@@ -33,6 +33,15 @@ export type DigitalDocument = {
   type: string
 }
 
+export type SystemUser = {
+  id: string
+  name: string
+  email: string
+  role: Role
+  status: 'Ativo' | 'Inativo'
+  lastLogin?: string
+}
+
 export type Student = {
   id: string
   name: string
@@ -402,6 +411,7 @@ export type AcrAppointment = {
 export type AppState = {
   isAuthenticated: boolean
   currentUserRole: Role
+  systemUsers: SystemUser[]
   students: Student[]
   leads: Lead[]
   payments: Payment[]

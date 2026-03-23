@@ -1,4 +1,5 @@
-import { HelpCircle, LogOut, Bell } from 'lucide-react'
+import { useState } from 'react'
+import { HelpCircle, LogOut, Bell, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAppStore } from '@/contexts/AppContext'
@@ -14,6 +15,16 @@ import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Badge } from '@/components/ui/badge'
 import { useNavigate } from 'react-router-dom'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
+import { useToast } from '@/hooks/use-toast'
 
 export function AppHeader() {
   const {
@@ -26,6 +37,10 @@ export function AppHeader() {
     logout,
   } = useAppStore()
   const navigate = useNavigate()
+  const { toast } = useToast()
+
+  const [isSupportOpen, setIsSupportOpen] = useState(false)
+  const [supportMessage, setSupportMessage] = useState('')
 
   // Find user ID for targeted notifications (mock logic)
   const getUserId = () => {
@@ -46,6 +61,17 @@ export function AppHeader() {
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
   const unreadCount = myNotifications.filter((n) => !n.read).length
+
+  const handleSupportSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!supportMessage.trim()) return
+    setIsSupportOpen(false)
+    setSupportMessage('')
+    toast({
+      title: 'Chamado Aberto',
+      description: 'Sua solicitação de suporte foi enviada. A equipe técnica responderá em breve.',
+    })
+  }
 
   return (
     <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between md:justify-end gap-3 border-b border-zinc-200 bg-white px-4 md:px-6 shadow-sm">
@@ -139,13 +165,41 @@ export function AppHeader() {
           </span>
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8 text-xs font-medium text-white bg-[#2d3e50] hover:bg-[#1e2b3c] hover:text-white border-transparent hidden sm:flex"
-        >
-          <HelpCircle className="h-3.5 w-3.5 mr-1.5" /> Suporte
-        </Button>
+        {/* Support Dialog */}
+        <Dialog open={isSupportOpen} onOpenChange={setIsSupportOpen}>
+          <DialogTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs font-medium text-white bg-[#2d3e50] hover:bg-[#1e2b3c] hover:text-white border-transparent hidden sm:flex"
+            >
+              <HelpCircle className="h-3.5 w-3.5 mr-1.5" /> Suporte
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <HelpCircle className="h-5 w-5 text-blue-600" /> Central de Suporte
+              </DialogTitle>
+              <DialogDescription>
+                Encontrou algum problema ou tem uma dúvida? Envie sua mensagem e nossa equipe
+                técnica responderá por e-mail.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSupportSubmit} className="space-y-4 pt-4">
+              <Textarea
+                placeholder="Descreva detalhadamente a sua solicitação..."
+                value={supportMessage}
+                onChange={(e) => setSupportMessage(e.target.value)}
+                required
+                className="min-h-[120px] resize-none"
+              />
+              <Button type="submit" className="w-full">
+                <Send className="w-4 h-4 mr-2" /> Enviar Solicitação
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
 
         <Button
           variant="outline"

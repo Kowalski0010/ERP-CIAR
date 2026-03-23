@@ -70,6 +70,7 @@ const appModules = [
     title: 'CADASTROS',
     icon: Plus,
     items: [
+      { title: 'Usuários do Sistema', url: '/admin/users' },
       { title: 'Alunos', url: '/academic/students' },
       { title: 'Professores', url: '/academic/teachers' },
       { title: 'Cursos', url: '/admin/registry/curso' },

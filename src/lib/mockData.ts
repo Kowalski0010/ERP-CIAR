@@ -32,6 +32,7 @@ import {
   AcrPatient,
   AcrRecord,
   AcrAppointment,
+  SystemUser,
 } from './types'
 
 const defaultAddress = {
@@ -42,6 +43,47 @@ const defaultAddress = {
   city: 'São Paulo',
   state: 'SP',
 }
+
+export const mockSystemUsers: SystemUser[] = [
+  {
+    id: 'u1',
+    name: 'Admin Master',
+    email: 'admin@instituicao.com',
+    role: 'Admin',
+    status: 'Ativo',
+    lastLogin: new Date(Date.now() - 3600000).toISOString(),
+  },
+  {
+    id: 'u2',
+    name: 'Secretaria Escolar',
+    email: 'secretaria@instituicao.com',
+    role: 'Secretaria',
+    status: 'Ativo',
+    lastLogin: new Date(Date.now() - 86400000).toISOString(),
+  },
+  {
+    id: 'u3',
+    name: 'Financeiro Principal',
+    email: 'financeiro@instituicao.com',
+    role: 'Financeiro',
+    status: 'Ativo',
+    lastLogin: new Date(Date.now() - 172800000).toISOString(),
+  },
+  {
+    id: 'u4',
+    name: 'Prof. Roberto Lemos',
+    email: 'roberto@edusync.com',
+    role: 'Professor',
+    status: 'Ativo',
+  },
+  {
+    id: 'u5',
+    name: 'Carlos Oliveira (Aluno)',
+    email: 'carlos.o@email.com',
+    role: 'Aluno',
+    status: 'Inativo',
+  },
+]
 
 export const mockStudents: Student[] = [
   {

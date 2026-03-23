@@ -85,6 +85,7 @@ import SecurityCameras from './pages/admin/SecurityCameras'
 import Events from './pages/admin/Events'
 import Surveys from './pages/admin/Surveys'
 import AdminDataImport from './pages/admin/AdminDataImport'
+import UserManagement from './pages/admin/UserManagement'
 
 // Generic Report View
 import ReportView from './pages/reports/ReportView'
@@ -250,6 +251,7 @@ function App() {
 
               {/* Admin & System Registry */}
               <Route path="admin">
+                <Route path="users" element={<UserManagement />} />
                 <Route path="approvals" element={<PendingApprovals />} />
                 <Route path="communication-settings" element={<CommunicationSettings />} />
                 <Route path="integrations" element={<Integrations />} />

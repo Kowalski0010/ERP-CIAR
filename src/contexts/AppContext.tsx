@@ -37,6 +37,7 @@ import {
   AcrRecord,
   AcrAppointment,
   AcrAttachment,
+  SystemUser,
 } from '@/lib/types'
 import {
   mockStudents,
@@ -72,12 +73,15 @@ import {
   mockAcrPatients,
   mockAcrRecords,
   mockAcrAppointments,
+  mockSystemUsers,
 } from '@/lib/mockData'
 
 interface AppContextType extends AppState {
   login: (role?: Role) => void
   logout: () => void
   setCurrentUserRole: (role: Role) => void
+  addSystemUser: (user: Omit<SystemUser, 'id'>) => void
+  updateSystemUser: (id: string, partial: Partial<SystemUser>) => void
   addLead: (lead: Lead) => void
   updateLeadStatus: (id: string, status: Lead['status']) => void
   updateStudent: (id: string, partial: Partial<Student>) => void
@@ -146,6 +150,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined)
 export function AppProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [currentUserRole, setCurrentUserRole] = useState<Role>('Admin')
+  const [systemUsers, setSystemUsers] = useState<SystemUser[]>(mockSystemUsers)
   const [students, setStudents] = useState<Student[]>(mockStudents)
   const [leads, setLeads] = useState<Lead[]>(mockLeads)
   const [payments, setPayments] = useState<Payment[]>(mockPayments)
@@ -187,6 +192,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [acrRecords, setAcrRecords] = useState<AcrRecord[]>(mockAcrRecords)
   const [acrAppointments, setAcrAppointments] = useState<AcrAppointment[]>(mockAcrAppointments)
 
+  const generateId = (prefix: string) => `${prefix}${Math.floor(Math.random() * 10000)}`
+
   const login = (role?: Role) => {
     setIsAuthenticated(true)
     addLog({
@@ -201,7 +208,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setIsAuthenticated(false)
   }
 
-  const generateId = (prefix: string) => `${prefix}${Math.floor(Math.random() * 10000)}`
+  const addSystemUser = (user: Omit<SystemUser, 'id'>) => {
+    setSystemUsers((prev) => [{ ...user, id: generateId('USR') }, ...prev])
+    addLog({
+      user: currentUserRole,
+      action: 'Criou Usuário',
+      entity: `Acessos: ${user.name}`,
+    })
+  }
+
+  const updateSystemUser = (id: string, partial: Partial<SystemUser>) => {
+    setSystemUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...partial } : u)))
+    addLog({
+      user: currentUserRole,
+      action: 'Atualizou Usuário',
+      entity: `Acessos ID: ${id}`,
+    })
+  }
 
   const bulkImportData = (type: 'students' | 'classes' | 'teachers', data: any[]) => {
     if (type === 'students') {
@@ -260,7 +283,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       entity: `Prontuário: ${id}`,
     })
 
-    // Notify the patient
     const record = acrRecords.find((r) => r.id === id)
     if (record) {
       sendNotification({
@@ -293,7 +315,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const newApp = { ...app, id: generateId('APP') }
     setAcrAppointments((prev) => [newApp, ...prev])
 
-    // Notify the patient
     sendNotification({
       title: 'Novo Agendamento Confirmado',
       message: `Uma nova sessão de ${app.analysisType || 'Consulta'} foi agendada para ${new Date(app.date).toLocaleString('pt-BR')}.`,
@@ -897,6 +918,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         logout,
         currentUserRole,
         setCurrentUserRole,
+        systemUsers,
         students,
         leads,
         payments,
@@ -930,6 +952,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         acrPatients,
         acrRecords,
         acrAppointments,
+        addSystemUser,
+        updateSystemUser,
         addLead,
         updateLeadStatus,
         updateStudent,
