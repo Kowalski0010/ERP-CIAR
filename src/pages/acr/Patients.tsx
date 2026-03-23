@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 import { useAppStore } from '@/contexts/AppContext'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Table,
@@ -20,8 +22,24 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { Search, Plus, UserCircle } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+
+const patientSchema = z.object({
+  name: z.string().min(3, 'O nome deve ter no mínimo 3 caracteres'),
+  email: z.string().email('E-mail inválido. Verifique a formatação'),
+  phone: z.string().min(10, 'Telefone deve ter DDD e número válidos'),
+  birthDate: z.string().min(1, 'A data de nascimento é obrigatória'),
+  background: z.string().min(10, 'Descreva o motivo da busca (mínimo de 10 caracteres)'),
+})
 
 export default function Patients() {
   const { acrPatients, addAcrPatient } = useAppStore()
@@ -29,21 +47,48 @@ export default function Patients() {
   const [searchTerm, setSearchTerm] = useState('')
   const [isAddOpen, setIsAddOpen] = useState(false)
 
+  const form = useForm<z.infer<typeof patientSchema>>({
+    resolver: zodResolver(patientSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
+      birthDate: '',
+      background: '',
+    },
+  })
+
+  useEffect(() => {
+    if (isAddOpen) {
+      form.reset()
+    }
+  }, [isAddOpen, form])
+
+  // Global shortcut for opening modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') {
+        e.preventDefault()
+        setIsAddOpen(true)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   const filteredPatients = acrPatients.filter(
     (p) =>
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.email.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
-  const handleAddSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const fd = new FormData(e.currentTarget)
+  const handleAddSubmit = (data: z.infer<typeof patientSchema>) => {
     addAcrPatient({
-      name: fd.get('name') as string,
-      email: fd.get('email') as string,
-      phone: fd.get('phone') as string,
-      birthDate: fd.get('birthDate') as string,
-      background: fd.get('background') as string,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      birthDate: data.birthDate,
+      background: data.background,
     })
     toast({
       title: 'Paciente Registrado',
@@ -64,17 +109,24 @@ export default function Patients() {
             Gerencie perfis e dados cadastrais de pacientes do módulo de clínica.
           </p>
         </div>
-        <Button className="shadow-sm h-9 px-4" onClick={() => setIsAddOpen(true)}>
+        <Button
+          className="shadow-sm h-10 px-4 group"
+          onClick={() => setIsAddOpen(true)}
+          title="Atalho: Ctrl + N"
+        >
           <Plus className="mr-2 h-4 w-4" /> Novo Paciente
+          <span className="hidden group-hover:inline-block ml-2 text-[10px] font-mono opacity-70">
+            Ctrl+N
+          </span>
         </Button>
       </div>
 
       <Card className="border-zinc-200 shadow-sm p-3 bg-white">
         <div className="relative max-w-md">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
+          <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
           <Input
             placeholder="Buscar por nome ou e-mail..."
-            className="pl-9 h-9 bg-zinc-50/50 border-transparent focus-visible:border-zinc-300 w-full text-xs"
+            className="pl-9 h-10 bg-zinc-50/50 border-zinc-200 focus-visible:border-zinc-300 w-full text-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -127,45 +179,96 @@ export default function Patients() {
       </Card>
 
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="max-w-md bg-white">
+        <DialogContent className="max-w-md bg-white max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Cadastrar Novo Paciente</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleAddSubmit} className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <Label>Nome Completo</Label>
-              <Input name="name" required placeholder="Ex: Júlia Mendes" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Data de Nascimento</Label>
-                <Input name="birthDate" type="date" required />
-              </div>
-              <div className="space-y-2">
-                <Label>Telefone / WhatsApp</Label>
-                <Input name="phone" required placeholder="(11) 90000-0000" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>E-mail</Label>
-              <Input name="email" type="email" required placeholder="email@exemplo.com" />
-            </div>
-            <div className="space-y-2">
-              <Label>Histórico Básico (Motivo da busca)</Label>
-              <Textarea
-                name="background"
-                placeholder="Breve resumo do relato inicial..."
-                className="resize-none"
-                required
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleAddSubmit)} className="space-y-4 pt-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome Completo</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Júlia Mendes" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <DialogFooter className="pt-2">
-              <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit">Salvar Paciente</Button>
-            </DialogFooter>
-          </form>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="birthDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Data de Nascimento</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telefone / WhatsApp</FormLabel>
+                      <FormControl>
+                        <Input placeholder="(11) 90000-0000" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>E-mail</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="email@exemplo.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="background"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Histórico Básico (Motivo da busca)</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Breve resumo do relato inicial..."
+                        className="resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter className="pt-2 border-t border-zinc-100">
+                <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit">Salvar Paciente</Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>

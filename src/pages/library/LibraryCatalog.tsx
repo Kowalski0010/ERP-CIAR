@@ -1,4 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 import { useAppStore } from '@/contexts/AppContext'
 import { BookOpen, Search, Plus, Filter } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -15,13 +18,55 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+
+const bookSchema = z.object({
+  title: z.string().min(2, 'O título é obrigatório'),
+  author: z.string().min(2, 'O autor é obrigatório'),
+  isbn: z.string().min(5, 'O ISBN é obrigatório'),
+  totalCopies: z.coerce.number().min(1, 'Adicione pelo menos 1 cópia'),
+})
 
 export default function LibraryCatalog() {
   const { books, addBook } = useAppStore()
   const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
   const [isAddOpen, setIsAddOpen] = useState(false)
+
+  const form = useForm<z.infer<typeof bookSchema>>({
+    resolver: zodResolver(bookSchema),
+    defaultValues: {
+      title: '',
+      author: '',
+      isbn: '',
+      totalCopies: 1,
+    },
+  })
+
+  useEffect(() => {
+    if (isAddOpen) {
+      form.reset()
+    }
+  }, [isAddOpen, form])
+
+  // Global shortcut for opening modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') {
+        e.preventDefault()
+        setIsAddOpen(true)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   const filteredBooks = books.filter(
     (b) =>
@@ -30,16 +75,13 @@ export default function LibraryCatalog() {
       b.isbn.includes(searchTerm),
   )
 
-  const handleAddSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const fd = new FormData(e.currentTarget)
-    const total = Number(fd.get('totalCopies'))
+  const handleAddSubmit = (data: z.infer<typeof bookSchema>) => {
     addBook({
-      title: fd.get('title') as string,
-      author: fd.get('author') as string,
-      isbn: fd.get('isbn') as string,
-      totalCopies: total,
-      availableCopies: total,
+      title: data.title,
+      author: data.author,
+      isbn: data.isbn,
+      totalCopies: data.totalCopies,
+      availableCopies: data.totalCopies,
       coverUrl: 'https://img.usecurling.com/p/200/300?q=book&color=blue',
     })
     toast({ title: 'Livro Cadastrado', description: 'Título adicionado ao acervo com sucesso.' })
@@ -58,8 +100,15 @@ export default function LibraryCatalog() {
             Gestão de livros e disponibilidade da biblioteca.
           </p>
         </div>
-        <Button className="shadow-sm h-10 px-4" onClick={() => setIsAddOpen(true)}>
+        <Button
+          className="shadow-sm h-10 px-4 group"
+          onClick={() => setIsAddOpen(true)}
+          title="Atalho: Ctrl + N"
+        >
           <Plus className="mr-2 h-4 w-4" /> Novo Título
+          <span className="hidden group-hover:inline-block ml-2 text-[10px] font-mono opacity-70">
+            Ctrl+N
+          </span>
         </Button>
       </div>
 
@@ -138,36 +187,78 @@ export default function LibraryCatalog() {
       </div>
 
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Cadastrar Novo Livro</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleAddSubmit} className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <Label>Título da Obra</Label>
-              <Input name="title" required placeholder="Ex: Clean Architecture" />
-            </div>
-            <div className="space-y-2">
-              <Label>Autor</Label>
-              <Input name="author" required placeholder="Ex: Robert C. Martin" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>ISBN</Label>
-                <Input name="isbn" required placeholder="Ex: 978-000000000" />
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleAddSubmit)} className="space-y-4 pt-4">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Título da Obra</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Clean Architecture" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="author"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Autor</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Robert C. Martin" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="isbn"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>ISBN</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: 978-000000000" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="totalCopies"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Total de Cópias</FormLabel>
+                      <FormControl>
+                        <Input type="number" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-              <div className="space-y-2">
-                <Label>Total de Cópias</Label>
-                <Input name="totalCopies" type="number" required min="1" defaultValue="1" />
+
+              <div className="pt-4 flex justify-end gap-2 border-t border-zinc-100">
+                <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit">Salvar Título</Button>
               </div>
-            </div>
-            <div className="pt-4 flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit">Salvar Título</Button>
-            </div>
-          </form>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>

@@ -1,4 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 import { useAppStore } from '@/contexts/AppContext'
 import { Search, PackagePlus, AlertTriangle, ArrowRightLeft } from 'lucide-react'
 import {
@@ -21,7 +24,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { useToast } from '@/hooks/use-toast'
+
+const productSchema = z.object({
+  sku: z.string().min(2, 'SKU obrigatório e deve ter no mínimo 2 caracteres'),
+  name: z.string().min(3, 'Nome obrigatório'),
+  category: z.string().min(1, 'Categoria obrigatória'),
+  unit: z.string().min(1, 'Unidade obrigatória'),
+  currentQuantity: z.coerce.number().min(0, 'A quantidade não pode ser negativa'),
+  minQuantity: z.coerce.number().min(0, 'A quantidade mínima não pode ser negativa'),
+  price: z.coerce.number().min(0).default(0),
+})
 
 export default function Stock() {
   const { products, addProduct, addStockMovement } = useAppStore()
@@ -32,25 +53,54 @@ export default function Stock() {
   const [isMovementOpen, setIsMovementOpen] = useState(false)
   const [selectedProductId, setSelectedProductId] = useState<string>('')
 
+  const form = useForm<z.infer<typeof productSchema>>({
+    resolver: zodResolver(productSchema),
+    defaultValues: {
+      sku: '',
+      name: '',
+      category: 'Material de Escritório',
+      unit: 'Unidade',
+      currentQuantity: 0,
+      minQuantity: 5,
+      price: 0,
+    },
+  })
+
+  useEffect(() => {
+    if (isAddOpen) {
+      form.reset()
+    }
+  }, [isAddOpen, form])
+
+  // Global shortcut for opening modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') {
+        e.preventDefault()
+        setIsAddOpen(true)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   const filtered = products.filter(
     (p) =>
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.sku.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
-  const handleAddSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const fd = new FormData(e.currentTarget)
+  const handleAddSubmit = (data: z.infer<typeof productSchema>) => {
     addProduct({
-      sku: fd.get('sku') as string,
-      name: fd.get('name') as string,
-      category: fd.get('category') as string,
-      currentQuantity: Number(fd.get('currentQuantity')),
-      minQuantity: Number(fd.get('minQuantity')),
-      unit: fd.get('unit') as string,
-      price: Number(fd.get('price')),
+      sku: data.sku,
+      name: data.name,
+      category: data.category,
+      currentQuantity: data.currentQuantity,
+      minQuantity: data.minQuantity,
+      unit: data.unit,
+      price: data.price,
     })
-    toast({ title: 'Produto Cadastrado', description: 'Item adicionado ao estoque.' })
+    toast({ title: 'Produto Cadastrado', description: 'Item adicionado ao estoque com sucesso.' })
     setIsAddOpen(false)
   }
 
@@ -92,23 +142,30 @@ export default function Stock() {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            className="shadow-sm h-9 px-4"
+            className="shadow-sm h-10 px-4"
             onClick={() => setIsMovementOpen(true)}
           >
             <ArrowRightLeft className="mr-2 h-4 w-4 text-blue-600" /> Movimentação Lote
           </Button>
-          <Button className="shadow-sm h-9 px-4" onClick={() => setIsAddOpen(true)}>
+          <Button
+            className="shadow-sm h-10 px-4 group"
+            onClick={() => setIsAddOpen(true)}
+            title="Atalho: Ctrl + N"
+          >
             <PackagePlus className="mr-2 h-4 w-4" /> Novo Item
+            <span className="hidden group-hover:inline-block ml-2 text-[10px] font-mono opacity-70">
+              Ctrl+N
+            </span>
           </Button>
         </div>
       </div>
 
       <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-3">
         <div className="relative max-w-md">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
+          <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
           <Input
             placeholder="Buscar por nome ou SKU..."
-            className="pl-9 h-9 bg-zinc-50/50 border-transparent focus-visible:border-zinc-300 w-full text-xs"
+            className="pl-9 h-10 bg-zinc-50/50 border-zinc-200 focus-visible:border-zinc-300 w-full text-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -167,7 +224,7 @@ export default function Stock() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-7 text-[10px] opacity-0 group-hover:opacity-100 transition-opacity text-blue-600"
+                      className="h-8 text-xs opacity-0 group-hover:opacity-100 transition-opacity text-blue-600 font-medium"
                       onClick={() => openMovementForProduct(prod.id)}
                     >
                       Mover
@@ -182,77 +239,128 @@ export default function Stock() {
 
       {/* Dialog Novo Item */}
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Cadastrar Novo Item</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleAddSubmit} className="space-y-4 pt-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Código SKU</Label>
-                <Input name="sku" required placeholder="Ex: MAT-002" className="h-9" />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Unidade de Medida</Label>
-                <Select name="unit" defaultValue="Unidade">
-                  <SelectTrigger className="h-9">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Unidade">Unidade (un)</SelectItem>
-                    <SelectItem value="Caixa">Caixa (cx)</SelectItem>
-                    <SelectItem value="Pacote">Pacote (pct)</SelectItem>
-                    <SelectItem value="Litro">Litro (l)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Nome do Item</Label>
-              <Input
-                name="name"
-                required
-                placeholder="Ex: Caneta Esferográfica Azul"
-                className="h-9"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Categoria</Label>
-              <Select name="category" defaultValue="Material de Escritório">
-                <SelectTrigger className="h-9">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Material de Escritório">Material de Escritório</SelectItem>
-                  <SelectItem value="Pedagógico">Pedagógico / Didático</SelectItem>
-                  <SelectItem value="Limpeza">Limpeza e Manutenção</SelectItem>
-                  <SelectItem value="TI e Eletrônicos">TI e Eletrônicos</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Qtd. Inicial</Label>
-                <Input
-                  name="currentQuantity"
-                  type="number"
-                  required
-                  defaultValue="0"
-                  className="h-9"
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleAddSubmit)} className="space-y-4 pt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="sku"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Código SKU</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: MAT-002" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="unit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Unidade de Medida</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione..." />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Unidade">Unidade (un)</SelectItem>
+                          <SelectItem value="Caixa">Caixa (cx)</SelectItem>
+                          <SelectItem value="Pacote">Pacote (pct)</SelectItem>
+                          <SelectItem value="Litro">Litro (l)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label>Alerta de Estoque Baixo</Label>
-                <Input name="minQuantity" type="number" required defaultValue="5" className="h-9" />
+
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome do Item</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Caneta Esferográfica Azul" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Categoria</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                      <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione..." />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Material de Escritório">Material de Escritório</SelectItem>
+                          <SelectItem value="Pedagógico">Pedagógico / Didático</SelectItem>
+                          <SelectItem value="Limpeza">Limpeza e Manutenção</SelectItem>
+                          <SelectItem value="TI e Eletrônicos">TI e Eletrônicos</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="currentQuantity"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Qtd. Inicial</FormLabel>
+                      <FormControl>
+                        <Input type="number" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="minQuantity"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Alerta de Baixa</FormLabel>
+                      <FormControl>
+                        <Input type="number" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-            </div>
-            <div className="pt-4 flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit">Salvar Produto</Button>
-            </div>
-          </form>
+
+              <div className="pt-4 flex justify-end gap-2 border-t border-zinc-100">
+                <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit">Salvar Produto</Button>
+              </div>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
 
@@ -272,7 +380,7 @@ export default function Stock() {
             <div className="space-y-1.5">
               <Label>Produto</Label>
               <Select value={selectedProductId} onValueChange={setSelectedProductId} required>
-                <SelectTrigger className="h-9">
+                <SelectTrigger className="h-10">
                   <SelectValue placeholder="Selecione o produto..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -288,7 +396,7 @@ export default function Stock() {
               <div className="space-y-1.5">
                 <Label>Tipo de Movimento</Label>
                 <Select name="type" defaultValue="Entrada">
-                  <SelectTrigger className="h-9">
+                  <SelectTrigger className="h-10">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -305,7 +413,7 @@ export default function Stock() {
                   required
                   min="1"
                   defaultValue="1"
-                  className="h-9"
+                  className="h-10"
                 />
               </div>
             </div>
@@ -315,10 +423,10 @@ export default function Stock() {
                 name="reason"
                 required
                 placeholder="Ex: Compra de suprimentos, Uso na sala..."
-                className="h-9"
+                className="h-10"
               />
             </div>
-            <div className="pt-4 flex justify-end gap-2">
+            <div className="pt-4 flex justify-end gap-2 border-t border-zinc-100">
               <Button type="button" variant="outline" onClick={() => setIsMovementOpen(false)}>
                 Cancelar
               </Button>

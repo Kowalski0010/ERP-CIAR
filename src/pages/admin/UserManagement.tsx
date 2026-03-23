@@ -1,4 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 import { useAppStore } from '@/contexts/AppContext'
 import { Shield, Plus, Search, Key, UserX, Edit } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -21,15 +24,28 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { Role } from '@/lib/types'
+
+const userSchema = z.object({
+  name: z.string().min(3, 'O nome deve ter no mínimo 3 caracteres'),
+  email: z.string().email('E-mail inválido. Verifique a formatação'),
+  role: z.string().min(1, 'Selecione um perfil de acesso'),
+})
 
 export default function UserManagement() {
   const { systemUsers, addSystemUser, updateSystemUser } = useAppStore()
@@ -39,6 +55,44 @@ export default function UserManagement() {
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [editUser, setEditUser] = useState<any>(null)
 
+  const form = useForm<z.infer<typeof userSchema>>({
+    resolver: zodResolver(userSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      role: 'Secretaria',
+    },
+  })
+
+  useEffect(() => {
+    if (editUser) {
+      form.reset({
+        name: editUser.name,
+        email: editUser.email,
+        role: editUser.role,
+      })
+    } else if (isAddOpen) {
+      form.reset({
+        name: '',
+        email: '',
+        role: 'Secretaria',
+      })
+    }
+  }, [editUser, isAddOpen, form])
+
+  // Global shortcut for opening modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') {
+        e.preventDefault()
+        setEditUser(null)
+        setIsAddOpen(true)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   const filteredUsers = systemUsers.filter(
     (u) =>
       u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -46,15 +100,12 @@ export default function UserManagement() {
       u.role.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
-  const handleAddSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const fd = new FormData(e.currentTarget)
-
+  const handleAddSubmit = (data: z.infer<typeof userSchema>) => {
     if (editUser) {
       updateSystemUser(editUser.id, {
-        name: fd.get('name') as string,
-        email: fd.get('email') as string,
-        role: fd.get('role') as Role,
+        name: data.name,
+        email: data.email,
+        role: data.role as Role,
       })
       toast({
         title: 'Usuário Atualizado',
@@ -62,9 +113,9 @@ export default function UserManagement() {
       })
     } else {
       addSystemUser({
-        name: fd.get('name') as string,
-        email: fd.get('email') as string,
-        role: fd.get('role') as Role,
+        name: data.name,
+        email: data.email,
+        role: data.role as Role,
         status: 'Ativo',
       })
       toast({
@@ -106,13 +157,17 @@ export default function UserManagement() {
           </p>
         </div>
         <Button
-          className="shadow-sm h-10 px-4"
+          className="shadow-sm h-10 px-4 group"
           onClick={() => {
             setEditUser(null)
             setIsAddOpen(true)
           }}
+          title="Atalho: Ctrl + N"
         >
           <Plus className="mr-2 h-4 w-4" /> Novo Usuário
+          <span className="hidden group-hover:inline-block ml-2 text-[10px] font-mono opacity-70">
+            Ctrl+N
+          </span>
         </Button>
       </div>
 
@@ -240,45 +295,77 @@ export default function UserManagement() {
                 : 'Defina o e-mail de login e a função no sistema.'}
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleAddSubmit} className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <Label>Nome Completo</Label>
-              <Input name="name" required defaultValue={editUser?.name} />
-            </div>
-            <div className="space-y-2">
-              <Label>E-mail (Login)</Label>
-              <Input name="email" type="email" required defaultValue={editUser?.email} />
-            </div>
-            <div className="space-y-2">
-              <Label>Perfil de Permissão</Label>
-              <Select name="role" required defaultValue={editUser?.role || 'Secretaria'}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Admin">Admin</SelectItem>
-                  <SelectItem value="Gestao">Gestão/Diretoria</SelectItem>
-                  <SelectItem value="Secretaria">Secretaria</SelectItem>
-                  <SelectItem value="Financeiro">Financeiro</SelectItem>
-                  <SelectItem value="Professor">Professor</SelectItem>
-                  <SelectItem value="Aluno">Aluno</SelectItem>
-                  <SelectItem value="Paciente">Paciente</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {!editUser && (
-              <div className="bg-blue-50 border border-blue-200 text-blue-800 text-xs p-3 rounded-md">
-                Uma senha forte temporária será gerada e enviada para o e-mail cadastrado. O usuário
-                deverá alterá-la no primeiro acesso.
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleAddSubmit)} className="space-y-4 pt-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome Completo</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Ana Souza" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>E-mail (Login)</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="ana.souza@instituicao.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Perfil de Permissão</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Admin">Admin</SelectItem>
+                        <SelectItem value="Gestao">Gestão/Diretoria</SelectItem>
+                        <SelectItem value="Secretaria">Secretaria</SelectItem>
+                        <SelectItem value="Financeiro">Financeiro</SelectItem>
+                        <SelectItem value="Professor">Professor</SelectItem>
+                        <SelectItem value="Aluno">Aluno</SelectItem>
+                        <SelectItem value="Paciente">Paciente (ACR)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {!editUser && (
+                <div className="bg-blue-50 border border-blue-200 text-blue-800 text-xs p-3 rounded-md">
+                  Uma senha forte temporária será gerada e enviada para o e-mail cadastrado. O usuário
+                  deverá alterá-la no primeiro acesso.
+                </div>
+              )}
+              <div className="pt-4 flex justify-end gap-2 border-t border-zinc-100">
+                <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit">{editUser ? 'Salvar Alterações' : 'Criar Acesso'}</Button>
               </div>
-            )}
-            <div className="pt-4 flex justify-end gap-2 border-t border-zinc-100">
-              <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit">{editUser ? 'Salvar Alterações' : 'Criar Acesso'}</Button>
-            </div>
-          </form>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>

@@ -1,3 +1,7 @@
+import { useState, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 import { useAppStore } from '@/contexts/AppContext'
 import {
   Search,
@@ -25,16 +29,80 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+
+const paymentSchema = z.object({
+  studentId: z.string().min(1, 'Selecione um aluno'),
+  amount: z.coerce.number().min(0.01, 'O valor deve ser maior que 0'),
+  dueDate: z.string().min(1, 'Informe a data de vencimento'),
+})
 
 export default function Payments() {
   const {
     payments,
+    students,
     notifications,
     markNotificationsAsRead,
     addCommunicationLog,
     simulatePaymentReconciliation,
+    registerPayment,
   } = useAppStore()
   const { toast } = useToast()
+
+  const [isAddPaymentOpen, setIsAddPaymentOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const form = useForm<z.infer<typeof paymentSchema>>({
+    resolver: zodResolver(paymentSchema),
+    defaultValues: {
+      studentId: '',
+      amount: 0,
+      dueDate: '',
+    },
+  })
+
+  useEffect(() => {
+    if (isAddPaymentOpen) {
+      form.reset()
+    }
+  }, [isAddPaymentOpen, form])
+
+  // Global shortcut for opening modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') {
+        e.preventDefault()
+        setIsAddPaymentOpen(true)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
+  const filteredPayments = payments.filter((p) =>
+    p.studentName.toLowerCase().includes(searchTerm.toLowerCase()),
+  )
 
   const recentSuspensions = notifications.filter(
     (n) => n.target === 'Financeiro' && n.title.includes('Trancamento') && !n.read,
@@ -81,6 +149,26 @@ export default function Payments() {
       subject: 'Lembrete de Fatura',
       body: `Envio de lembrete financeiro via WhatsApp.`,
     })
+  }
+
+  const handleAddPayment = (data: z.infer<typeof paymentSchema>) => {
+    const student = students.find((s) => s.id === data.studentId)
+    if (!student) return
+
+    registerPayment({
+      id: `INV-${Math.floor(Math.random() * 10000)}`,
+      studentId: student.id,
+      studentName: student.name,
+      amount: data.amount,
+      dueDate: data.dueDate,
+      status: 'Pendente',
+    })
+
+    toast({
+      title: 'Lançamento Efetuado',
+      description: `Nova fatura gerada para ${student.name}.`,
+    })
+    setIsAddPaymentOpen(false)
   }
 
   const getStatusBadge = (status: string) => {
@@ -142,8 +230,15 @@ export default function Payments() {
           >
             <RefreshCw className="mr-2 h-4 w-4" /> Baixa Automática
           </Button>
-          <Button className="shadow-sm h-10 px-4 shrink-0 font-semibold">
+          <Button
+            onClick={() => setIsAddPaymentOpen(true)}
+            className="shadow-sm h-10 px-4 shrink-0 font-semibold group"
+            title="Atalho: Ctrl + N"
+          >
             <Plus className="mr-2 h-4 w-4" /> Nova Fatura
+            <span className="hidden group-hover:inline-block ml-2 text-[10px] font-mono opacity-70">
+              Ctrl+N
+            </span>
           </Button>
         </div>
       </div>
@@ -175,8 +270,10 @@ export default function Payments() {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
           <Input
-            placeholder="Buscar por sacado, fatura ou valor..."
+            placeholder="Buscar por sacado..."
             className="pl-9 h-10 bg-zinc-50/50 border-zinc-200 focus-visible:border-zinc-300 w-full text-sm"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
@@ -196,10 +293,12 @@ export default function Payments() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {payments.map((payment) => (
+              {filteredPayments.map((payment) => (
                 <TableRow key={payment.id} className="group hover:bg-zinc-50/80 transition-colors">
                   <TableCell className="font-mono text-xs text-zinc-500 font-medium">
-                    {payment.id.startsWith('INV') ? payment.id : payment.id.padStart(6, '0')}
+                    {payment.id.startsWith('INV') || payment.id.startsWith('ACR')
+                      ? payment.id
+                      : payment.id.padStart(6, '0')}
                   </TableCell>
                   <TableCell className="font-semibold text-zinc-900 text-sm">
                     {payment.studentName}
@@ -244,10 +343,93 @@ export default function Payments() {
                   </TableCell>
                 </TableRow>
               ))}
+              {filteredPayments.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-24 text-center text-zinc-500">
+                    Nenhum lançamento encontrado.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>
       </div>
+
+      <Dialog open={isAddPaymentOpen} onOpenChange={setIsAddPaymentOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Lançamento Avulso</DialogTitle>
+            <DialogDescription>
+              Adicione uma nova cobrança ou fatura manual para um aluno matriculado.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleAddPayment)} className="space-y-4 pt-4">
+              <FormField
+                control={form.control}
+                name="studentId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sacado (Aluno)</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o aluno" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {students.map((student) => (
+                          <SelectItem key={student.id} value={student.id}>
+                            {student.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="amount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Valor (R$)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="dueDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Vencimento</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="pt-4 flex justify-end gap-2 border-t border-zinc-100">
+                <Button type="button" variant="outline" onClick={() => setIsAddPaymentOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit">Gerar Cobrança</Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
