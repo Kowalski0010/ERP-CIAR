@@ -95,6 +95,12 @@ import CustomReports from './pages/reports/CustomReports'
 import Employees from './pages/hr/Employees'
 import Recruitment from './pages/hr/Recruitment'
 
+// Inventory & Purchasing
+import Stock from './pages/inventory/Stock'
+import Movements from './pages/inventory/Movements'
+import Orders from './pages/purchasing/Orders'
+import Suppliers from './pages/purchasing/Suppliers'
+
 // Portals
 import StudentDashboard from './pages/student/StudentDashboard'
 import StudentSchedule from './pages/student/StudentSchedule'
