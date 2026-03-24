@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { HelpCircle, LogOut, Bell, Send, Sun, Moon } from 'lucide-react'
+import { HelpCircle, LogOut, Bell, Send, Sun, Moon, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAppStore } from '@/contexts/AppContext'
@@ -23,6 +23,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import { useTheme } from '@/components/theme-provider'
@@ -174,18 +182,47 @@ export function AppHeader() {
           </PopoverContent>
         </Popover>
 
-        <div className="hidden sm:flex items-center gap-2 bg-zinc-50 dark:bg-zinc-900 pr-3 pl-1 py-1 rounded-full border border-zinc-200 dark:border-zinc-800 transition-colors">
-          <Avatar className="h-7 w-7">
-            <AvatarImage
-              src="https://img.usecurling.com/ppl/thumbnail?gender=male&seed=99"
-              alt="USUARIO"
-            />
-            <AvatarFallback className="bg-[#1e3a8a] text-white text-[10px]">US</AvatarFallback>
-          </Avatar>
-          <span className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 tracking-wider uppercase">
-            {currentUserRole}
-          </span>
-        </div>
+        {/* Profile Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div className="hidden sm:flex items-center gap-2 bg-zinc-50 dark:bg-zinc-900 pr-3 pl-1 py-1 rounded-full border border-zinc-200 dark:border-zinc-800 transition-colors cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800">
+              <Avatar className="h-7 w-7">
+                <AvatarImage
+                  src="https://img.usecurling.com/ppl/thumbnail?gender=male&seed=99"
+                  alt="USUARIO"
+                />
+                <AvatarFallback className="bg-[#1e3a8a] text-white text-[10px]">US</AvatarFallback>
+              </Avatar>
+              <span className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 tracking-wider uppercase">
+                {currentUserRole}
+              </span>
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>Meu Perfil</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => {
+                if (currentUserRole === 'Aluno') navigate('/student/profile')
+                else navigate('/utilities/change-password')
+              }}
+            >
+              <User className="mr-2 h-4 w-4" />
+              <span>Configurações da Conta</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="cursor-pointer text-rose-600 focus:text-rose-700 dark:text-rose-400 dark:focus:text-rose-300"
+              onClick={() => {
+                logout()
+                navigate('/login')
+              }}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Sair do Sistema</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Support Dialog */}
         <Dialog open={isSupportOpen} onOpenChange={setIsSupportOpen}>
@@ -222,18 +259,6 @@ export function AppHeader() {
             </form>
           </DialogContent>
         </Dialog>
-
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8 text-xs font-medium text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 hidden sm:flex"
-          onClick={() => {
-            logout()
-            navigate('/login')
-          }}
-        >
-          <LogOut className="h-3.5 w-3.5 mr-1.5" /> Sair
-        </Button>
       </div>
     </header>
   )
