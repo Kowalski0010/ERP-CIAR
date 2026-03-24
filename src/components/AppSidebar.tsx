@@ -151,45 +151,65 @@ export function AppSidebar() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  const filteredModules = appModules.filter((module) => {
-    if (currentUserRole === 'Admin' || currentUserRole === 'Gestao') {
-      return (
-        module.title !== 'PORTAL DO ALUNO' &&
-        module.title !== 'PORTAL DO RESPONSÁVEL' &&
-        module.title !== 'PORTAL DO PACIENTE'
-      )
-    }
+  const filteredModules = appModules
+    .map((module) => {
+      // Hide administrative options from Pedagogical menu if user is a Teacher
+      if (currentUserRole === 'Professor' && module.title === 'PEDAGÓGICO') {
+        const restrictedForProfessor = [
+          'Relatórios e Atas',
+          'Aprovações Pendentes',
+          'Efetuar Matrícula',
+          'Manutenção Matrícula',
+          'Emissão de Certificados',
+          'Imprimir Documentos',
+          'Consulta de Alunos',
+        ]
+        return {
+          ...module,
+          items: module.items?.filter((item) => !restrictedForProfessor.includes(item.title)),
+        }
+      }
+      return module
+    })
+    .filter((module) => {
+      if (currentUserRole === 'Admin' || currentUserRole === 'Gestao') {
+        return (
+          module.title !== 'PORTAL DO ALUNO' &&
+          module.title !== 'PORTAL DO RESPONSÁVEL' &&
+          module.title !== 'PORTAL DO PACIENTE'
+        )
+      }
 
-    if (currentUserRole === 'Aluno') return module.title === 'PORTAL DO ALUNO'
-    if (currentUserRole === 'Responsável') return module.title === 'PORTAL DO RESPONSÁVEL'
-    if (currentUserRole === 'Paciente') return module.title === 'PORTAL DO PACIENTE'
+      if (currentUserRole === 'Aluno') return module.title === 'PORTAL DO ALUNO'
+      if (currentUserRole === 'Responsável') return module.title === 'PORTAL DO RESPONSÁVEL'
+      if (currentUserRole === 'Paciente') return module.title === 'PORTAL DO PACIENTE'
 
-    if (currentUserRole === 'Secretaria') {
-      return (
-        module.title === 'CADASTROS' ||
-        module.title === 'GESTÃO E FINANCEIRO' ||
-        module.title === 'COMUNICAÇÃO' ||
-        module.title === 'PEDAGÓGICO' ||
-        module.title === 'INVENTÁRIO E PATRIMÔNIO' ||
-        module.title === 'RECURSOS HUMANOS' ||
-        module.title === 'ACR (CLÍNICA)'
-      )
-    }
+      if (currentUserRole === 'Secretaria') {
+        return (
+          module.title === 'CADASTROS' ||
+          module.title === 'GESTÃO E FINANCEIRO' ||
+          module.title === 'COMUNICAÇÃO' ||
+          module.title === 'PEDAGÓGICO' ||
+          module.title === 'INVENTÁRIO E PATRIMÔNIO' ||
+          module.title === 'RECURSOS HUMANOS' ||
+          module.title === 'ACR (CLÍNICA)'
+        )
+      }
 
-    if (currentUserRole === 'Financeiro') {
-      return module.title === 'GESTÃO E FINANCEIRO' || module.title === 'COMUNICAÇÃO'
-    }
+      if (currentUserRole === 'Financeiro') {
+        return module.title === 'GESTÃO E FINANCEIRO' || module.title === 'COMUNICAÇÃO'
+      }
 
-    if (currentUserRole === 'Professor') {
-      return (
-        module.title === 'COMUNICAÇÃO' ||
-        module.title === 'PEDAGÓGICO' ||
-        module.title === 'ACR (CLÍNICA)'
-      )
-    }
+      if (currentUserRole === 'Professor') {
+        return (
+          module.title === 'COMUNICAÇÃO' ||
+          module.title === 'PEDAGÓGICO' ||
+          module.title === 'ACR (CLÍNICA)'
+        )
+      }
 
-    return true
-  })
+      return true
+    })
 
   return (
     <Sidebar className="border-r border-border bg-card shadow-sm font-sans" collapsible="icon">
