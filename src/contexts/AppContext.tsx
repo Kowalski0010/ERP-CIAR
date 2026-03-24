@@ -89,6 +89,7 @@ interface AppContextType extends AppState {
   deleteStudent: (id: string) => void
   suspendStudent: (studentId: string, reason: string) => void
   registerPayment: (payment: Payment) => void
+  updatePayment: (id: string, partial: Partial<Payment>) => void
   addManualTransaction: (tx: Omit<CashFlowTransaction, 'id'>) => void
   updateManualTransaction: (id: string, partial: Partial<CashFlowTransaction>) => void
   deleteManualTransaction: (id: string) => void
@@ -358,8 +359,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setStudents((prev) => prev.map((s) => (s.id === studentId ? { ...s, status: 'Inativo' } : s)))
   }
 
-  // Other implementations omitted for brevity but remain functional...
-  // Since I am providing the entire file content, I must ensure all original functions are preserved.
   const bulkImportData = (type: 'students' | 'classes' | 'teachers', data: any[]) => {
     if (type === 'students') {
       const newStudents = data.map((d) => ({
@@ -715,6 +714,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateLeadStatus = (id: string, status: Lead['status']) =>
     setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, status } : l)))
   const registerPayment = (payment: Payment) => setPayments((prev) => [payment, ...prev])
+  const updatePayment = (id: string, partial: Partial<Payment>) => {
+    setPayments((prev) => prev.map((p) => (p.id === id ? { ...p, ...partial } : p)))
+  }
   const addSchedule = (slot: Schedule) => setSchedules((prev) => [...prev, slot])
   const enrollStudent = (student: Student, plan: FinancialPlan, leadId?: string) => {
     setStudents((prev) => [student, ...prev])
@@ -820,6 +822,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         deleteStudent,
         suspendStudent,
         registerPayment,
+        updatePayment,
         addManualTransaction,
         updateManualTransaction,
         deleteManualTransaction,

@@ -33,6 +33,14 @@ export type DigitalDocument = {
   type: string
 }
 
+export type SystemAttachment = {
+  id: string
+  name: string
+  url: string
+  type: string
+  date: string
+}
+
 export type SystemUser = {
   id: string
   name: string
@@ -56,6 +64,7 @@ export type Student = {
   address?: Address
   observations?: Observation[]
   documents?: DigitalDocument[]
+  attachments?: SystemAttachment[]
 }
 
 export type Teacher = {
@@ -112,6 +121,7 @@ export type Payment = {
   status: 'Pago' | 'Pendente' | 'Atrasado'
   installmentNumber?: number
   totalInstallments?: number
+  attachments?: SystemAttachment[]
 }
 
 export type CashFlowTransaction = {
@@ -180,6 +190,7 @@ export type Employee = {
   admissionDate: string
   salary: number
   avatar?: string
+  attachments?: SystemAttachment[]
 }
 
 export type Product = {
@@ -383,6 +394,7 @@ export type AcrPatient = {
   phone: string
   background: string
   registrationDate: string
+  attachments?: SystemAttachment[]
 }
 
 export type AcrAttachment = {

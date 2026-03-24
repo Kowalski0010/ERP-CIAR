@@ -57,6 +57,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ConfirmActionDialog } from '@/components/ConfirmActionDialog'
+import { FileUpload } from '@/components/FileUpload'
 import { useToast } from '@/hooks/use-toast'
 import { Label } from '@/components/ui/label'
 
@@ -68,6 +69,7 @@ const empSchema = z.object({
   phone: z.string().min(10, 'Inválido'),
   salary: z.coerce.number().min(0, 'Valor inválido'),
   status: z.enum(['Ativo', 'Inativo']).default('Ativo'),
+  avatar: z.string().optional(),
 })
 
 export default function Employees() {
@@ -96,6 +98,7 @@ export default function Employees() {
       phone: '',
       salary: 0,
       status: 'Ativo',
+      avatar: '',
     },
   })
 
@@ -110,6 +113,7 @@ export default function Employees() {
         phone: '',
         salary: 0,
         status: 'Ativo',
+        avatar: '',
       })
     }
   }, [isFormOpen, form])
@@ -133,6 +137,7 @@ export default function Employees() {
       phone: e.phone,
       salary: e.salary,
       status: e.status,
+      avatar: e.avatar || '',
     })
     setIsFormOpen(true)
   }
@@ -282,6 +287,41 @@ export default function Employees() {
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+              <FormField
+                control={form.control}
+                name="avatar"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-2">
+                    <FormLabel>Foto de Perfil</FormLabel>
+                    <FormControl>
+                      {field.value ? (
+                        <div className="flex items-center gap-4 p-3 border border-border rounded-md bg-muted/30">
+                          <img
+                            src={field.value}
+                            alt="Avatar"
+                            className="w-12 h-12 rounded-full object-cover border shadow-sm"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => field.onChange('')}
+                          >
+                            Remover
+                          </Button>
+                        </div>
+                      ) : (
+                        <FileUpload
+                          accept="image/*"
+                          label="Clique ou arraste uma foto"
+                          onUpload={(files) => field.onChange(files[0]?.url)}
+                        />
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="name"
@@ -474,21 +514,56 @@ export default function Employees() {
                         </div>
                       </div>
                     </TabsContent>
-                    <TabsContent value="docs" className="space-y-2 m-0">
-                      {['Contrato de Trabalho.pdf', 'Termo de Confidencialidade.pdf'].map((doc) => (
-                        <div
-                          key={doc}
-                          className="flex items-center justify-between p-3 bg-background border rounded-lg shadow-sm"
-                        >
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-blue-500" />
-                            <span className="text-xs font-medium">{doc}</span>
+                    <TabsContent value="docs" className="space-y-4 m-0">
+                      <FileUpload
+                        multiple
+                        label="Anexar novo documento"
+                        onUpload={(files) => {
+                          const newAtt = [...(selectedEmp.attachments || []), ...files]
+                          updateEmployee(selectedEmp.id, { attachments: newAtt })
+                          setSelectedEmp({ ...selectedEmp, attachments: newAtt })
+                          toast({ title: 'Documentos anexados' })
+                        }}
+                      />
+                      <div className="space-y-2">
+                        {selectedEmp.attachments?.map((doc) => (
+                          <div
+                            key={doc.id}
+                            className="flex items-center justify-between p-3 bg-background border rounded-lg shadow-sm"
+                          >
+                            <div className="flex items-center gap-2 overflow-hidden">
+                              <FileText className="h-4 w-4 text-blue-500 shrink-0" />
+                              <a
+                                href={doc.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-xs font-medium truncate hover:underline"
+                              >
+                                {doc.name}
+                              </a>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-destructive hover:bg-destructive/10"
+                              onClick={() => {
+                                const newAtt = selectedEmp.attachments!.filter(
+                                  (a) => a.id !== doc.id,
+                                )
+                                updateEmployee(selectedEmp.id, { attachments: newAtt })
+                                setSelectedEmp({ ...selectedEmp, attachments: newAtt })
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
-                          <Button variant="ghost" size="sm" className="h-7 text-[10px]">
-                            Baixar
-                          </Button>
-                        </div>
-                      ))}
+                        ))}
+                        {(!selectedEmp.attachments || selectedEmp.attachments.length === 0) && (
+                          <p className="text-xs text-muted-foreground text-center py-4 bg-muted/30 rounded-lg border border-dashed">
+                            Nenhum documento anexado.
+                          </p>
+                        )}
+                      </div>
                     </TabsContent>
                   </div>
                 </Tabs>

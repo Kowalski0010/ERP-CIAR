@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Student, FinancialPlan } from '@/lib/types'
+import { FileUpload } from '@/components/FileUpload'
 
 const studentSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
@@ -37,6 +38,7 @@ const studentSchema = z.object({
   planInstallments: z.coerce.number().min(1, 'Número de parcelas deve ser maior que 0'),
   planValue: z.coerce.number().min(0.01, 'Valor da parcela deve ser maior que zero'),
   planFirstDueDate: z.string().min(1, 'A data do 1º vencimento é obrigatória'),
+  avatar: z.string().optional(),
 })
 
 interface AddStudentDialogProps {
@@ -64,6 +66,7 @@ export function AddStudentDialog({
       planInstallments: 12,
       planValue: 850,
       planFirstDueDate: new Date().toISOString().split('T')[0],
+      avatar: '',
     },
   })
 
@@ -79,6 +82,7 @@ export function AddStudentDialog({
           planInstallments: 12,
           planValue: 850,
           planFirstDueDate: new Date().toISOString().split('T')[0],
+          avatar: '',
         })
       } else {
         form.reset()
@@ -96,6 +100,7 @@ export function AddStudentDialog({
       course: data.course,
       status: 'Ativo',
       enrollmentDate: new Date().toISOString(),
+      avatar: data.avatar,
     }
 
     const plan: FinancialPlan = {
@@ -123,6 +128,41 @@ export function AddStudentDialog({
               Dados Pessoais
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="avatar"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-2">
+                    <FormLabel>Foto do Aluno (Avatar)</FormLabel>
+                    <FormControl>
+                      {field.value ? (
+                        <div className="flex items-center gap-4 p-3 border border-border rounded-md bg-muted/30">
+                          <img
+                            src={field.value}
+                            alt="Avatar"
+                            className="w-12 h-12 rounded-full object-cover border shadow-sm"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => field.onChange('')}
+                          >
+                            Remover Foto
+                          </Button>
+                        </div>
+                      ) : (
+                        <FileUpload
+                          accept="image/*"
+                          label="Clique ou arraste a foto do perfil"
+                          onUpload={(files) => field.onChange(files[0]?.url)}
+                        />
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="name"

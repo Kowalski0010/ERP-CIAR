@@ -21,6 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog'
 import {
   Form,
@@ -35,10 +36,21 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
-import { Search, Plus, UserCircle, MoreHorizontal, Edit, Trash2 } from 'lucide-react'
+import {
+  Search,
+  Plus,
+  UserCircle,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Paperclip,
+  FileText,
+} from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { ConfirmActionDialog } from '@/components/ConfirmActionDialog'
+import { FileUpload } from '@/components/FileUpload'
 import { AcrPatient } from '@/lib/types'
 
 const patientSchema = z.object({
@@ -55,6 +67,7 @@ export default function Patients() {
   const [searchTerm, setSearchTerm] = useState('')
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editItem, setEditItem] = useState<AcrPatient | null>(null)
+  const [attachmentsItem, setAttachmentsItem] = useState<AcrPatient | null>(null)
   const [confirmState, setConfirmState] = useState({
     open: false,
     title: '',
@@ -227,6 +240,10 @@ export default function Patients() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setAttachmentsItem(p)}>
+                          <Paperclip className="h-4 w-4 mr-2" /> Laudos / Anexos
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => handleEditClick(p)}>
                           <Edit className="h-4 w-4 mr-2" /> Editar Cadastro
                         </DropdownMenuItem>
@@ -252,6 +269,70 @@ export default function Patients() {
           </Table>
         </CardContent>
       </Card>
+
+      <Dialog open={!!attachmentsItem} onOpenChange={(open) => !open && setAttachmentsItem(null)}>
+        <DialogContent className="max-w-md bg-card">
+          <DialogHeader>
+            <DialogTitle>Arquivos Clínicos: {attachmentsItem?.name}</DialogTitle>
+            <DialogDescription>
+              Gerencie exames, laudos e documentos em PDF do paciente.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <FileUpload
+              multiple
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+              label="Anexar documento ou laudo"
+              onUpload={(files) => {
+                if (!attachmentsItem) return
+                const newAttachments = [...(attachmentsItem.attachments || []), ...files]
+                updateAcrPatient(attachmentsItem.id, { attachments: newAttachments })
+                setAttachmentsItem({ ...attachmentsItem, attachments: newAttachments })
+                toast({ title: 'Arquivos anexados com sucesso' })
+              }}
+            />
+            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
+              {attachmentsItem?.attachments?.map((att) => (
+                <div
+                  key={att.id}
+                  className="flex items-center justify-between p-2 border rounded-md text-sm bg-muted/30"
+                >
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <FileText className="w-4 h-4 shrink-0 text-blue-500" />
+                    <a
+                      href={att.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="truncate hover:underline font-medium"
+                    >
+                      {att.name}
+                    </a>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-destructive hover:bg-destructive/10 shrink-0"
+                    onClick={() => {
+                      const newAttachments = attachmentsItem.attachments!.filter(
+                        (a) => a.id !== att.id,
+                      )
+                      updateAcrPatient(attachmentsItem.id, { attachments: newAttachments })
+                      setAttachmentsItem({ ...attachmentsItem, attachments: newAttachments })
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              {(!attachmentsItem?.attachments || attachmentsItem.attachments.length === 0) && (
+                <p className="text-sm text-muted-foreground text-center py-4 border border-dashed rounded-lg">
+                  Nenhum documento anexado.
+                </p>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="max-w-md bg-card max-h-[90vh] overflow-y-auto">

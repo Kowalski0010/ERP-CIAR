@@ -15,6 +15,9 @@ import {
   BellRing,
   RefreshCw,
   MessageCircle,
+  Paperclip,
+  Trash2,
+  MoreHorizontal,
 } from 'lucide-react'
 import {
   Table,
@@ -51,11 +54,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { FileUpload } from '@/components/FileUpload'
+import { Payment } from '@/lib/types'
 
 const paymentSchema = z.object({
   studentId: z.string().min(1, 'Selecione um aluno'),
   amount: z.coerce.number().min(0.01, 'O valor deve ser maior que 0'),
   dueDate: z.string().min(1, 'Informe a data de vencimento'),
+  attachments: z.any().optional(),
 })
 
 export default function Payments() {
@@ -67,10 +79,12 @@ export default function Payments() {
     addCommunicationLog,
     simulatePaymentReconciliation,
     registerPayment,
+    updatePayment,
   } = useAppStore()
   const { toast } = useToast()
 
   const [isAddPaymentOpen, setIsAddPaymentOpen] = useState(false)
+  const [attachmentsItem, setAttachmentsItem] = useState<Payment | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
 
   const form = useForm<z.infer<typeof paymentSchema>>({
@@ -80,6 +94,7 @@ export default function Payments() {
       studentId: '',
       amount: 0,
       dueDate: '',
+      attachments: [],
     },
   })
 
@@ -163,6 +178,7 @@ export default function Payments() {
       amount: Number(data.amount),
       dueDate: data.dueDate,
       status: 'Pendente',
+      attachments: data.attachments || [],
     })
 
     toast({
@@ -291,7 +307,7 @@ export default function Payments() {
                 <TableHead className="w-[140px]">Vencimento</TableHead>
                 <TableHead className="text-right w-[140px]">Valor Líquido</TableHead>
                 <TableHead className="w-[140px]">Situação</TableHead>
-                <TableHead className="text-right w-[200px]">Ações</TableHead>
+                <TableHead className="text-right w-[120px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -330,19 +346,32 @@ export default function Payments() {
                         <MessageCircle className="h-3.5 w-3.5" />
                       </Button>
                     )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() =>
-                        toast({
-                          title: 'Boleto Gerado',
-                          description: 'O documento foi baixado e enviado ao cliente.',
-                        })
-                      }
-                      className="h-8 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/50 font-medium px-2"
-                    >
-                      <FileText className="mr-1.5 h-3.5 w-3.5" /> Boleto
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() =>
+                            toast({
+                              title: 'Boleto Gerado',
+                              description: 'O documento foi baixado e enviado ao cliente.',
+                            })
+                          }
+                        >
+                          <FileText className="mr-2 h-4 w-4 text-blue-600" /> Boleto
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setAttachmentsItem(payment)}>
+                          <Paperclip className="mr-2 h-4 w-4" /> Comprovantes / Anexos
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
@@ -357,6 +386,66 @@ export default function Payments() {
           </Table>
         </div>
       </div>
+
+      <Dialog open={!!attachmentsItem} onOpenChange={(open) => !open && setAttachmentsItem(null)}>
+        <DialogContent className="max-w-md bg-card">
+          <DialogHeader>
+            <DialogTitle>Anexos da Fatura</DialogTitle>
+            <DialogDescription>Gerencie comprovantes e documentos desta fatura.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <FileUpload
+              multiple
+              onUpload={(files) => {
+                if (!attachmentsItem) return
+                const newAttachments = [...(attachmentsItem.attachments || []), ...files]
+                updatePayment(attachmentsItem.id, { attachments: newAttachments })
+                setAttachmentsItem({ ...attachmentsItem, attachments: newAttachments })
+                toast({ title: 'Arquivos anexados' })
+              }}
+            />
+            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
+              {attachmentsItem?.attachments?.map((att) => (
+                <div
+                  key={att.id}
+                  className="flex items-center justify-between p-2 border rounded-md text-sm bg-muted/30"
+                >
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <FileText className="w-4 h-4 shrink-0 text-blue-500" />
+                    <a
+                      href={att.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="truncate hover:underline font-medium"
+                    >
+                      {att.name}
+                    </a>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-destructive hover:bg-destructive/10 shrink-0"
+                    onClick={() => {
+                      const newAttachments = attachmentsItem.attachments!.filter(
+                        (a) => a.id !== att.id,
+                      )
+                      updatePayment(attachmentsItem.id, { attachments: newAttachments })
+                      setAttachmentsItem({ ...attachmentsItem, attachments: newAttachments })
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              {(!attachmentsItem?.attachments || attachmentsItem.attachments.length === 0) && (
+                <p className="text-sm text-muted-foreground text-center py-4 border border-dashed rounded-lg">
+                  Nenhum anexo encontrado.
+                </p>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isAddPaymentOpen} onOpenChange={setIsAddPaymentOpen}>
         <DialogContent className="sm:max-w-[425px]">
@@ -422,6 +511,29 @@ export default function Payments() {
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="attachments"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Comprovante Original (Opcional)</FormLabel>
+                    <FormControl>
+                      <FileUpload
+                        multiple
+                        label="Anexar comprovante"
+                        onUpload={(files) => field.onChange(files)}
+                      />
+                    </FormControl>
+                    {field.value?.length > 0 && (
+                      <p className="text-xs text-emerald-600 mt-1">
+                        {field.value.length} arquivo(s) selecionado(s)
+                      </p>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className="pt-4 flex justify-end gap-2 border-t border-border">
                 <Button type="button" variant="outline" onClick={() => setIsAddPaymentOpen(false)}>

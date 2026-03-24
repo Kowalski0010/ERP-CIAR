@@ -7,7 +7,6 @@ import {
   Search,
   Plus,
   MoreHorizontal,
-  SlidersHorizontal,
   UserX,
   GraduationCap,
   AlertCircle,
@@ -17,6 +16,7 @@ import {
   FileSpreadsheet,
   Edit,
   Trash2,
+  Paperclip,
 } from 'lucide-react'
 import {
   Table,
@@ -36,13 +36,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
 import {
@@ -63,6 +63,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { AddStudentDialog } from '@/components/AddStudentDialog'
 import { ConfirmActionDialog } from '@/components/ConfirmActionDialog'
+import { FileUpload } from '@/components/FileUpload'
 import { useToast } from '@/hooks/use-toast'
 import { Student } from '@/lib/types'
 
@@ -83,6 +84,8 @@ export default function Students() {
   const [filterStatus, setFilterStatus] = useState<string>('Todos')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editItem, setEditItem] = useState<Student | null>(null)
+  const [attachmentsItem, setAttachmentsItem] = useState<Student | null>(null)
+
   const [confirmState, setConfirmState] = useState({
     open: false,
     title: '',
@@ -345,9 +348,6 @@ export default function Students() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-[200px]">
-                        <DropdownMenuItem className="text-sm font-medium">
-                          <FileText className="w-4 h-4 mr-2" /> Ficha Completa
-                        </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-sm font-medium text-blue-600 focus:text-blue-700"
                           onClick={() => {
@@ -356,6 +356,9 @@ export default function Students() {
                           }}
                         >
                           <FileText className="w-4 h-4 mr-2" /> Gerar Boleto
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setAttachmentsItem(student)}>
+                          <Paperclip className="w-4 h-4 mr-2" /> Gerenciar Anexos
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => handleEditClick(student)}>
@@ -396,6 +399,66 @@ export default function Students() {
         {...confirmState}
         onOpenChange={(open) => setConfirmState((p) => ({ ...p, open }))}
       />
+
+      <Dialog open={!!attachmentsItem} onOpenChange={(open) => !open && setAttachmentsItem(null)}>
+        <DialogContent className="max-w-md bg-card">
+          <DialogHeader>
+            <DialogTitle>Documentos de {attachmentsItem?.name}</DialogTitle>
+            <DialogDescription>Armazene documentos de matrícula e histórico.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <FileUpload
+              multiple
+              onUpload={(files) => {
+                if (!attachmentsItem) return
+                const newAttachments = [...(attachmentsItem.attachments || []), ...files]
+                updateStudent(attachmentsItem.id, { attachments: newAttachments })
+                setAttachmentsItem({ ...attachmentsItem, attachments: newAttachments })
+                toast({ title: 'Arquivos anexados' })
+              }}
+            />
+            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
+              {attachmentsItem?.attachments?.map((att) => (
+                <div
+                  key={att.id}
+                  className="flex items-center justify-between p-2 border rounded-md text-sm bg-muted/30"
+                >
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <FileText className="w-4 h-4 shrink-0 text-blue-500" />
+                    <a
+                      href={att.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="truncate hover:underline font-medium"
+                    >
+                      {att.name}
+                    </a>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-destructive hover:bg-destructive/10 shrink-0"
+                    onClick={() => {
+                      const newAttachments = attachmentsItem.attachments!.filter(
+                        (a) => a.id !== att.id,
+                      )
+                      updateStudent(attachmentsItem.id, { attachments: newAttachments })
+                      setAttachmentsItem({ ...attachmentsItem, attachments: newAttachments })
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              {(!attachmentsItem?.attachments || attachmentsItem.attachments.length === 0) && (
+                <p className="text-sm text-muted-foreground text-center py-4 border border-dashed rounded-lg">
+                  Nenhum documento anexado.
+                </p>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!editItem} onOpenChange={(open) => !open && setEditItem(null)}>
         <DialogContent className="max-w-md bg-card">
