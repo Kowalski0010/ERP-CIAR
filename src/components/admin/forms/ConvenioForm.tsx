@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/form'
 import { useToast } from '@/hooks/use-toast'
 import { useAppStore } from '@/contexts/AppContext'
+import { Convenio } from '@/lib/types'
 
 const schema = z.object({
   name: z.string().min(3, 'Nome do parceiro obrigatório'),
@@ -20,23 +21,34 @@ const schema = z.object({
   discount: z.coerce.number().min(0).max(100, 'Desconto não pode exceder 100%'),
 })
 
-export function ConvenioForm({ onCancel }: { onCancel: () => void }) {
+export function ConvenioForm({
+  onCancel,
+  initialData,
+}: {
+  onCancel: () => void
+  initialData?: Convenio | null
+}) {
   const { toast } = useToast()
-  const { addConvenio } = useAppStore()
+  const { addConvenio, updateConvenio } = useAppStore()
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     mode: 'onChange',
     defaultValues: {
-      name: '',
-      contract: '',
-      discount: 0,
+      name: initialData?.name || '',
+      contract: initialData?.contract || '',
+      discount: initialData?.discount || 0,
     },
   })
 
   const onSubmit = (data: z.infer<typeof schema>) => {
-    addConvenio(data)
-    toast({ title: 'Convênio Salvo', description: 'Registro criado com sucesso.' })
+    if (initialData?.id) {
+      updateConvenio(initialData.id, data)
+      toast({ title: 'Convênio Atualizado', description: 'Registro atualizado com sucesso.' })
+    } else {
+      addConvenio(data)
+      toast({ title: 'Convênio Salvo', description: 'Registro criado com sucesso.' })
+    }
     onCancel()
   }
 
@@ -88,7 +100,7 @@ export function ConvenioForm({ onCancel }: { onCancel: () => void }) {
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar
           </Button>
-          <Button type="submit">Salvar Registro</Button>
+          <Button type="submit">{initialData ? 'Atualizar Registro' : 'Salvar Registro'}</Button>
         </div>
       </form>
     </Form>

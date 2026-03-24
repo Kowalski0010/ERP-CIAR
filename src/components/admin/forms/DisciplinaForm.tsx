@@ -13,28 +13,40 @@ import {
 } from '@/components/ui/form'
 import { useToast } from '@/hooks/use-toast'
 import { useAppStore } from '@/contexts/AppContext'
+import { Disciplina } from '@/lib/types'
 
 const schema = z.object({
   name: z.string().min(3, 'Nome da disciplina obrigatório'),
   workload: z.coerce.number().min(1, 'Carga horária deve ser maior que zero'),
 })
 
-export function DisciplinaForm({ onCancel }: { onCancel: () => void }) {
+export function DisciplinaForm({
+  onCancel,
+  initialData,
+}: {
+  onCancel: () => void
+  initialData?: Disciplina | null
+}) {
   const { toast } = useToast()
-  const { addDisciplina } = useAppStore()
+  const { addDisciplina, updateDisciplina } = useAppStore()
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     mode: 'onChange',
     defaultValues: {
-      name: '',
-      workload: 40,
+      name: initialData?.name || '',
+      workload: initialData?.workload || 40,
     },
   })
 
   const onSubmit = (data: z.infer<typeof schema>) => {
-    addDisciplina(data)
-    toast({ title: 'Disciplina Salva', description: 'Registro criado com sucesso.' })
+    if (initialData?.id) {
+      updateDisciplina(initialData.id, data)
+      toast({ title: 'Disciplina Atualizada', description: 'Registro atualizado com sucesso.' })
+    } else {
+      addDisciplina(data)
+      toast({ title: 'Disciplina Salva', description: 'Registro criado com sucesso.' })
+    }
     onCancel()
   }
 
@@ -71,7 +83,7 @@ export function DisciplinaForm({ onCancel }: { onCancel: () => void }) {
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar
           </Button>
-          <Button type="submit">Salvar Registro</Button>
+          <Button type="submit">{initialData ? 'Atualizar Registro' : 'Salvar Registro'}</Button>
         </div>
       </form>
     </Form>

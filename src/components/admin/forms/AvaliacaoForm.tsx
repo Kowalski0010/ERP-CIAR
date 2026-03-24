@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { useAppStore } from '@/contexts/AppContext'
+import { Avaliacao } from '@/lib/types'
 
 const schema = z.object({
   name: z.string().min(3, 'Nome obrigatório'),
@@ -28,24 +29,41 @@ const schema = z.object({
   date: z.string().min(1, 'Data obrigatória'),
 })
 
-export function AvaliacaoForm({ onCancel }: { onCancel: () => void }) {
+export function AvaliacaoForm({
+  onCancel,
+  initialData,
+}: {
+  onCancel: () => void
+  initialData?: Avaliacao | null
+}) {
   const { toast } = useToast()
-  const { addAvaliacao } = useAppStore()
+  const { addAvaliacao, updateAvaliacao } = useAppStore()
+
+  // Safely format date for input type="date"
+  const formattedDate =
+    initialData?.date && !isNaN(Date.parse(initialData.date))
+      ? new Date(initialData.date).toISOString().split('T')[0]
+      : new Date().toISOString().split('T')[0]
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     mode: 'onChange',
     defaultValues: {
-      name: '',
-      subject: '',
-      type: 'Prova Escrita',
-      date: new Date().toISOString().split('T')[0],
+      name: initialData?.name || '',
+      subject: initialData?.subject || '',
+      type: initialData?.type || 'Prova Escrita',
+      date: formattedDate,
     },
   })
 
   const onSubmit = (data: z.infer<typeof schema>) => {
-    addAvaliacao(data)
-    toast({ title: 'Avaliação Salva', description: 'Registro criado com sucesso.' })
+    if (initialData?.id) {
+      updateAvaliacao(initialData.id, data)
+      toast({ title: 'Avaliação Atualizada', description: 'Registro atualizado com sucesso.' })
+    } else {
+      addAvaliacao(data)
+      toast({ title: 'Avaliação Salva', description: 'Registro criado com sucesso.' })
+    }
     onCancel()
   }
 
@@ -119,7 +137,7 @@ export function AvaliacaoForm({ onCancel }: { onCancel: () => void }) {
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar
           </Button>
-          <Button type="submit">Salvar Registro</Button>
+          <Button type="submit">{initialData ? 'Atualizar Registro' : 'Salvar Registro'}</Button>
         </div>
       </form>
     </Form>

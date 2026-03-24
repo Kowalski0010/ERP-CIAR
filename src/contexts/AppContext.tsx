@@ -36,7 +36,6 @@ import {
   AcrPatient,
   AcrRecord,
   AcrAppointment,
-  AcrAttachment,
   SystemUser,
   CashFlowTransaction,
 } from '@/lib/types'
@@ -113,10 +112,24 @@ interface AppContextType extends AppState {
   sendChatMessage: (content: string, receiverId?: string) => void
 
   addCurso: (data: Partial<Curso>) => void
+  updateCurso: (id: string, data: Partial<Curso>) => void
+  deleteCurso: (id: string) => void
+
   addAvaliacao: (data: Partial<Avaliacao>) => void
+  updateAvaliacao: (id: string, data: Partial<Avaliacao>) => void
+  deleteAvaliacao: (id: string) => void
+
   addConvenio: (data: Partial<Convenio>) => void
+  updateConvenio: (id: string, data: Partial<Convenio>) => void
+  deleteConvenio: (id: string) => void
+
   addCep: (data: Partial<CepRecord>) => void
+  updateCep: (id: string, data: Partial<CepRecord>) => void
+  deleteCep: (id: string) => void
+
   addDisciplina: (data: Partial<Disciplina>) => void
+  updateDisciplina: (id: string, data: Partial<Disciplina>) => void
+  deleteDisciplina: (id: string) => void
 
   addBook: (book: Omit<Book, 'id'>) => void
   addLoan: (loan: Omit<Loan, 'id' | 'status'>) => void
@@ -507,6 +520,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       ...prev,
     ])
+  const updateCurso = (id: string, data: Partial<Curso>) =>
+    setCursos((prev) => prev.map((c) => (c.id === id ? { ...c, ...data } : c)))
+  const deleteCurso = (id: string) => setCursos((prev) => prev.filter((c) => c.id !== id))
+
   const addAvaliacao = (data: Partial<Avaliacao>) =>
     setAvaliacoes((prev) => [
       {
@@ -519,6 +536,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       ...prev,
     ])
+  const updateAvaliacao = (id: string, data: Partial<Avaliacao>) =>
+    setAvaliacoes((prev) => prev.map((a) => (a.id === id ? { ...a, ...data } : a)))
+  const deleteAvaliacao = (id: string) => setAvaliacoes((prev) => prev.filter((a) => a.id !== id))
+
   const addConvenio = (data: Partial<Convenio>) =>
     setConvenios((prev) => [
       {
@@ -531,6 +552,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       ...prev,
     ])
+  const updateConvenio = (id: string, data: Partial<Convenio>) =>
+    setConvenios((prev) => prev.map((c) => (c.id === id ? { ...c, ...data } : c)))
+  const deleteConvenio = (id: string) => setConvenios((prev) => prev.filter((c) => c.id !== id))
+
   const addCep = (data: Partial<CepRecord>) =>
     setCeps((prev) => [
       {
@@ -545,6 +570,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       ...prev,
     ])
+  const updateCep = (id: string, data: Partial<CepRecord>) =>
+    setCeps((prev) => prev.map((c) => (c.id === id ? { ...c, ...data } : c)))
+  const deleteCep = (id: string) => setCeps((prev) => prev.filter((c) => c.id !== id))
+
   const addDisciplina = (data: Partial<Disciplina>) =>
     setDisciplinas((prev) => [
       {
@@ -556,11 +585,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       ...prev,
     ])
+  const updateDisciplina = (id: string, data: Partial<Disciplina>) =>
+    setDisciplinas((prev) => prev.map((d) => (d.id === id ? { ...d, ...data } : d)))
+  const deleteDisciplina = (id: string) => setDisciplinas((prev) => prev.filter((d) => d.id !== id))
 
   const addClass = (cls: Partial<ClassRoom>) =>
     setClasses((prev) => [
       {
-        id: cls.id!,
+        id: cls.id || generateId('T'),
         name: cls.name!,
         course: cls.course!,
         semester: cls.semester!,
@@ -574,6 +606,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateClass = (id: string, partial: Partial<ClassRoom>) =>
     setClasses((prev) => prev.map((c) => (c.id === id ? { ...c, ...partial } : c)))
   const deleteClass = (id: string) => setClasses((prev) => prev.filter((c) => c.id !== id))
+
   const addBook = (book: Omit<Book, 'id'>) =>
     setBooks((prev) => [{ ...book, id: generateId('B') }, ...prev])
   const addLoan = (loan: Omit<Loan, 'id' | 'status'>) => {
@@ -845,10 +878,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
         signDocument,
         sendChatMessage,
         addCurso,
+        updateCurso,
+        deleteCurso,
         addAvaliacao,
+        updateAvaliacao,
+        deleteAvaliacao,
         addConvenio,
+        updateConvenio,
+        deleteConvenio,
         addCep,
+        updateCep,
+        deleteCep,
         addDisciplina,
+        updateDisciplina,
+        deleteDisciplina,
         addBook,
         addLoan,
         returnLoan,

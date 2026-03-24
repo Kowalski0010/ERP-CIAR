@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { useAppStore } from '@/contexts/AppContext'
+import { Curso } from '@/lib/types'
 
 const schema = z.object({
   name: z.string().min(3, 'Nome do curso é obrigatório'),
@@ -29,24 +30,35 @@ const schema = z.object({
   description: z.string().optional(),
 })
 
-export function CursoForm({ onCancel }: { onCancel: () => void }) {
+export function CursoForm({
+  onCancel,
+  initialData,
+}: {
+  onCancel: () => void
+  initialData?: Curso | null
+}) {
   const { toast } = useToast()
-  const { addCurso } = useAppStore()
+  const { addCurso, updateCurso } = useAppStore()
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     mode: 'onChange',
     defaultValues: {
-      name: '',
-      mode: 'Presencial',
-      duration: 3600,
-      description: '',
+      name: initialData?.name || '',
+      mode: initialData?.mode || 'Presencial',
+      duration: initialData?.duration || 3600,
+      description: initialData?.description || '',
     },
   })
 
   const onSubmit = (data: z.infer<typeof schema>) => {
-    addCurso(data)
-    toast({ title: 'Curso Salvo', description: 'Registro criado com sucesso.' })
+    if (initialData?.id) {
+      updateCurso(initialData.id, data)
+      toast({ title: 'Curso Atualizado', description: 'Registro atualizado com sucesso.' })
+    } else {
+      addCurso(data)
+      toast({ title: 'Curso Salvo', description: 'Registro criado com sucesso.' })
+    }
     onCancel()
   }
 
@@ -120,7 +132,7 @@ export function CursoForm({ onCancel }: { onCancel: () => void }) {
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar
           </Button>
-          <Button type="submit">Salvar Registro</Button>
+          <Button type="submit">{initialData ? 'Atualizar Registro' : 'Salvar Registro'}</Button>
         </div>
       </form>
     </Form>

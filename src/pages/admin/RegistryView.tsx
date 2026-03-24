@@ -15,8 +15,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useToast } from '@/hooks/use-toast'
+import { ConfirmActionDialog } from '@/components/ConfirmActionDialog'
 
-// Form Imports
 import { AvaliacaoForm } from '@/components/admin/forms/AvaliacaoForm'
 import { CursoForm } from '@/components/admin/forms/CursoForm'
 import { ConvenioForm } from '@/components/admin/forms/ConvenioForm'
@@ -27,68 +27,132 @@ import { TurmaForm } from '@/components/admin/forms/TurmaForm'
 export default function RegistryView() {
   const { id } = useParams()
   const { toast } = useToast()
-  const { classes, deleteClass } = useAppStore()
+
+  const {
+    classes,
+    deleteClass,
+    cursos,
+    deleteCurso,
+    avaliacoes,
+    deleteAvaliacao,
+    convenios,
+    deleteConvenio,
+    ceps,
+    deleteCep,
+    disciplinas,
+    deleteDisciplina,
+  } = useAppStore()
 
   const [isAdding, setIsAdding] = useState(false)
   const [editItem, setEditItem] = useState<any>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [itemToDelete, setItemToDelete] = useState<any>(null)
 
-  // Reset isAdding when changing routes
   useEffect(() => {
     setIsAdding(false)
     setEditItem(null)
   }, [id])
 
-  // Format ID for display
-  const title = id
-    ? id.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
-    : 'Cadastro Básico'
+  const title = id ? id.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()) : 'Cadastro'
 
-  const isTurmas = id === 'turmas'
-
-  const genericMockData = Array.from({ length: 5 }).map((_, i) => ({
-    id: `REG-00${i + 1}`,
-    name: `${title} - Exemplo ${i + 1}`,
-    description: `Registro genérico para módulo de ${title.toLowerCase()}`,
-    status: i % 3 === 0 ? 'Inativo' : 'Ativo',
-    date: new Date(Date.now() - Math.random() * 10000000000).toLocaleDateString('pt-BR'),
-  }))
-
-  const displayData = isTurmas
-    ? classes.map((c) => ({
-        id: c.id,
-        name: c.name,
-        description: `${c.course} | Sala: ${c.room || 'N/A'} | Ano: ${c.year || c.semester.substring(0, 4)}`,
-        status: 'Ativo',
-        date: new Date().toLocaleDateString('pt-BR'),
-        original: c,
-      }))
-    : genericMockData
-
-  const handleEditAction = (item: any) => {
-    if (isTurmas && item.original) {
-      setEditItem(item.original)
-      setIsAdding(true)
-    } else {
-      toast({
-        title: `Editar Registro`,
-        description: `Funcionalidade 'Editar' acionada para ${item.name}.`,
-      })
+  const getStoreData = () => {
+    switch (id) {
+      case 'turmas':
+        return {
+          data: classes,
+          format: (c: any) => ({ name: c.name, desc: `${c.course} | Sala: ${c.room || 'N/A'}` }),
+        }
+      case 'curso':
+        return {
+          data: cursos,
+          format: (c: any) => ({ name: c.name, desc: `${c.mode} - ${c.duration}h` }),
+        }
+      case 'avaliacoes':
+        return {
+          data: avaliacoes,
+          format: (a: any) => ({ name: a.name, desc: `${a.subject} - ${a.type}` }),
+        }
+      case 'convenio':
+        return {
+          data: convenios,
+          format: (c: any) => ({
+            name: c.name,
+            desc: `Contrato: ${c.contract} - Desc: ${c.discount}%`,
+          }),
+        }
+      case 'cep':
+        return {
+          data: ceps,
+          format: (c: any) => ({
+            name: c.cep,
+            desc: `${c.street}, ${c.neighborhood} - ${c.city}/${c.state}`,
+          }),
+        }
+      case 'disciplina':
+        return {
+          data: disciplinas,
+          format: (d: any) => ({ name: d.name, desc: `Carga: ${d.workload}h` }),
+        }
+      default:
+        return { data: [], format: () => ({ name: '', desc: '' }) }
     }
   }
 
+  const storeConfig = getStoreData()
+  const displayData = storeConfig.data.map((item: any) => {
+    const f = storeConfig.format(item)
+    return {
+      id: item.id,
+      name: f.name,
+      description: f.desc,
+      status: item.status || 'Ativo',
+      date: item.date || new Date().toLocaleDateString('pt-BR'),
+      original: item,
+    }
+  })
+
+  const handleEditAction = (item: any) => {
+    setEditItem(item.original)
+    setIsAdding(true)
+  }
+
   const handleDeleteAction = (item: any) => {
-    if (isTurmas) {
-      deleteClass(item.id)
+    setItemToDelete(item)
+    setDeleteDialogOpen(true)
+  }
+
+  const confirmDelete = () => {
+    if (!itemToDelete) return
+    let success = true
+    switch (id) {
+      case 'turmas':
+        deleteClass(itemToDelete.id)
+        break
+      case 'curso':
+        deleteCurso(itemToDelete.id)
+        break
+      case 'avaliacoes':
+        deleteAvaliacao(itemToDelete.id)
+        break
+      case 'convenio':
+        deleteConvenio(itemToDelete.id)
+        break
+      case 'cep':
+        deleteCep(itemToDelete.id)
+        break
+      case 'disciplina':
+        deleteDisciplina(itemToDelete.id)
+        break
+      default:
+        success = false
+    }
+    if (success) {
       toast({
-        title: `Registro Excluído`,
-        description: `A turma ${item.name} foi removida do sistema com sucesso.`,
-      })
-    } else {
-      toast({
-        title: `Excluir Registro`,
-        description: `Funcionalidade 'Excluir' acionada para ${item.name}.`,
+        title: 'Registro Excluído',
+        description: `O registro ${itemToDelete.name || itemToDelete.id} foi removido.`,
       })
     }
+    setItemToDelete(null)
   }
 
   const handleCancelForm = () => {
@@ -97,7 +161,7 @@ export default function RegistryView() {
   }
 
   const renderForm = () => {
-    const props = { onCancel: handleCancelForm }
+    const props = { onCancel: handleCancelForm, initialData: editItem }
     switch (id) {
       case 'avaliacoes':
         return <AvaliacaoForm {...props} />
@@ -110,36 +174,9 @@ export default function RegistryView() {
       case 'disciplina':
         return <DisciplinaForm {...props} />
       case 'turmas':
-        return <TurmaForm {...props} initialData={editItem} />
+        return <TurmaForm {...props} />
       default:
-        return (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              toast({ title: 'Salvo', description: 'Registro genérico salvo.' })
-              handleCancelForm()
-            }}
-            className="space-y-4 max-w-2xl"
-          >
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-zinc-700">Nome / Identificação</label>
-              <Input required placeholder="Ex: Novo Registro..." className="bg-zinc-50" />
-            </div>
-            <div className="flex justify-end gap-2 pt-4 border-t border-zinc-100">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancelForm}
-                className="shadow-sm"
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" className="shadow-sm">
-                Salvar Registro
-              </Button>
-            </div>
-          </form>
-        )
+        return null
     }
   }
 
@@ -202,9 +239,6 @@ export default function RegistryView() {
                   className="pl-9 h-9 bg-zinc-50/50 border-transparent focus-visible:border-zinc-300 w-full text-xs"
                 />
               </div>
-              <Button variant="outline" size="sm" className="h-9 shrink-0 text-xs w-full sm:w-auto">
-                <Filter className="h-4 w-4 mr-2 text-zinc-400" /> Filtros
-              </Button>
             </div>
           </Card>
 
@@ -248,7 +282,7 @@ export default function RegistryView() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          className="h-7 w-7 text-blue-600 hover:bg-blue-50"
                           onClick={() => handleEditAction(row)}
                         >
                           <Edit className="h-3.5 w-3.5" />
@@ -256,7 +290,7 @@ export default function RegistryView() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                          className="h-7 w-7 text-rose-600 hover:bg-rose-50"
                           onClick={() => handleDeleteAction(row)}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -265,14 +299,27 @@ export default function RegistryView() {
                     </TableCell>
                   </TableRow>
                 ))}
+                {displayData.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center text-zinc-500 py-8">
+                      Nenhum registro encontrado.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
-            <div className="p-3 border-t border-zinc-100 bg-zinc-50 text-[11px] text-zinc-400 text-right font-mono">
-              Exibindo {displayData.length} registros
-            </div>
           </div>
         </>
       )}
+
+      <ConfirmActionDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Excluir Registro"
+        description={`Tem certeza que deseja excluir "${itemToDelete?.name || itemToDelete?.id}"? Esta ação não poderá ser desfeita.`}
+        onConfirm={confirmDelete}
+        destructive
+      />
     </div>
   )
 }

@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/form'
 import { useToast } from '@/hooks/use-toast'
 import { useAppStore } from '@/contexts/AppContext'
+import { CepRecord } from '@/lib/types'
 
 const schema = z.object({
   cep: z.string().min(8, 'CEP inválido'),
@@ -22,25 +23,36 @@ const schema = z.object({
   state: z.string().length(2, 'Sigla de UF inválida'),
 })
 
-export function CepForm({ onCancel }: { onCancel: () => void }) {
+export function CepForm({
+  onCancel,
+  initialData,
+}: {
+  onCancel: () => void
+  initialData?: CepRecord | null
+}) {
   const { toast } = useToast()
-  const { addCep } = useAppStore()
+  const { addCep, updateCep } = useAppStore()
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     mode: 'onChange',
     defaultValues: {
-      cep: '',
-      street: '',
-      neighborhood: '',
-      city: '',
-      state: '',
+      cep: initialData?.cep || '',
+      street: initialData?.street || '',
+      neighborhood: initialData?.neighborhood || '',
+      city: initialData?.city || '',
+      state: initialData?.state || '',
     },
   })
 
   const onSubmit = (data: z.infer<typeof schema>) => {
-    addCep(data)
-    toast({ title: 'CEP Salvo', description: 'Registro criado com sucesso.' })
+    if (initialData?.id) {
+      updateCep(initialData.id, data)
+      toast({ title: 'CEP Atualizado', description: 'Registro atualizado com sucesso.' })
+    } else {
+      addCep(data)
+      toast({ title: 'CEP Salvo', description: 'Registro criado com sucesso.' })
+    }
     onCancel()
   }
 
@@ -118,7 +130,7 @@ export function CepForm({ onCancel }: { onCancel: () => void }) {
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar
           </Button>
-          <Button type="submit">Salvar Registro</Button>
+          <Button type="submit">{initialData ? 'Atualizar Registro' : 'Salvar Registro'}</Button>
         </div>
       </form>
     </Form>
