@@ -3,7 +3,16 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { useAppStore } from '@/contexts/AppContext'
-import { ArrowUpRight, ArrowDownRight, Activity, Calendar as CalIcon, Plus } from 'lucide-react'
+import {
+  ArrowUpRight,
+  ArrowDownRight,
+  Activity,
+  Calendar as CalIcon,
+  Plus,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+} from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
@@ -37,8 +46,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
+import { ConfirmActionDialog } from '@/components/ConfirmActionDialog'
+import { CashFlowTransaction } from '@/lib/types'
 
 const txSchema = z.object({
   description: z.string().min(3, 'A descrição deve ter pelo menos 3 caracteres.'),
@@ -48,10 +65,24 @@ const txSchema = z.object({
 })
 
 export default function CashFlow() {
-  const { payments, manualTransactions, addManualTransaction } = useAppStore()
+  const {
+    payments,
+    manualTransactions,
+    addManualTransaction,
+    updateManualTransaction,
+    deleteManualTransaction,
+  } = useAppStore()
   const { toast } = useToast()
 
-  const [isAddOpen, setIsAddOpen] = useState(false)
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [editItem, setEditItem] = useState<CashFlowTransaction | null>(null)
+  const [confirmState, setConfirmState] = useState({
+    open: false,
+    title: '',
+    description: '',
+    onConfirm: () => {},
+    destructive: false,
+  })
 
   const form = useForm<z.infer<typeof txSchema>>({
     resolver: zodResolver(txSchema),
@@ -65,32 +96,82 @@ export default function CashFlow() {
   })
 
   useEffect(() => {
-    if (isAddOpen) {
-      form.reset()
+    if (!isFormOpen) {
+      setEditItem(null)
+      form.reset({
+        description: '',
+        type: 'Saída',
+        amount: 0,
+        date: new Date().toISOString().split('T')[0],
+      })
     }
-  }, [isAddOpen, form])
+  }, [isFormOpen, form])
 
-  // Global shortcut for opening modal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') {
         e.preventDefault()
-        setIsAddOpen(true)
+        setIsFormOpen(true)
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  // Dynamic inflows from resolved payments across the system
+  const confirmAction = (
+    title: string,
+    description: string,
+    onConfirm: () => void,
+    destructive = false,
+  ) => {
+    setConfirmState({ open: true, title, description, onConfirm, destructive })
+  }
+
+  const handleEditClick = (t: CashFlowTransaction) => {
+    setEditItem(t)
+    form.reset({
+      description: t.description,
+      type: t.type,
+      amount: t.amount,
+      date: t.date.split('T')[0],
+    })
+    setIsFormOpen(true)
+  }
+
+  const handleDeleteClick = (id: string) => {
+    confirmAction(
+      'Excluir Lançamento',
+      'Tem certeza que deseja excluir este lançamento permanentemente? Esta ação não pode ser desfeita.',
+      () => {
+        deleteManualTransaction(id)
+        toast({ title: 'Excluído', description: 'Registro removido com sucesso.' })
+      },
+      true,
+    )
+  }
+
+  const onSubmit = (data: z.infer<typeof txSchema>) => {
+    if (editItem) {
+      confirmAction('Confirmar Edição', 'Deseja salvar as alterações neste lançamento?', () => {
+        updateManualTransaction(editItem.id, { ...data, amount: Number(data.amount) })
+        toast({ title: 'Atualizado', description: 'Lançamento atualizado com sucesso.' })
+        setIsFormOpen(false)
+      })
+    } else {
+      addManualTransaction({ ...data, amount: Number(data.amount) })
+      toast({ title: 'Salvo', description: 'Movimentação manual registrada.' })
+      setIsFormOpen(false)
+    }
+  }
+
   const dynamicInflows = payments
     .filter((p) => p.status === 'Pago')
     .map((p) => ({
       id: p.id,
       date: p.dueDate,
       description: p.studentName.includes('[Clínica ACR]')
-        ? `Receita Atendimento Clínico - ${p.studentName.replace('[Clínica ACR] ', '')}`
-        : `Receita Mensalidade/Fatura - ${p.studentName}`,
+        ? `Receita Clínica - ${p.studentName.replace('[Clínica ACR] ', '')}`
+        : `Fatura - ${p.studentName}`,
       type: 'Entrada' as const,
       amount: Number(p.amount) || 0,
     }))
@@ -98,7 +179,6 @@ export default function CashFlow() {
   const allTransactions = [...dynamicInflows, ...manualTransactions].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
   )
-
   const totalIn = allTransactions
     .filter((t) => t.type === 'Entrada')
     .reduce((a, b) => a + Number(b.amount || 0), 0)
@@ -107,36 +187,13 @@ export default function CashFlow() {
     .reduce((a, b) => a + Number(b.amount || 0), 0)
   const balance = totalIn - totalOut
 
-  const onSubmit = (data: z.infer<typeof txSchema>) => {
-    try {
-      addManualTransaction({
-        description: data.description,
-        type: data.type,
-        amount: Number(data.amount),
-        date: data.date,
-      })
-      toast({
-        title: 'Lançamento Salvo',
-        description: 'Movimentação manual registrada com sucesso no fluxo de caixa.',
-      })
-      setIsAddOpen(false)
-    } catch (e) {
-      console.error(e)
-      toast({
-        variant: 'destructive',
-        title: 'Erro ao Salvar',
-        description: 'Ocorreu um erro ao processar o lançamento. Verifique os dados.',
-      })
-    }
-  }
-
   return (
     <div className="space-y-6 animate-fade-in-up pb-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-2">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Fluxo de Caixa</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Análise de entradas, saídas e resultado operacional consolidado.
+            Análise de entradas, saídas e resultado operacional.
           </p>
         </div>
         <div className="flex gap-2">
@@ -145,7 +202,7 @@ export default function CashFlow() {
           </Button>
           <Button
             className="shadow-sm group"
-            onClick={() => setIsAddOpen(true)}
+            onClick={() => setIsFormOpen(true)}
             title="Atalho: Ctrl + N"
           >
             <Plus className="mr-2 h-4 w-4" /> Nova Movimentação
@@ -163,45 +220,43 @@ export default function CashFlow() {
             <div className="flex justify-between items-start">
               <div className="space-y-1">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Receitas Operacionais
+                  Receitas
                 </p>
-                <p className="text-3xl font-bold text-foreground">
+                <p className="text-3xl font-bold">
                   R$ {totalIn.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </div>
-              <div className="p-2.5 bg-emerald-500/10 rounded-lg text-emerald-600 dark:text-emerald-400">
+              <div className="p-2.5 bg-emerald-500/10 rounded-lg text-emerald-600">
                 <ArrowUpRight className="h-5 w-5" />
               </div>
             </div>
           </CardContent>
         </Card>
-
         <Card className="shadow-sm relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1 h-full bg-rose-500" />
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
               <div className="space-y-1">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Despesas Operacionais
+                  Despesas
                 </p>
-                <p className="text-3xl font-bold text-foreground">
+                <p className="text-3xl font-bold">
                   R$ {totalOut.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </div>
-              <div className="p-2.5 bg-rose-500/10 rounded-lg text-rose-600 dark:text-rose-400">
+              <div className="p-2.5 bg-rose-500/10 rounded-lg text-rose-600">
                 <ArrowDownRight className="h-5 w-5" />
               </div>
             </div>
           </CardContent>
         </Card>
-
         <Card className="shadow-sm relative overflow-hidden bg-primary/5 border-primary/20">
           <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
               <div className="space-y-1">
                 <p className="text-xs font-semibold text-primary uppercase tracking-wider">
-                  Resultado Líquido
+                  Líquido
                 </p>
                 <p className="text-3xl font-bold text-primary">
                   R$ {balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -217,9 +272,7 @@ export default function CashFlow() {
 
       <Card className="shadow-sm border-border">
         <CardHeader className="border-b border-border bg-muted/30 py-4">
-          <CardTitle className="text-sm font-semibold text-foreground">
-            Extrato de Movimentações
-          </CardTitle>
+          <CardTitle className="text-sm font-semibold">Extrato de Movimentações</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <Table className="table-compact">
@@ -228,39 +281,67 @@ export default function CashFlow() {
                 <TableHead className="pl-6 w-[120px]">Data</TableHead>
                 <TableHead>Histórico</TableHead>
                 <TableHead>Natureza</TableHead>
-                <TableHead className="text-right pr-6">Valor (R$)</TableHead>
+                <TableHead className="text-right">Valor (R$)</TableHead>
+                <TableHead className="w-[80px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {allTransactions.map((t) => (
-                <TableRow key={t.id} className="hover:bg-muted/30 transition-colors">
-                  <TableCell className="pl-6 text-muted-foreground text-sm">
-                    {new Date(t.date).toLocaleDateString('pt-BR')}
-                  </TableCell>
-                  <TableCell className="font-medium text-foreground">{t.description}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={
-                        t.type === 'Entrada'
-                          ? 'border-emerald-200 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-medium px-2 py-0'
-                          : 'border-rose-200 bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 font-medium px-2 py-0'
-                      }
+              {allTransactions.map((t) => {
+                const isManual = manualTransactions.some((m) => m.id === t.id)
+                return (
+                  <TableRow key={t.id} className="hover:bg-muted/30 transition-colors">
+                    <TableCell className="pl-6 text-muted-foreground text-sm">
+                      {new Date(t.date).toLocaleDateString('pt-BR')}
+                    </TableCell>
+                    <TableCell className="font-medium">{t.description}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={
+                          t.type === 'Entrada'
+                            ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                            : 'border-rose-200 bg-rose-50 text-rose-700'
+                        }
+                      >
+                        {t.type}
+                      </Badge>
+                    </TableCell>
+                    <TableCell
+                      className={`text-right font-semibold ${t.type === 'Entrada' ? 'text-emerald-600' : 'text-rose-600'}`}
                     >
-                      {t.type}
-                    </Badge>
-                  </TableCell>
-                  <TableCell
-                    className={`text-right pr-6 font-semibold ${t.type === 'Entrada' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}
-                  >
-                    {t.type === 'Entrada' ? '+' : '-'}{' '}
-                    {Number(t.amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </TableCell>
-                </TableRow>
-              ))}
+                      {t.type === 'Entrada' ? '+' : '-'}{' '}
+                      {Number(t.amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </TableCell>
+                    <TableCell className="text-right pr-6 p-2">
+                      {isManual && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => handleEditClick(t as CashFlowTransaction)}
+                            >
+                              <Edit className="h-4 w-4 mr-2" /> Editar Lançamento
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => handleDeleteClick(t.id)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
               {allTransactions.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground text-sm">
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground text-sm">
                     Nenhuma movimentação no período.
                   </TableCell>
                 </TableRow>
@@ -270,13 +351,11 @@ export default function CashFlow() {
         </CardContent>
       </Card>
 
-      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Nova Movimentação Manual</DialogTitle>
-            <DialogDescription>
-              Adicione receitas ou despesas não vinculadas automaticamente ao sistema.
-            </DialogDescription>
+            <DialogTitle>{editItem ? 'Editar Movimentação' : 'Nova Movimentação'}</DialogTitle>
+            <DialogDescription>Preencha os dados do fluxo financeiro.</DialogDescription>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
@@ -285,15 +364,14 @@ export default function CashFlow() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Histórico / Descrição</FormLabel>
+                    <FormLabel>Histórico</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: Pagamento Fornecedor XYZ..." {...field} />
+                      <Input {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -316,13 +394,12 @@ export default function CashFlow() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="amount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Valor Bruto (R$)</FormLabel>
+                      <FormLabel>Valor (R$)</FormLabel>
                       <FormControl>
                         <Input type="number" step="0.01" {...field} />
                       </FormControl>
@@ -331,13 +408,12 @@ export default function CashFlow() {
                   )}
                 />
               </div>
-
               <FormField
                 control={form.control}
                 name="date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Data do Ocorrido</FormLabel>
+                    <FormLabel>Data</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
@@ -345,17 +421,20 @@ export default function CashFlow() {
                   </FormItem>
                 )}
               />
-
               <div className="pt-4 flex justify-end gap-2 border-t border-border">
-                <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>
+                <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit">Salvar Lançamento</Button>
+                <Button type="submit">Salvar</Button>
               </div>
             </form>
           </Form>
         </DialogContent>
       </Dialog>
+      <ConfirmActionDialog
+        {...confirmState}
+        onOpenChange={(open) => setConfirmState((p) => ({ ...p, open }))}
+      />
     </div>
   )
 }

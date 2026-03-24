@@ -30,8 +30,16 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { Search, Plus, UserCircle } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Search, Plus, UserCircle, MoreHorizontal, Edit, Trash2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { ConfirmActionDialog } from '@/components/ConfirmActionDialog'
+import { AcrPatient } from '@/lib/types'
 
 const patientSchema = z.object({
   name: z.string().min(3, 'O nome deve ter no mínimo 3 caracteres'),
@@ -42,61 +50,102 @@ const patientSchema = z.object({
 })
 
 export default function Patients() {
-  const { acrPatients, addAcrPatient } = useAppStore()
+  const { acrPatients, addAcrPatient, updateAcrPatient, deleteAcrPatient } = useAppStore()
   const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
-  const [isAddOpen, setIsAddOpen] = useState(false)
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [editItem, setEditItem] = useState<AcrPatient | null>(null)
+  const [confirmState, setConfirmState] = useState({
+    open: false,
+    title: '',
+    description: '',
+    onConfirm: () => {},
+    destructive: false,
+  })
 
   const form = useForm<z.infer<typeof patientSchema>>({
     resolver: zodResolver(patientSchema),
     mode: 'onChange',
-    defaultValues: {
-      name: '',
-      email: '',
-      phone: '',
-      birthDate: '',
-      background: '',
-    },
+    defaultValues: { name: '', email: '', phone: '', birthDate: '', background: '' },
   })
 
   useEffect(() => {
-    if (isAddOpen) {
-      form.reset()
+    if (!isFormOpen) {
+      setEditItem(null)
+      form.reset({ name: '', email: '', phone: '', birthDate: '', background: '' })
     }
-  }, [isAddOpen, form])
+  }, [isFormOpen, form])
 
-  // Global shortcut for opening modal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') {
         e.preventDefault()
-        setIsAddOpen(true)
+        setIsFormOpen(true)
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  const confirmAction = (
+    title: string,
+    description: string,
+    onConfirm: () => void,
+    destructive = false,
+  ) => {
+    setConfirmState({ open: true, title, description, onConfirm, destructive })
+  }
+
+  const handleEditClick = (p: AcrPatient) => {
+    setEditItem(p)
+    form.reset({
+      name: p.name,
+      email: p.email,
+      phone: p.phone,
+      birthDate: p.birthDate,
+      background: p.background,
+    })
+    setIsFormOpen(true)
+  }
+
+  const handleDeleteClick = (id: string) => {
+    confirmAction(
+      'Excluir Paciente',
+      'Tem certeza que deseja remover este paciente permanentemente do sistema ACR?',
+      () => {
+        deleteAcrPatient(id)
+        toast({ title: 'Excluído', description: 'Registro de paciente removido com sucesso.' })
+      },
+      true,
+    )
+  }
+
+  const handleFormSubmit = (data: z.infer<typeof patientSchema>) => {
+    if (editItem) {
+      confirmAction(
+        'Salvar Alterações',
+        'Deseja confirmar as alterações nos dados deste paciente?',
+        () => {
+          updateAcrPatient(editItem.id, data)
+          toast({ title: 'Paciente Atualizado', description: 'Os dados foram salvos com sucesso.' })
+          setIsFormOpen(false)
+        },
+      )
+    } else {
+      addAcrPatient(data)
+      toast({
+        title: 'Paciente Registrado',
+        description: 'O paciente foi adicionado ao sistema ACR.',
+      })
+      setIsFormOpen(false)
+    }
+  }
+
   const filteredPatients = acrPatients.filter(
     (p) =>
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.email.toLowerCase().includes(searchTerm.toLowerCase()),
   )
-
-  const handleAddSubmit = (data: z.infer<typeof patientSchema>) => {
-    addAcrPatient({
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      birthDate: data.birthDate,
-      background: data.background,
-    })
-    toast({
-      title: 'Paciente Registrado',
-      description: 'O paciente foi adicionado ao sistema ACR.',
-    })
-    setIsAddOpen(false)
-  }
 
   return (
     <div className="space-y-6 animate-fade-in-up pb-8 max-w-[1400px] mx-auto">
@@ -112,7 +161,7 @@ export default function Patients() {
         </div>
         <Button
           className="shadow-sm h-10 px-4 group"
-          onClick={() => setIsAddOpen(true)}
+          onClick={() => setIsFormOpen(true)}
           title="Atalho: Ctrl + N"
         >
           <Plus className="mr-2 h-4 w-4" /> Novo Paciente
@@ -127,7 +176,7 @@ export default function Patients() {
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por nome ou e-mail..."
-            className="pl-9 h-10 bg-muted/50 border-input w-full text-sm"
+            className="pl-9 h-10 bg-muted/50 w-full text-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -144,15 +193,16 @@ export default function Patients() {
                 <TableHead>Contato</TableHead>
                 <TableHead className="w-[140px]">Data de Nasc.</TableHead>
                 <TableHead className="w-[140px]">Data Registro</TableHead>
+                <TableHead className="w-[80px] text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredPatients.map((p) => (
-                <TableRow key={p.id} className="hover:bg-muted/30 transition-colors">
+                <TableRow key={p.id} className="hover:bg-muted/30 transition-colors group">
                   <TableCell className="font-mono text-xs text-muted-foreground font-medium">
                     {p.id}
                   </TableCell>
-                  <TableCell className="font-semibold text-foreground text-sm">{p.name}</TableCell>
+                  <TableCell className="font-semibold text-sm">{p.name}</TableCell>
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="text-xs text-foreground/80">{p.email}</span>
@@ -165,11 +215,35 @@ export default function Patients() {
                   <TableCell className="text-xs text-foreground/70">
                     {new Date(p.registrationDate).toLocaleDateString('pt-BR')}
                   </TableCell>
+                  <TableCell className="text-right p-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEditClick(p)}>
+                          <Edit className="h-4 w-4 mr-2" /> Editar Cadastro
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => handleDeleteClick(p.id)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
                 </TableRow>
               ))}
               {filteredPatients.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                     Nenhum paciente encontrado.
                   </TableCell>
                 </TableRow>
@@ -179,13 +253,13 @@ export default function Patients() {
         </CardContent>
       </Card>
 
-      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="max-w-md bg-card max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Cadastrar Novo Paciente</DialogTitle>
+            <DialogTitle>{editItem ? 'Editar Paciente' : 'Cadastrar Novo Paciente'}</DialogTitle>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleAddSubmit)} className="space-y-4 pt-4">
+            <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 pt-4">
               <FormField
                 control={form.control}
                 name="name"
@@ -193,13 +267,12 @@ export default function Patients() {
                   <FormItem>
                     <FormLabel>Nome Completo</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: Júlia Mendes" {...field} />
+                      <Input {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -214,7 +287,6 @@ export default function Patients() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="phone"
@@ -222,14 +294,13 @@ export default function Patients() {
                     <FormItem>
                       <FormLabel>Telefone / WhatsApp</FormLabel>
                       <FormControl>
-                        <Input placeholder="(11) 90000-0000" {...field} />
+                        <Input {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
-
               <FormField
                 control={form.control}
                 name="email"
@@ -237,13 +308,12 @@ export default function Patients() {
                   <FormItem>
                     <FormLabel>E-mail</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="email@exemplo.com" {...field} />
+                      <Input type="email" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="background"
@@ -251,19 +321,14 @@ export default function Patients() {
                   <FormItem>
                     <FormLabel>Histórico Básico (Motivo da busca)</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="Breve resumo do relato inicial..."
-                        className="resize-none"
-                        {...field}
-                      />
+                      <Textarea className="resize-none" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
               <DialogFooter className="pt-2 border-t border-border">
-                <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>
+                <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
                   Cancelar
                 </Button>
                 <Button type="submit">Salvar Paciente</Button>
@@ -272,6 +337,10 @@ export default function Patients() {
           </Form>
         </DialogContent>
       </Dialog>
+      <ConfirmActionDialog
+        {...confirmState}
+        onOpenChange={(open) => setConfirmState((p) => ({ ...p, open }))}
+      />
     </div>
   )
 }
