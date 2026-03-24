@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { useAppStore } from '@/contexts/AppContext'
-import { Employee } from '@/lib/types'
+import { Employee, SystemAttachment } from '@/lib/types'
 import {
   Search,
   Plus,
@@ -13,6 +13,7 @@ import {
   MoreHorizontal,
   Edit,
   Trash2,
+  Check,
 } from 'lucide-react'
 import {
   Table,
@@ -34,7 +35,13 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import {
   Form,
   FormControl,
@@ -70,6 +77,10 @@ const empSchema = z.object({
   salary: z.coerce.number().min(0, 'Valor inválido'),
   status: z.enum(['Ativo', 'Inativo']).default('Ativo'),
   avatar: z.string().optional(),
+  rgDoc: z.string().optional(),
+  cpfDoc: z.string().optional(),
+  addressDoc: z.string().optional(),
+  certDoc: z.string().optional(),
 })
 
 export default function Employees() {
@@ -99,6 +110,10 @@ export default function Employees() {
       salary: 0,
       status: 'Ativo',
       avatar: '',
+      rgDoc: '',
+      cpfDoc: '',
+      addressDoc: '',
+      certDoc: '',
     },
   })
 
@@ -114,6 +129,10 @@ export default function Employees() {
         salary: 0,
         status: 'Ativo',
         avatar: '',
+        rgDoc: '',
+        cpfDoc: '',
+        addressDoc: '',
+        certDoc: '',
       })
     }
   }, [isFormOpen, form])
@@ -138,6 +157,10 @@ export default function Employees() {
       salary: e.salary,
       status: e.status,
       avatar: e.avatar || '',
+      rgDoc: '',
+      cpfDoc: '',
+      addressDoc: '',
+      certDoc: '', // Clean for new uploads
     })
     setIsFormOpen(true)
   }
@@ -155,14 +178,49 @@ export default function Employees() {
   }
 
   const onSubmit = (data: z.infer<typeof empSchema>) => {
+    const newAttachments: SystemAttachment[] = []
+    if (data.rgDoc)
+      newAttachments.push({
+        id: Math.random().toString(36).substr(2, 9),
+        name: 'Cópia do RG',
+        url: data.rgDoc,
+        type: 'RG',
+        date: new Date().toISOString(),
+      })
+    if (data.cpfDoc)
+      newAttachments.push({
+        id: Math.random().toString(36).substr(2, 9),
+        name: 'Cópia do CPF',
+        url: data.cpfDoc,
+        type: 'CPF',
+        date: new Date().toISOString(),
+      })
+    if (data.addressDoc)
+      newAttachments.push({
+        id: Math.random().toString(36).substr(2, 9),
+        name: 'Comprovante de Endereço',
+        url: data.addressDoc,
+        type: 'Endereço',
+        date: new Date().toISOString(),
+      })
+    if (data.certDoc)
+      newAttachments.push({
+        id: Math.random().toString(36).substr(2, 9),
+        name: 'Certificado/Diploma',
+        url: data.certDoc,
+        type: 'Certificado',
+        date: new Date().toISOString(),
+      })
+
     if (editItem) {
       confirmAction('Salvar Alterações', 'Deseja atualizar os dados deste colaborador?', () => {
-        updateEmployee(editItem.id, data)
+        const finalAttachments = [...(editItem.attachments || []), ...newAttachments]
+        updateEmployee(editItem.id, { ...data, attachments: finalAttachments })
         toast({ title: 'Atualizado', description: 'Dados salvos.' })
         setIsFormOpen(false)
       })
     } else {
-      addEmployee({ ...data, admissionDate: new Date().toISOString() })
+      addEmployee({ ...data, admissionDate: new Date().toISOString(), attachments: newAttachments })
       toast({ title: 'Cadastrado', description: 'Novo colaborador registrado.' })
       setIsFormOpen(false)
     }
@@ -172,6 +230,42 @@ export default function Employees() {
     (e) =>
       e.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       e.department.toLowerCase().includes(searchTerm.toLowerCase()),
+  )
+
+  const renderDocUpload = (name: any, label: string) => (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{label}</FormLabel>
+          <FormControl>
+            {field.value ? (
+              <div className="flex items-center gap-2 p-2 border border-border rounded-md bg-muted/30">
+                <Check className="h-4 w-4 text-emerald-500 shrink-0" />
+                <span className="text-xs font-medium truncate flex-1">Arquivo anexado</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 text-[10px] px-2"
+                  onClick={() => field.onChange('')}
+                >
+                  Remover
+                </Button>
+              </div>
+            ) : (
+              <FileUpload
+                accept="image/*,application/pdf"
+                label={`Anexar ${label}`}
+                onUpload={(files) => field.onChange(files[0]?.url)}
+              />
+            )}
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   )
 
   return (
@@ -281,61 +375,67 @@ export default function Employees() {
       </div>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto bg-card">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-card">
           <DialogHeader>
             <DialogTitle>{editItem ? 'Editar Colaborador' : 'Novo Colaborador'}</DialogTitle>
+            <DialogDescription>
+              Insira os dados pessoais e anexe a documentação necessária.
+            </DialogDescription>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-              <FormField
-                control={form.control}
-                name="avatar"
-                render={({ field }) => (
-                  <FormItem className="sm:col-span-2">
-                    <FormLabel>Foto de Perfil</FormLabel>
-                    <FormControl>
-                      {field.value ? (
-                        <div className="flex items-center gap-4 p-3 border border-border rounded-md bg-muted/30">
-                          <img
-                            src={field.value}
-                            alt="Avatar"
-                            className="w-12 h-12 rounded-full object-cover border shadow-sm"
+              <h4 className="text-sm font-semibold text-foreground border-b border-border pb-2">
+                Dados Pessoais & Contrato
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="avatar"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-2">
+                      <FormLabel>Foto de Perfil</FormLabel>
+                      <FormControl>
+                        {field.value ? (
+                          <div className="flex items-center gap-4 p-3 border border-border rounded-md bg-muted/30">
+                            <img
+                              src={field.value}
+                              alt="Avatar"
+                              className="w-12 h-12 rounded-full object-cover border shadow-sm"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => field.onChange('')}
+                            >
+                              Remover
+                            </Button>
+                          </div>
+                        ) : (
+                          <FileUpload
+                            accept="image/*"
+                            label="Clique ou arraste uma foto"
+                            onUpload={(files) => field.onChange(files[0]?.url)}
                           />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => field.onChange('')}
-                          >
-                            Remover
-                          </Button>
-                        </div>
-                      ) : (
-                        <FileUpload
-                          accept="image/*"
-                          label="Clique ou arraste uma foto"
-                          onUpload={(files) => field.onChange(files[0]?.url)}
-                        />
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome Completo</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="grid grid-cols-2 gap-4">
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-2">
+                      <FormLabel>Nome Completo</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="department"
@@ -393,7 +493,7 @@ export default function Employees() {
                   name="salary"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Salário (R$)</FormLabel>
+                      <FormLabel>Salário Base (R$)</FormLabel>
                       <FormControl>
                         <Input type="number" step="0.01" {...field} />
                       </FormControl>
@@ -423,7 +523,18 @@ export default function Employees() {
                   )}
                 />
               </div>
-              <div className="pt-4 flex justify-end gap-2 border-t border-border">
+
+              <h4 className="text-sm font-semibold text-foreground border-b border-border pb-2 mt-6">
+                Documentação (Anexos)
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {renderDocUpload('rgDoc', 'Cópia do RG')}
+                {renderDocUpload('cpfDoc', 'Cópia do CPF')}
+                {renderDocUpload('addressDoc', 'Comprovante de Endereço')}
+                {renderDocUpload('certDoc', 'Certificados / Diplomas')}
+              </div>
+
+              <div className="pt-4 flex justify-end gap-2 border-t border-border mt-6">
                 <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
                   Cancelar
                 </Button>
