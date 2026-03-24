@@ -47,11 +47,12 @@ import {
   Trash2,
   Paperclip,
   FileText,
+  Check,
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { ConfirmActionDialog } from '@/components/ConfirmActionDialog'
 import { FileUpload } from '@/components/FileUpload'
-import { AcrPatient } from '@/lib/types'
+import { AcrPatient, SystemAttachment } from '@/lib/types'
 
 const patientSchema = z.object({
   name: z.string().min(3, 'O nome deve ter no mínimo 3 caracteres'),
@@ -59,6 +60,10 @@ const patientSchema = z.object({
   phone: z.string().min(10, 'Telefone deve ter DDD e número válidos'),
   birthDate: z.string().min(1, 'A data de nascimento é obrigatória'),
   background: z.string().min(10, 'Descreva o motivo da busca (mínimo de 10 caracteres)'),
+  rgDoc: z.string().optional(),
+  cpfDoc: z.string().optional(),
+  addressDoc: z.string().optional(),
+  otherDoc: z.string().optional(),
 })
 
 export default function Patients() {
@@ -79,13 +84,33 @@ export default function Patients() {
   const form = useForm<z.infer<typeof patientSchema>>({
     resolver: zodResolver(patientSchema),
     mode: 'onChange',
-    defaultValues: { name: '', email: '', phone: '', birthDate: '', background: '' },
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
+      birthDate: '',
+      background: '',
+      rgDoc: '',
+      cpfDoc: '',
+      addressDoc: '',
+      otherDoc: '',
+    },
   })
 
   useEffect(() => {
     if (!isFormOpen) {
       setEditItem(null)
-      form.reset({ name: '', email: '', phone: '', birthDate: '', background: '' })
+      form.reset({
+        name: '',
+        email: '',
+        phone: '',
+        birthDate: '',
+        background: '',
+        rgDoc: '',
+        cpfDoc: '',
+        addressDoc: '',
+        otherDoc: '',
+      })
     }
   }, [isFormOpen, form])
 
@@ -117,6 +142,10 @@ export default function Patients() {
       phone: p.phone,
       birthDate: p.birthDate,
       background: p.background,
+      rgDoc: '',
+      cpfDoc: '',
+      addressDoc: '',
+      otherDoc: '',
     })
     setIsFormOpen(true)
   }
@@ -134,18 +163,65 @@ export default function Patients() {
   }
 
   const handleFormSubmit = (data: z.infer<typeof patientSchema>) => {
+    const newAttachments: SystemAttachment[] = []
+    if (data.rgDoc) {
+      newAttachments.push({
+        id: Math.random().toString(36).substr(2, 9),
+        name: 'Cópia do RG',
+        url: data.rgDoc,
+        type: 'RG',
+        date: new Date().toISOString(),
+      })
+    }
+    if (data.cpfDoc) {
+      newAttachments.push({
+        id: Math.random().toString(36).substr(2, 9),
+        name: 'Cópia do CPF',
+        url: data.cpfDoc,
+        type: 'CPF',
+        date: new Date().toISOString(),
+      })
+    }
+    if (data.addressDoc) {
+      newAttachments.push({
+        id: Math.random().toString(36).substr(2, 9),
+        name: 'Comprovante de Endereço',
+        url: data.addressDoc,
+        type: 'Endereço',
+        date: new Date().toISOString(),
+      })
+    }
+    if (data.otherDoc) {
+      newAttachments.push({
+        id: Math.random().toString(36).substr(2, 9),
+        name: 'Outros Documentos',
+        url: data.otherDoc,
+        type: 'Outros',
+        date: new Date().toISOString(),
+      })
+    }
+
+    const baseData = {
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      birthDate: data.birthDate,
+      background: data.background,
+    }
+
     if (editItem) {
       confirmAction(
         'Salvar Alterações',
         'Deseja confirmar as alterações nos dados deste paciente?',
         () => {
-          updateAcrPatient(editItem.id, data)
+          const finalAttachments = [...(editItem.attachments || []), ...newAttachments]
+          updateAcrPatient(editItem.id, { ...baseData, attachments: finalAttachments })
           toast({ title: 'Paciente Atualizado', description: 'Os dados foram salvos com sucesso.' })
           setIsFormOpen(false)
         },
       )
     } else {
-      addAcrPatient(data)
+      addAcrPatient({ ...baseData, attachments: newAttachments })
       toast({
         title: 'Paciente Registrado',
         description: 'O paciente foi adicionado ao sistema ACR.',
@@ -158,6 +234,42 @@ export default function Patients() {
     (p) =>
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.email.toLowerCase().includes(searchTerm.toLowerCase()),
+  )
+
+  const renderDocUpload = (name: any, label: string) => (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{label}</FormLabel>
+          <FormControl>
+            {field.value ? (
+              <div className="flex items-center gap-2 p-2 border border-border rounded-md bg-muted/30">
+                <Check className="h-4 w-4 text-emerald-500 shrink-0" />
+                <span className="text-xs font-medium truncate flex-1">Arquivo anexado</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 text-[10px] px-2"
+                  onClick={() => field.onChange('')}
+                >
+                  Remover
+                </Button>
+              </div>
+            ) : (
+              <FileUpload
+                accept="image/*,application/pdf"
+                label={`Anexar ${label}`}
+                onUpload={(files) => field.onChange(files[0]?.url)}
+              />
+            )}
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   )
 
   return (
@@ -335,12 +447,15 @@ export default function Patients() {
       </Dialog>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-md bg-card max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-xl bg-card max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editItem ? 'Editar Paciente' : 'Cadastrar Novo Paciente'}</DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 pt-4">
+              <h4 className="text-sm font-semibold text-foreground border-b border-border pb-2">
+                Dados Pessoais
+              </h4>
               <FormField
                 control={form.control}
                 name="name"
@@ -408,7 +523,18 @@ export default function Patients() {
                   </FormItem>
                 )}
               />
-              <DialogFooter className="pt-2 border-t border-border">
+
+              <h4 className="text-sm font-semibold text-foreground border-b border-border pb-2 mt-6">
+                Documentação (Anexos)
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {renderDocUpload('rgDoc', 'Cópia do RG')}
+                {renderDocUpload('cpfDoc', 'Cópia do CPF')}
+                {renderDocUpload('addressDoc', 'Comprovante de Endereço')}
+                {renderDocUpload('otherDoc', 'Outros Documentos')}
+              </div>
+
+              <DialogFooter className="pt-4 border-t border-border mt-6">
                 <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
                   Cancelar
                 </Button>
