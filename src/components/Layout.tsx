@@ -47,7 +47,7 @@ export default function Layout() {
       '/acr',
     ],
     Financeiro: ['/financial', '/admin/security', '/utilities', '/reports'],
-    Professor: ['/academic', '/utilities', '/library', '/acr'],
+    Professor: ['/academic', '/utilities', '/library'],
     Aluno: ['/student', '/utilities', '/library'],
     Responsável: ['/parent', '/utilities'],
     Paciente: ['/portal', '/utilities'],

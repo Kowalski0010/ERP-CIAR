@@ -201,11 +201,7 @@ export function AppSidebar() {
       }
 
       if (currentUserRole === 'Professor') {
-        return (
-          module.title === 'COMUNICAÇÃO' ||
-          module.title === 'PEDAGÓGICO' ||
-          module.title === 'ACR (CLÍNICA)'
-        )
+        return module.title === 'COMUNICAÇÃO' || module.title === 'PEDAGÓGICO'
       }
 
       return true
