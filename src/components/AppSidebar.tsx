@@ -94,6 +94,11 @@ const appModules = [
       { title: 'Relatórios e Atas', url: '/reports/custom' },
       { title: 'Aprovações Pendentes', url: '/admin/approvals' },
       { title: 'Biblioteca Central', url: '/library/dashboard' },
+      { title: 'Efetuar Matrícula', url: '/secretaria/efetuar-matricula' },
+      { title: 'Manutenção Matrícula', url: '/secretaria/manutencao-matricula' },
+      { title: 'Emissão de Certificados', url: '/secretaria/certificados' },
+      { title: 'Imprimir Documentos', url: '/secretaria/imprimir-documentos' },
+      { title: 'Consulta de Alunos', url: '/secretaria/consultar-aluno' },
     ],
   },
   {
@@ -138,17 +143,6 @@ const appModules = [
       { title: 'Alertas em Massa', url: '/admin/notifications' },
     ],
   },
-  {
-    title: 'OPERAÇÕES SECRETARIA',
-    icon: Settings,
-    items: [
-      { title: 'Efetuar Matrícula', url: '/secretaria/efetuar-matricula' },
-      { title: 'Manutenção Matrícula', url: '/secretaria/manutencao-matricula' },
-      { title: 'Emissão de Certificados', url: '/secretaria/certificados' },
-      { title: 'Imprimir Documentos', url: '/secretaria/imprimir-documentos' },
-      { title: 'Consulta de Alunos', url: '/secretaria/consultar-aluno' },
-    ],
-  },
 ]
 
 export function AppSidebar() {
@@ -175,7 +169,7 @@ export function AppSidebar() {
         module.title === 'CADASTROS' ||
         module.title === 'GESTÃO E FINANCEIRO' ||
         module.title === 'COMUNICAÇÃO' ||
-        module.title === 'OPERAÇÕES SECRETARIA' ||
+        module.title === 'PEDAGÓGICO' ||
         module.title === 'INVENTÁRIO E PATRIMÔNIO' ||
         module.title === 'RECURSOS HUMANOS' ||
         module.title === 'ACR (CLÍNICA)'
