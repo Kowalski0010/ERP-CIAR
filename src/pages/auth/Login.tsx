@@ -17,23 +17,15 @@ import { Role } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 export default function Login() {
-  const { login, isAuthenticated, setCurrentUserRole, currentUserRole } = useAppStore()
+  const { login, isAuthenticated, setCurrentUserRole } = useAppStore()
   const navigate = useNavigate()
   const [role, setRole] = useState<Role>('Admin')
 
-  // Reliable navigation guard using useEffect to ensure state is committed
   useEffect(() => {
     if (isAuthenticated) {
-      if (currentUserRole === 'Aluno') navigate('/student/dashboard', { replace: true })
-      else if (currentUserRole === 'Responsável') navigate('/parent/dashboard', { replace: true })
-      else if (currentUserRole === 'Paciente') navigate('/portal', { replace: true })
-      else if (currentUserRole === 'Secretaria')
-        navigate('/secretaria/efetuar-matricula', { replace: true })
-      else if (currentUserRole === 'Financeiro') navigate('/financial/payments', { replace: true })
-      else if (currentUserRole === 'Professor') navigate('/academic/agenda', { replace: true })
-      else navigate('/', { replace: true })
+      navigate('/', { replace: true })
     }
-  }, [isAuthenticated, currentUserRole, navigate])
+  }, [isAuthenticated, navigate])
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()

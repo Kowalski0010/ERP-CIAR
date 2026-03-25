@@ -38,7 +38,7 @@ const appModules = [
     title: 'PORTAL DO ALUNO',
     icon: GraduationCap,
     items: [
-      { title: 'Meu Painel', url: '/student/dashboard' },
+      { title: 'Meu Painel', url: '/' },
       { title: 'Meu Perfil', url: '/student/profile' },
       { title: 'Agenda de Aulas', url: '/student/schedule' },
       { title: 'Extrato Financeiro', url: '/student/financial' },
@@ -49,12 +49,12 @@ const appModules = [
   {
     title: 'PORTAL DO RESPONSÁVEL',
     icon: Users,
-    items: [{ title: 'Meu Painel', url: '/parent/dashboard' }],
+    items: [{ title: 'Meu Painel', url: '/' }],
   },
   {
     title: 'PORTAL DO PACIENTE',
     icon: UserCircle,
-    items: [{ title: 'Meu Painel Clínico', url: '/portal' }],
+    items: [{ title: 'Meu Painel Clínico', url: '/' }],
   },
   {
     title: 'ACR (CLÍNICA)',
@@ -261,12 +261,12 @@ export function AppSidebar() {
                 <SidebarMenuButton
                   asChild
                   className={`rounded-none h-10 px-4 border-l-4 font-semibold text-[13px] ${
-                    location.pathname.includes('/student/dashboard')
+                    location.pathname === '/' || location.pathname.includes('/student/dashboard')
                       ? 'border-l-primary bg-muted/50 text-primary'
                       : 'border-l-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                   }`}
                 >
-                  <Link to="/student/dashboard">
+                  <Link to="/">
                     <CalendarDays className="h-[18px] w-[18px]" />
                     <span>MEU PAINEL</span>
                   </Link>
@@ -279,12 +279,12 @@ export function AppSidebar() {
                 <SidebarMenuButton
                   asChild
                   className={`rounded-none h-10 px-4 border-l-4 font-semibold text-[13px] ${
-                    location.pathname.includes('/parent/dashboard')
+                    location.pathname === '/' || location.pathname.includes('/parent/dashboard')
                       ? 'border-l-primary bg-muted/50 text-primary'
                       : 'border-l-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                   }`}
                 >
-                  <Link to="/parent/dashboard">
+                  <Link to="/">
                     <Users className="h-[18px] w-[18px]" />
                     <span>PORTAL DA FAMÍLIA</span>
                   </Link>
@@ -297,12 +297,12 @@ export function AppSidebar() {
                 <SidebarMenuButton
                   asChild
                   className={`rounded-none h-10 px-4 border-l-4 font-semibold text-[13px] ${
-                    location.pathname.includes('/portal')
+                    location.pathname === '/' || location.pathname.includes('/portal')
                       ? 'border-l-primary bg-muted/50 text-primary'
                       : 'border-l-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                   }`}
                 >
-                  <Link to="/portal">
+                  <Link to="/">
                     <UserCircle className="h-[18px] w-[18px]" />
                     <span>MEU PAINEL CLÍNICO</span>
                   </Link>

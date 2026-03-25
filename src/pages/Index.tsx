@@ -28,6 +28,11 @@ import {
 } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 
+// Sub-dashboards
+import StudentDashboard from './student/StudentDashboard'
+import ParentDashboard from './parent/ParentDashboard'
+import PortalDashboard from './portal/PortalDashboard'
+
 const mockAttendanceData = [
   { day: 'Seg', rate: 95 },
   { day: 'Ter', rate: 92 },
@@ -38,7 +43,7 @@ const mockAttendanceData = [
 
 export default function Index() {
   const navigate = useNavigate()
-  const { students, payments } = useAppStore()
+  const { students, payments, currentUserRole } = useAppStore()
 
   // Shortcuts Listener (Safely handled to prevent keydown crashes)
   useEffect(() => {
@@ -63,6 +68,11 @@ export default function Index() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [navigate])
 
+  // Map user to proper dashboard seamlessly maintaining the '/' path
+  if (currentUserRole === 'Aluno') return <StudentDashboard />
+  if (currentUserRole === 'Responsável') return <ParentDashboard />
+  if (currentUserRole === 'Paciente') return <PortalDashboard />
+
   const activeStudents = students.filter((s) => s.status === 'Ativo').length || 0
   const totalRevenue = payments
     .filter((p) => p.status === 'Pago')
@@ -85,6 +95,8 @@ export default function Index() {
     { name: 'Receita', value: totalRevenue, fill: 'hsl(var(--primary))' },
     { name: 'Inadimplência', value: totalDelinquency, fill: 'hsl(var(--destructive))' },
   ]
+
+  const showFinancials = ['Admin', 'Gestao', 'Financeiro'].includes(currentUserRole)
 
   return (
     <div className="space-y-6 animate-fade-in-up pb-8 font-sans max-w-[1400px] mx-auto">
@@ -175,37 +187,41 @@ export default function Index() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
-          <CardContent className="p-5 flex items-center justify-between">
-            <div className="space-y-1">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                Faturamento Consolidado
-              </p>
-              <p className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-500">
-                R$ {totalRevenue.toLocaleString('pt-BR')}
-              </p>
-            </div>
-            <div className="h-12 w-12 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
-              <Wallet className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-            </div>
-          </CardContent>
-        </Card>
+        {showFinancials && (
+          <Card className="shadow-sm">
+            <CardContent className="p-5 flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                  Faturamento Consolidado
+                </p>
+                <p className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-500">
+                  R$ {totalRevenue.toLocaleString('pt-BR')}
+                </p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
+                <Wallet className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-        <Card className="shadow-sm">
-          <CardContent className="p-5 flex items-center justify-between">
-            <div className="space-y-1">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                Índice de Inadimplência
-              </p>
-              <p className="text-3xl font-extrabold text-rose-600 dark:text-rose-500">
-                R$ {totalDelinquency.toLocaleString('pt-BR')}
-              </p>
-            </div>
-            <div className="h-12 w-12 rounded-full bg-rose-50 dark:bg-rose-900/30 flex items-center justify-center">
-              <AlertTriangle className="h-6 w-6 text-rose-600 dark:text-rose-400" />
-            </div>
-          </CardContent>
-        </Card>
+        {showFinancials && (
+          <Card className="shadow-sm">
+            <CardContent className="p-5 flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                  Índice de Inadimplência
+                </p>
+                <p className="text-3xl font-extrabold text-rose-600 dark:text-rose-500">
+                  R$ {totalDelinquency.toLocaleString('pt-BR')}
+                </p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-rose-50 dark:bg-rose-900/30 flex items-center justify-center">
+                <AlertTriangle className="h-6 w-6 text-rose-600 dark:text-rose-400" />
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* BI KPI Cards - Row 2 (New Portal metrics) */}
@@ -248,39 +264,41 @@ export default function Index() {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Saúde Financeira</CardTitle>
-            <CardDescription className="text-xs">
-              Recebimentos vs. Em Atraso (Mês Atual)
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer
-              config={{
-                value: { label: 'Valor R$', color: 'hsl(var(--primary))' },
-              }}
-              className="h-[250px] w-full"
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={financialData}
-                  layout="vertical"
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                  <XAxis type="number" hide />
-                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} />
-                  <ChartTooltip
-                    cursor={{ fill: 'transparent' }}
-                    content={<ChartTooltipContent />}
-                  />
-                  <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={32}></Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-        </Card>
+        {showFinancials && (
+          <Card className="shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Saúde Financeira</CardTitle>
+              <CardDescription className="text-xs">
+                Recebimentos vs. Em Atraso (Mês Atual)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer
+                config={{
+                  value: { label: 'Valor R$', color: 'hsl(var(--primary))' },
+                }}
+                className="h-[250px] w-full"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={financialData}
+                    layout="vertical"
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                    <XAxis type="number" hide />
+                    <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} />
+                    <ChartTooltip
+                      cursor={{ fill: 'transparent' }}
+                      content={<ChartTooltipContent />}
+                    />
+                    <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={32}></Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+        )}
 
         <Card className="shadow-sm">
           <CardHeader className="pb-2">

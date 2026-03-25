@@ -5,31 +5,12 @@ import { AppHeader } from './AppHeader'
 import { useAppStore } from '@/contexts/AppContext'
 import { ShieldAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useEffect } from 'react'
 import { ThemeToggle } from './ThemeToggle'
 
 export default function Layout() {
   const { currentUserRole, isAuthenticated } = useAppStore()
   const location = useLocation()
   const navigate = useNavigate()
-
-  useEffect(() => {
-    if (isAuthenticated && location.pathname === '/') {
-      if (currentUserRole === 'Aluno') {
-        navigate('/student/dashboard', { replace: true })
-      } else if (currentUserRole === 'Responsável') {
-        navigate('/parent/dashboard', { replace: true })
-      } else if (currentUserRole === 'Paciente') {
-        navigate('/portal', { replace: true })
-      } else if (currentUserRole === 'Secretaria') {
-        navigate('/secretaria/efetuar-matricula', { replace: true })
-      } else if (currentUserRole === 'Financeiro') {
-        navigate('/financial/payments', { replace: true })
-      } else if (currentUserRole === 'Professor') {
-        navigate('/academic/agenda', { replace: true })
-      }
-    }
-  }, [currentUserRole, location.pathname, navigate, isAuthenticated])
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
@@ -90,21 +71,6 @@ export default function Layout() {
     location.pathname === '/'
 
   if (!isAllowed) {
-    const defaultRoute =
-      currentUserRole === 'Aluno'
-        ? '/student/dashboard'
-        : currentUserRole === 'Responsável'
-          ? '/parent/dashboard'
-          : currentUserRole === 'Paciente'
-            ? '/portal'
-            : currentUserRole === 'Secretaria'
-              ? '/secretaria/efetuar-matricula'
-              : currentUserRole === 'Financeiro'
-                ? '/financial/payments'
-                : currentUserRole === 'Professor'
-                  ? '/academic/agenda'
-                  : '/'
-
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/30 dark:bg-background font-sans p-4 text-center">
         <ShieldAlert className="h-16 w-16 text-destructive mb-4" />
@@ -116,7 +82,7 @@ export default function Layout() {
           <Button variant="outline" onClick={() => navigate(-1)}>
             Voltar
           </Button>
-          <Button onClick={() => navigate(defaultRoute)}>Ir para Início</Button>
+          <Button onClick={() => navigate('/')}>Ir para Início</Button>
         </div>
       </div>
     )
