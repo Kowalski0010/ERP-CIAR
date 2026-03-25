@@ -25,10 +25,8 @@ import {
   YAxis,
   CartesianGrid,
   ResponsiveContainer,
-  Tooltip as RechartsTooltip,
 } from 'recharts'
-import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart'
-import { Badge } from '@/components/ui/badge'
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 
 const mockAttendanceData = [
   { day: 'Seg', rate: 95 },
@@ -40,20 +38,23 @@ const mockAttendanceData = [
 
 export default function Index() {
   const navigate = useNavigate()
-  const { students, payments, logs } = useAppStore()
+  const { students, payments } = useAppStore()
 
-  // Shortcuts Listener
+  // Shortcuts Listener (Safely handled to prevent keydown crashes)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.altKey && e.key.toLowerCase() === 'n') {
+      if (!e.key) return
+      const key = e.key.toLowerCase()
+
+      if (e.altKey && key === 'n') {
         e.preventDefault()
         navigate('/academic/students') // Nova Matrícula / Aluno
       }
-      if (e.altKey && e.key.toLowerCase() === 'f') {
+      if (e.altKey && key === 'f') {
         e.preventDefault()
         navigate('/academic/control/lancar-frequencia') // Lançar Frequência
       }
-      if (e.altKey && e.key.toLowerCase() === 'm') {
+      if (e.altKey && key === 'm') {
         e.preventDefault()
         navigate('/secretaria/efetuar-matricula') // Matrícula Direta
       }
@@ -62,13 +63,13 @@ export default function Index() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [navigate])
 
-  const activeStudents = students.filter((s) => s.status === 'Ativo').length
+  const activeStudents = students.filter((s) => s.status === 'Ativo').length || 0
   const totalRevenue = payments
     .filter((p) => p.status === 'Pago')
-    .reduce((acc, curr) => acc + curr.amount, 0)
+    .reduce((acc, curr) => acc + (curr.amount || 0), 0)
   const totalDelinquency = payments
     .filter((p) => p.status === 'Atrasado')
-    .reduce((acc, curr) => acc + curr.amount, 0)
+    .reduce((acc, curr) => acc + (curr.amount || 0), 0)
 
   // Document Signatures and Portal KPI metrics
   const totalDocuments = students.reduce((acc, s) => acc + (s.documents?.length || 0), 0)
@@ -270,7 +271,7 @@ export default function Index() {
                   <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
                   <XAxis type="number" hide />
                   <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} />
-                  <RechartsTooltip
+                  <ChartTooltip
                     cursor={{ fill: 'transparent' }}
                     content={<ChartTooltipContent />}
                   />
@@ -303,7 +304,7 @@ export default function Index() {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="day" axisLine={false} tickLine={false} />
                   <YAxis axisLine={false} tickLine={false} domain={[0, 100]} />
-                  <RechartsTooltip content={<ChartTooltipContent />} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
                   <Line
                     type="monotone"
                     dataKey="rate"
