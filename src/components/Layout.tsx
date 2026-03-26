@@ -6,6 +6,7 @@ import { useAppStore } from '@/contexts/AppContext'
 import { ShieldAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from './ThemeToggle'
+import { OnboardingWidget } from './OnboardingWidget'
 
 export default function Layout() {
   const { currentUserRole, isAuthenticated } = useAppStore()
@@ -96,6 +97,7 @@ export default function Layout() {
           <AppHeader />
           <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 animate-fade-in">
             <div className="mx-auto max-w-[1400px]">
+              <OnboardingWidget />
               <Outlet />
             </div>
           </main>
