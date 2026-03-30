@@ -39,6 +39,20 @@ import {
   SystemUser,
   CashFlowTransaction,
 } from '@/lib/types'
+import { supabase } from '@/lib/supabase/client'
+import {
+  getStudents,
+  addStudent as apiAddStudent,
+  updateStudent as apiUpdateStudent,
+  deleteStudent as apiDeleteStudent,
+} from '@/services/students'
+import {
+  getCourses,
+  addCourse as apiAddCourse,
+  updateCourse as apiUpdateCourse,
+  deleteCourse as apiDeleteCourse,
+} from '@/services/courses'
+
 import {
   mockStudents,
   mockLeads,
@@ -202,12 +216,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const login = (role?: Role) => {
+  const login = async (role?: Role) => {
     setIsAuthenticated(true)
     try {
       localStorage.setItem('sio_auth', 'true')
+      await supabase.auth.signInWithPassword({
+        email: 'kowalski0010@gmail.com',
+        password: 'securepassword123',
+      })
     } catch (e) {
-      console.warn('LocalStorage unavailable')
+      console.warn('LocalStorage unavailable or Supabase auth failed', e)
     }
     if (role) setCurrentUserRole(role)
 
@@ -219,13 +237,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     })
   }
 
-  const logout = () => {
+  const logout = async () => {
     setIsAuthenticated(false)
     try {
       localStorage.removeItem('sio_auth')
       localStorage.removeItem('sio_role')
+      await supabase.auth.signOut()
     } catch (e) {
-      console.warn('LocalStorage unavailable')
+      console.warn('LocalStorage unavailable or Supabase signout failed', e)
     }
   }
 
@@ -247,6 +266,45 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [suppliers] = useState<Supplier[]>(mockSuppliers)
   const [purchaseOrders] = useState<PurchaseOrder[]>(mockOrders)
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(mockChatMessages)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+        if (!session) {
+          await supabase.auth.signInWithPassword({
+            email: 'kowalski0010@gmail.com',
+            password: 'securepassword123',
+          })
+        }
+
+        const [studentsData, coursesData] = await Promise.all([getStudents(), getCourses()])
+        if (studentsData && studentsData.length > 0) {
+          const mappedStudents = studentsData.map((s) => ({
+            ...s,
+            enrollmentDate: s.enrollment_date,
+          }))
+          setStudents((prev) => {
+            const newMap = new Map(prev.map((p) => [p.id, p]))
+            mappedStudents.forEach((m) => newMap.set(m.id, m as any))
+            return Array.from(newMap.values())
+          })
+        }
+        if (coursesData && coursesData.length > 0) {
+          setCursos((prev) => {
+            const newMap = new Map(prev.map((p) => [p.id, p]))
+            coursesData.forEach((m) => newMap.set(m.id, m as any))
+            return Array.from(newMap.values())
+          })
+        }
+      } catch (err) {
+        console.error('Error fetching data:', err)
+      }
+    }
+    fetchData()
+  }, [])
 
   const [manualTransactions, setManualTransactions] = useState<CashFlowTransaction[]>([
     {
@@ -348,12 +406,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setEmployees((prev) => prev.filter((e) => e.id !== id))
   }
 
-  const updateStudent = (id: string, partial: Partial<Student>) => {
+  const updateStudent = async (id: string, partial: Partial<Student>) => {
     setStudents((prev) => prev.map((s) => (s.id === id ? { ...s, ...partial } : s)))
+    try {
+      const dbPayload: any = {}
+      if (partial.name !== undefined) dbPayload.name = partial.name
+      if (partial.email !== undefined) dbPayload.email = partial.email
+      if (partial.phone !== undefined) dbPayload.phone = partial.phone
+      if (partial.cpf !== undefined) dbPayload.cpf = partial.cpf
+      if (partial.course !== undefined) dbPayload.course = partial.course
+      if (partial.status !== undefined) dbPayload.status = partial.status
+      if (partial.avatar !== undefined) dbPayload.avatar = partial.avatar
+      if (Object.keys(dbPayload).length > 0) {
+        await apiUpdateStudent(id, dbPayload)
+      }
+    } catch (e) {
+      console.error(e)
+    }
   }
 
-  const deleteStudent = (id: string) => {
+  const deleteStudent = async (id: string) => {
     setStudents((prev) => prev.filter((s) => s.id !== id))
+    try {
+      await apiDeleteStudent(id)
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   const addTeacher = (teacher: Teacher) => {
@@ -507,22 +585,54 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCandidates((prev) => prev.map((c) => (c.id === id ? { ...c, status } : c)))
   }
 
-  const addCurso = (data: Partial<Curso>) =>
-    setCursos((prev) => [
-      {
-        id: generateId('C'),
-        name: data.name!,
-        mode: data.mode!,
-        duration: data.duration!,
-        status: 'Ativo',
-        date: new Date().toLocaleDateString(),
-        description: data.description,
-      },
-      ...prev,
-    ])
-  const updateCurso = (id: string, data: Partial<Curso>) =>
+  const addCurso = async (data: Partial<Curso>) => {
+    const optimisticCourse: Curso = {
+      id: generateId('C'),
+      name: data.name!,
+      mode: data.mode!,
+      duration: data.duration!,
+      status: 'Ativo',
+      date: new Date().toLocaleDateString(),
+      description: data.description,
+    }
+    setCursos((prev) => [optimisticCourse, ...prev])
+    try {
+      await apiAddCourse({
+        id: optimisticCourse.id,
+        name: optimisticCourse.name,
+        mode: optimisticCourse.mode,
+        duration: optimisticCourse.duration,
+        description: optimisticCourse.description,
+      })
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const updateCurso = async (id: string, data: Partial<Curso>) => {
     setCursos((prev) => prev.map((c) => (c.id === id ? { ...c, ...data } : c)))
-  const deleteCurso = (id: string) => setCursos((prev) => prev.filter((c) => c.id !== id))
+    try {
+      const dbPayload: any = {}
+      if (data.name !== undefined) dbPayload.name = data.name
+      if (data.mode !== undefined) dbPayload.mode = data.mode
+      if (data.duration !== undefined) dbPayload.duration = data.duration
+      if (data.description !== undefined) dbPayload.description = data.description
+      if (Object.keys(dbPayload).length > 0) {
+        await apiUpdateCourse(id, dbPayload)
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const deleteCurso = async (id: string) => {
+    setCursos((prev) => prev.filter((c) => c.id !== id))
+    try {
+      await apiDeleteCourse(id)
+    } catch (e) {
+      console.error(e)
+    }
+  }
 
   const addAvaliacao = (data: Partial<Avaliacao>) =>
     setAvaliacoes((prev) => [
@@ -751,8 +861,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setPayments((prev) => prev.map((p) => (p.id === id ? { ...p, ...partial } : p)))
   }
   const addSchedule = (slot: Schedule) => setSchedules((prev) => [...prev, slot])
-  const enrollStudent = (student: Student, plan: FinancialPlan, leadId?: string) => {
+  const enrollStudent = async (student: Student, plan: FinancialPlan, leadId?: string) => {
     setStudents((prev) => [student, ...prev])
+    try {
+      await apiAddStudent({
+        id: student.id,
+        name: student.name,
+        email: student.email,
+        phone: student.phone,
+        cpf: student.cpf,
+        course: student.course,
+        status: student.status,
+        avatar: student.avatar,
+      })
+    } catch (e) {
+      console.error(e)
+    }
+
     if (leadId) updateLeadStatus(leadId, 'Ganho')
     if (plan.installments > 0) {
       const newPayments: Payment[] = []

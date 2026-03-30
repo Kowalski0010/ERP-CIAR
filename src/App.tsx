@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { ThemeProvider } from './components/theme-provider'
 import { AppProvider } from './contexts/AppContext'
+import { AuthProvider } from './hooks/use-auth'
 import { Toaster } from './components/ui/toaster'
 import { Toaster as Sonner } from './components/ui/sonner'
 import Layout from './components/Layout'
@@ -118,170 +119,172 @@ import VerifyCertificate from './pages/public/VerifyCertificate'
 function App() {
   return (
     <ThemeProvider defaultTheme="system" storageKey="sio-ui-theme">
-      <AppProvider>
-        <Router>
-          <Routes>
-            {/* Public Auth & External Routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/apply-teacher" element={<TeacherApplication />} />
-            <Route path="/verify/:code" element={<VerifyCertificate />} />
+      <AuthProvider>
+        <AppProvider>
+          <Router>
+            <Routes>
+              {/* Public Auth & External Routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/apply-teacher" element={<TeacherApplication />} />
+              <Route path="/verify/:code" element={<VerifyCertificate />} />
 
-            <Route element={<Layout />}>
-              <Route path="/" element={<Index />} />
+              <Route element={<Layout />}>
+                <Route path="/" element={<Index />} />
 
-              {/* Utility Tools */}
-              <Route path="utilities">
-                <Route path="notepad" element={<Notepad />} />
-                <Route path="messages" element={<Messages />} />
-                <Route path="chat" element={<Chat />} />
-                <Route path="news" element={<News />} />
-                <Route path="change-password" element={<ChangePassword />} />
+                {/* Utility Tools */}
+                <Route path="utilities">
+                  <Route path="notepad" element={<Notepad />} />
+                  <Route path="messages" element={<Messages />} />
+                  <Route path="chat" element={<Chat />} />
+                  <Route path="news" element={<News />} />
+                  <Route path="change-password" element={<ChangePassword />} />
+                </Route>
+
+                {/* ACR Clínica */}
+                <Route path="acr">
+                  <Route path="patients" element={<AcrPatients />} />
+                  <Route path="records" element={<AcrClinicalRecords />} />
+                  <Route path="agenda" element={<AcrAgenda />} />
+                  <Route path="analytics" element={<AcrAnalytics />} />
+                </Route>
+
+                {/* Academic Core */}
+                <Route path="academic">
+                  <Route path="agenda" element={<Agenda />} />
+                  <Route path="students" element={<Students />} />
+                  <Route path="teachers" element={<Teachers />} />
+                  <Route path="classes" element={<Classes />} />
+                  <Route path="schedules" element={<Schedules />} />
+                  <Route path="grades" element={<Grades />} />
+                  <Route path="occupancy" element={<ClassOccupancy />} />
+                  <Route path="room-occupancy" element={<RoomOccupancy />} />
+                  <Route path="pedagogical" element={<PedagogicalTracking />} />
+                  <Route path="performance" element={<AcademicPerformance />} />
+                  <Route path="roll-call" element={<DigitalRollCall />} />
+                  <Route path="extracurricular" element={<Extracurricular />} />
+                  <Route path="control/:id" element={<AcademicControlView />} />
+                </Route>
+
+                {/* Library Module */}
+                <Route path="library">
+                  <Route path="catalog" element={<LibraryCatalog />} />
+                  <Route path="loans" element={<LibraryLoans />} />
+                  <Route path="dashboard" element={<LibraryDashboard />} />
+                </Route>
+
+                {/* Portals */}
+                <Route path="portal" element={<PortalDashboard />} />
+                <Route path="student">
+                  <Route path="dashboard" element={<StudentDashboard />} />
+                  <Route path="schedule" element={<StudentSchedule />} />
+                  <Route path="financial" element={<StudentFinancial />} />
+                  <Route path="documents" element={<StudentDocuments />} />
+                  <Route path="feedback" element={<StudentFeedback />} />
+                  <Route path="profile" element={<StudentProfile />} />
+                </Route>
+
+                <Route path="parent">
+                  <Route path="dashboard" element={<ParentDashboard />} />
+                </Route>
+
+                {/* Secretaria Modules */}
+                <Route path="secretaria">
+                  <Route path="2a-via-contrato" element={<ContratosDocumentos />} />
+                  <Route path="imprimir-documentos" element={<ContratosDocumentos />} />
+                  <Route path="bloquear-matricula" element={<MatriculaOperacoes />} />
+                  <Route path="manutencao-matricula" element={<MatriculaOperacoes />} />
+                  <Route path="cadastrar-horario" element={<TurmasHorarios />} />
+                  <Route path="compartilhar-turma" element={<TurmasHorarios />} />
+                  <Route path="dividir-turma" element={<TurmasHorarios />} />
+                  <Route path="consultar-aluno" element={<Consultas />} />
+                  <Route path="consultar-curso" element={<Consultas />} />
+                  <Route path="consultar-horario-curso" element={<Consultas />} />
+                  <Route path="consultar-horario-prof" element={<Consultas />} />
+                  <Route path="consultar-matricula" element={<Consultas />} />
+                  <Route path="consultar-responsavel" element={<Consultas />} />
+                  <Route path="efetivar-pre-matricula" element={<EnrollmentWorkflow />} />
+                  <Route path="efetuar-matricula" element={<EnrollmentWorkflow />} />
+                  <Route path="efetuar-matricula-disciplina" element={<EnrollmentWorkflow />} />
+                  <Route path="efetuar-pre-matricula" element={<EnrollmentWorkflow />} />
+                  <Route path="ocorrencias-aluno" element={<AlunoOperacoes />} />
+                  <Route path="requerimentos" element={<AlunoOperacoes />} />
+                  <Route path="trocar-aluno-curso" element={<Transferencias />} />
+                  <Route path="trocar-aluno-turma" element={<Transferencias />} />
+                  <Route path="reabertura-periodo" element={<Administrativo />} />
+                  <Route path="recursos-aula" element={<Administrativo />} />
+                  <Route path="feedback" element={<FeedbackInbox />} />
+                  <Route path="certificados" element={<Certificados />} />
+                </Route>
+
+                <Route path="secretaria-educacao">
+                  <Route path="relatorio-final" element={<RelatorioFinal />} />
+                </Route>
+
+                {/* Financial */}
+                <Route path="financial">
+                  <Route path="payments" element={<Payments />} />
+                  <Route path="cash-flow" element={<CashFlow />} />
+                  <Route path="analytics" element={<FinancialAnalytics />} />
+                </Route>
+
+                {/* Commercial CRM */}
+                <Route path="commercial">
+                  <Route path="leads" element={<Leads />} />
+                </Route>
+
+                {/* HR */}
+                <Route path="hr">
+                  <Route path="employees" element={<Employees />} />
+                  <Route path="recruitment" element={<Recruitment />} />
+                </Route>
+
+                {/* Inventory */}
+                <Route path="inventory">
+                  <Route path="stock" element={<Stock />} />
+                  <Route path="movements" element={<Movements />} />
+                </Route>
+
+                {/* Purchasing */}
+                <Route path="purchasing">
+                  <Route path="orders" element={<Orders />} />
+                  <Route path="suppliers" element={<Suppliers />} />
+                </Route>
+
+                {/* Admin & System Registry */}
+                <Route path="admin">
+                  <Route path="users" element={<UserManagement />} />
+                  <Route path="approvals" element={<PendingApprovals />} />
+                  <Route path="communication-settings" element={<CommunicationSettings />} />
+                  <Route path="integrations" element={<Integrations />} />
+                  <Route path="settings" element={<Settings />} />
+                  <Route path="access-control" element={<AccessControl />} />
+                  <Route path="audit-logs" element={<AuditLogs />} />
+                  <Route path="documents" element={<DocumentManagement />} />
+                  <Route path="notifications" element={<Notifications />} />
+                  <Route path="reports" element={<Reports />} />
+                  <Route path="workflows" element={<Workflows />} />
+                  <Route path="communication-logs" element={<CommunicationLogs />} />
+                  <Route path="registry/:id" element={<RegistryView />} />
+                  <Route path="backup" element={<BackupSettings />} />
+                  <Route path="security" element={<SecurityCameras />} />
+                  <Route path="events" element={<Events />} />
+                  <Route path="surveys" element={<Surveys />} />
+                  <Route path="data-import" element={<AdminDataImport />} />
+                </Route>
+
+                {/* Generic Reports */}
+                <Route path="reports/custom" element={<CustomReports />} />
+                <Route path="reports/:id" element={<ReportView />} />
               </Route>
 
-              {/* ACR Clínica */}
-              <Route path="acr">
-                <Route path="patients" element={<AcrPatients />} />
-                <Route path="records" element={<AcrClinicalRecords />} />
-                <Route path="agenda" element={<AcrAgenda />} />
-                <Route path="analytics" element={<AcrAnalytics />} />
-              </Route>
-
-              {/* Academic Core */}
-              <Route path="academic">
-                <Route path="agenda" element={<Agenda />} />
-                <Route path="students" element={<Students />} />
-                <Route path="teachers" element={<Teachers />} />
-                <Route path="classes" element={<Classes />} />
-                <Route path="schedules" element={<Schedules />} />
-                <Route path="grades" element={<Grades />} />
-                <Route path="occupancy" element={<ClassOccupancy />} />
-                <Route path="room-occupancy" element={<RoomOccupancy />} />
-                <Route path="pedagogical" element={<PedagogicalTracking />} />
-                <Route path="performance" element={<AcademicPerformance />} />
-                <Route path="roll-call" element={<DigitalRollCall />} />
-                <Route path="extracurricular" element={<Extracurricular />} />
-                <Route path="control/:id" element={<AcademicControlView />} />
-              </Route>
-
-              {/* Library Module */}
-              <Route path="library">
-                <Route path="catalog" element={<LibraryCatalog />} />
-                <Route path="loans" element={<LibraryLoans />} />
-                <Route path="dashboard" element={<LibraryDashboard />} />
-              </Route>
-
-              {/* Portals */}
-              <Route path="portal" element={<PortalDashboard />} />
-              <Route path="student">
-                <Route path="dashboard" element={<StudentDashboard />} />
-                <Route path="schedule" element={<StudentSchedule />} />
-                <Route path="financial" element={<StudentFinancial />} />
-                <Route path="documents" element={<StudentDocuments />} />
-                <Route path="feedback" element={<StudentFeedback />} />
-                <Route path="profile" element={<StudentProfile />} />
-              </Route>
-
-              <Route path="parent">
-                <Route path="dashboard" element={<ParentDashboard />} />
-              </Route>
-
-              {/* Secretaria Modules */}
-              <Route path="secretaria">
-                <Route path="2a-via-contrato" element={<ContratosDocumentos />} />
-                <Route path="imprimir-documentos" element={<ContratosDocumentos />} />
-                <Route path="bloquear-matricula" element={<MatriculaOperacoes />} />
-                <Route path="manutencao-matricula" element={<MatriculaOperacoes />} />
-                <Route path="cadastrar-horario" element={<TurmasHorarios />} />
-                <Route path="compartilhar-turma" element={<TurmasHorarios />} />
-                <Route path="dividir-turma" element={<TurmasHorarios />} />
-                <Route path="consultar-aluno" element={<Consultas />} />
-                <Route path="consultar-curso" element={<Consultas />} />
-                <Route path="consultar-horario-curso" element={<Consultas />} />
-                <Route path="consultar-horario-prof" element={<Consultas />} />
-                <Route path="consultar-matricula" element={<Consultas />} />
-                <Route path="consultar-responsavel" element={<Consultas />} />
-                <Route path="efetivar-pre-matricula" element={<EnrollmentWorkflow />} />
-                <Route path="efetuar-matricula" element={<EnrollmentWorkflow />} />
-                <Route path="efetuar-matricula-disciplina" element={<EnrollmentWorkflow />} />
-                <Route path="efetuar-pre-matricula" element={<EnrollmentWorkflow />} />
-                <Route path="ocorrencias-aluno" element={<AlunoOperacoes />} />
-                <Route path="requerimentos" element={<AlunoOperacoes />} />
-                <Route path="trocar-aluno-curso" element={<Transferencias />} />
-                <Route path="trocar-aluno-turma" element={<Transferencias />} />
-                <Route path="reabertura-periodo" element={<Administrativo />} />
-                <Route path="recursos-aula" element={<Administrativo />} />
-                <Route path="feedback" element={<FeedbackInbox />} />
-                <Route path="certificados" element={<Certificados />} />
-              </Route>
-
-              <Route path="secretaria-educacao">
-                <Route path="relatorio-final" element={<RelatorioFinal />} />
-              </Route>
-
-              {/* Financial */}
-              <Route path="financial">
-                <Route path="payments" element={<Payments />} />
-                <Route path="cash-flow" element={<CashFlow />} />
-                <Route path="analytics" element={<FinancialAnalytics />} />
-              </Route>
-
-              {/* Commercial CRM */}
-              <Route path="commercial">
-                <Route path="leads" element={<Leads />} />
-              </Route>
-
-              {/* HR */}
-              <Route path="hr">
-                <Route path="employees" element={<Employees />} />
-                <Route path="recruitment" element={<Recruitment />} />
-              </Route>
-
-              {/* Inventory */}
-              <Route path="inventory">
-                <Route path="stock" element={<Stock />} />
-                <Route path="movements" element={<Movements />} />
-              </Route>
-
-              {/* Purchasing */}
-              <Route path="purchasing">
-                <Route path="orders" element={<Orders />} />
-                <Route path="suppliers" element={<Suppliers />} />
-              </Route>
-
-              {/* Admin & System Registry */}
-              <Route path="admin">
-                <Route path="users" element={<UserManagement />} />
-                <Route path="approvals" element={<PendingApprovals />} />
-                <Route path="communication-settings" element={<CommunicationSettings />} />
-                <Route path="integrations" element={<Integrations />} />
-                <Route path="settings" element={<Settings />} />
-                <Route path="access-control" element={<AccessControl />} />
-                <Route path="audit-logs" element={<AuditLogs />} />
-                <Route path="documents" element={<DocumentManagement />} />
-                <Route path="notifications" element={<Notifications />} />
-                <Route path="reports" element={<Reports />} />
-                <Route path="workflows" element={<Workflows />} />
-                <Route path="communication-logs" element={<CommunicationLogs />} />
-                <Route path="registry/:id" element={<RegistryView />} />
-                <Route path="backup" element={<BackupSettings />} />
-                <Route path="security" element={<SecurityCameras />} />
-                <Route path="events" element={<Events />} />
-                <Route path="surveys" element={<Surveys />} />
-                <Route path="data-import" element={<AdminDataImport />} />
-              </Route>
-
-              {/* Generic Reports */}
-              <Route path="reports/custom" element={<CustomReports />} />
-              <Route path="reports/:id" element={<ReportView />} />
-            </Route>
-
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Router>
-        <Toaster />
-        <Sonner />
-      </AppProvider>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Router>
+          <Toaster />
+          <Sonner />
+        </AppProvider>
+      </AuthProvider>
     </ThemeProvider>
   )
 }
