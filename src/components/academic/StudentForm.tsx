@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -24,6 +24,7 @@ import { useToast } from '@/hooks/use-toast'
 import { Student } from '@/lib/types'
 import { addStudent, updateStudent } from '@/services/students'
 import { createInstallments } from '@/services/payments'
+import { getCourses } from '@/services/courses'
 import { Loader2, Check } from 'lucide-react'
 import { FileUpload } from '@/components/FileUpload'
 
@@ -73,6 +74,22 @@ export function StudentForm({
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [cepLoading, setCepLoading] = useState(false)
+  const [courses, setCourses] = useState<any[]>([])
+  const [coursesLoading, setCoursesLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const data = await getCourses()
+        setCourses(data || [])
+      } catch (error) {
+        console.error('Failed to fetch courses:', error)
+      } finally {
+        setCoursesLoading(false)
+      }
+    }
+    fetchCourses()
+  }, [])
 
   const form = useForm<z.infer<typeof studentSchema>>({
     resolver: zodResolver(studentSchema),
@@ -262,20 +279,31 @@ export function StudentForm({
                 name="course"
                 render={({ field }) => (
                   <FormItem className="md:col-span-2">
-                    <FormLabel>Graduação / Curso</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || ''}>
+                    <FormLabel>
+                      Graduação / Curso{' '}
+                      {coursesLoading && <Loader2 className="inline h-3 w-3 animate-spin ml-2" />}
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value || ''}
+                      disabled={coursesLoading}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione o curso" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Engenharia de Software">
-                          Engenharia de Software
-                        </SelectItem>
-                        <SelectItem value="Administração">Administração</SelectItem>
-                        <SelectItem value="Direito">Direito</SelectItem>
-                        <SelectItem value="Design Gráfico">Design Gráfico</SelectItem>
+                        {courses.map((c) => (
+                          <SelectItem key={c.id} value={c.name}>
+                            {c.name}
+                          </SelectItem>
+                        ))}
+                        {courses.length === 0 && !coursesLoading && (
+                          <SelectItem value="none" disabled>
+                            Nenhum curso cadastrado
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />

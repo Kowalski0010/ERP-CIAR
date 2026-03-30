@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAppStore } from '@/contexts/AppContext'
+import { useAuth } from '@/hooks/use-auth'
 import { useNavigate, Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,17 +19,33 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 export default function Login() {
   const { login, isAuthenticated, setCurrentUserRole } = useAppStore()
+  const { signIn, user } = useAuth()
   const navigate = useNavigate()
   const [role, setRole] = useState<Role>('Admin')
+  const [email, setEmail] = useState('demo@instituicao.com')
+  const [password, setPassword] = useState('demo1234')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated || user) {
       navigate('/', { replace: true })
     }
-  }, [isAuthenticated, navigate])
+  }, [isAuthenticated, user, navigate])
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    setLoading(true)
+    setError('')
+
+    const { error: signInError } = await signIn(email, password)
+
+    if (signInError) {
+      setError('Credenciais inválidas. Verifique o e-mail e senha.')
+      setLoading(false)
+      return
+    }
+
     setCurrentUserRole(role)
     login(role)
   }
@@ -55,6 +72,13 @@ export default function Login() {
             </AlertDescription>
           </Alert>
 
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertTitle>Erro no Login</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label>Perfil de Acesso</Label>
@@ -74,12 +98,13 @@ export default function Login() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>E-mail ou Matrícula</Label>
+              <Label>E-mail</Label>
               <Input
                 required
-                type="text"
+                type="email"
                 placeholder="admin@instituicao.com"
-                defaultValue="demo@instituicao.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="bg-muted/50"
               />
             </div>
@@ -94,12 +119,13 @@ export default function Login() {
                 required
                 type="password"
                 placeholder="••••••••"
-                defaultValue="demo1234"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="bg-muted/50"
               />
             </div>
-            <Button type="submit" className="w-full h-11 font-semibold">
-              Entrar no Sistema
+            <Button type="submit" className="w-full h-11 font-semibold" disabled={loading}>
+              {loading ? 'Entrando...' : 'Entrar no Sistema'}
             </Button>
           </form>
         </CardContent>
