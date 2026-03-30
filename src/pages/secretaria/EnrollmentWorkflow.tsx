@@ -1,9 +1,10 @@
-import { useLocation, useNavigate } from 'react-router-dom'
-import { useAppStore } from '@/contexts/AppContext'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -11,186 +12,255 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Checkbox } from '@/components/ui/checkbox'
+import { Loader2, UserPlus, Users } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { FileText } from 'lucide-react'
+import { StudentForm } from '@/components/academic/StudentForm'
+import { getStudents, updateStudent } from '@/services/students'
+import { getCourses } from '@/services/courses'
+import { createInstallments } from '@/services/payments'
 
 export default function EnrollmentWorkflow() {
   const location = useLocation()
-  const navigate = useNavigate()
-  const { students, generateContract } = useAppStore()
   const { toast } = useToast()
 
-  const activeTab = location.pathname.split('/').pop() || 'efetuar-matricula'
+  const [students, setStudents] = useState<any[]>([])
+  const [courses, setCourses] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
 
-  const handleGenerateContract = () => {
-    // Mock using first student
-    const student = students[0]
-    if (student) {
-      generateContract(student.id)
+  // Form for existing student
+  const [selectedStudent, setSelectedStudent] = useState('')
+  const [selectedCourse, setSelectedCourse] = useState('')
+  const [installments, setInstallments] = useState('12')
+  const [planValue, setPlanValue] = useState('850')
+  const [firstDueDate, setFirstDueDate] = useState(new Date().toISOString().split('T')[0])
+
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const [stData, crData] = await Promise.all([getStudents(), getCourses()])
+      setStudents(stData || [])
+      setCourses(crData || [])
+    } catch (error) {
       toast({
-        title: 'Contrato Gerado com Sucesso',
-        description: `O documento foi salvo e enviado automaticamente para o email de ${student.name}.`,
+        title: 'Erro de Integração',
+        description: 'Não foi possível carregar os dados reais do banco de dados.',
+        variant: 'destructive',
       })
+    } finally {
+      setLoading(false)
     }
   }
 
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const handleEnrollExisting = async () => {
+    if (!selectedStudent || !selectedCourse) {
+      toast({
+        title: 'Atenção',
+        description: 'Selecione o aluno cadastrado e o curso desejado.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      const student = students.find((s) => s.id === selectedStudent)
+
+      // Update student course in DB
+      await updateStudent(selectedStudent, {
+        course: selectedCourse,
+        status: 'Ativo',
+      })
+
+      // Generate real financial records
+      if (installments && planValue && firstDueDate) {
+        await createInstallments(
+          selectedStudent,
+          student?.name || 'Aluno',
+          parseInt(installments),
+          parseFloat(planValue),
+          firstDueDate,
+        )
+      }
+
+      toast({
+        title: 'Matrícula Efetivada',
+        description: 'O aluno foi vinculado ao curso e os pagamentos foram gerados.',
+      })
+      setSelectedStudent('')
+      setSelectedCourse('')
+      fetchData() // Refresh list
+    } catch (error: any) {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao efetivar matrícula.',
+        variant: 'destructive',
+      })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleNewStudentSuccess = () => {
+    fetchData()
+    // Scroll to top or show success
+  }
+
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <div className="space-y-6 animate-fade-in-up p-4 md:p-6 max-w-6xl mx-auto">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Fluxos de Matrícula</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Fluxo de Matrícula Integrado</h1>
         <p className="text-muted-foreground">
-          Gerencie o ciclo completo de ingresso e emissão de contratos.
+          Realize o cadastro de novos alunos ou vincule alunos existentes aos cursos da sua
+          instituição.
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={(v) => navigate(`/secretaria/${v}`)}>
-        <TabsList className="w-full justify-start overflow-x-auto">
-          <TabsTrigger value="efetuar-pre-matricula">1. Efetuar Pré-Matrícula</TabsTrigger>
-          <TabsTrigger value="efetivar-pre-matricula">2. Efetivar Pré-Matrícula</TabsTrigger>
-          <TabsTrigger value="efetuar-matricula">3. Efetuar Matrícula Direta</TabsTrigger>
-          <TabsTrigger value="efetuar-matricula-disciplina">
-            4. Matrícula em Disciplinas
+      <Tabs defaultValue="novo" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="novo" className="flex items-center gap-2">
+            <UserPlus className="h-4 w-4" /> Cadastro de Novo Aluno
+          </TabsTrigger>
+          <TabsTrigger value="existente" className="flex items-center gap-2">
+            <Users className="h-4 w-4" /> Matricular Aluno Existente
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="novo" className="mt-6">
+          <Card className="border-primary/20 shadow-md">
+            <CardHeader>
+              <CardTitle>Cadastro Completo</CardTitle>
+              <CardDescription>
+                Este formulário já está conectado diretamente à sua base de dados real. Os cursos
+                listados aqui refletem exatamente o que está cadastrado no sistema.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <StudentForm
+                onSuccess={handleNewStudentSuccess}
+                onCancel={() => window.scrollTo(0, 0)}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="existente" className="mt-6">
+          <Card className="border-primary/20 shadow-md">
+            <CardHeader>
+              <CardTitle>Vincular a um Curso</CardTitle>
+              <CardDescription>
+                Selecione um aluno que já possui a "ficha" cadastrada no sistema para matricular em
+                um novo curso.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {loading ? (
+                <div className="flex flex-col items-center justify-center p-12 text-muted-foreground space-y-4">
+                  <Loader2 className="animate-spin h-8 w-8 text-primary" />
+                  <p>Sincronizando com o banco de dados...</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    <div className="space-y-3">
+                      <Label className="text-base font-semibold">Aluno Registrado</Label>
+                      <Select value={selectedStudent} onValueChange={setSelectedStudent}>
+                        <SelectTrigger className="h-12 bg-background border-input">
+                          <SelectValue placeholder="Selecione na sua base de dados..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {students.map((s) => (
+                            <SelectItem key={s.id} value={s.id}>
+                              {s.name} {s.cpf ? `(${s.cpf})` : ''}
+                            </SelectItem>
+                          ))}
+                          {students.length === 0 && (
+                            <SelectItem value="none" disabled>
+                              Nenhum aluno cadastrado.
+                            </SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label className="text-base font-semibold">Curso Selecionado</Label>
+                      <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+                        <SelectTrigger className="h-12 bg-background border-input">
+                          <SelectValue placeholder="Selecione um curso real..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {courses.map((c) => (
+                            <SelectItem key={c.id} value={c.name}>
+                              {c.name}
+                            </SelectItem>
+                          ))}
+                          {courses.length === 0 && (
+                            <SelectItem value="none" disabled>
+                              Nenhum curso na base.
+                            </SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 p-6 border rounded-xl bg-muted/30 dark:bg-muted/10 shadow-sm">
+                    <div className="flex items-center gap-2 mb-4">
+                      <h4 className="font-semibold text-lg text-primary">Plano Financeiro</h4>
+                    </div>
+                    <div className="grid grid-cols-2 gap-5">
+                      <div className="space-y-2">
+                        <Label>Quantidade de Parcelas</Label>
+                        <Input
+                          type="number"
+                          value={installments}
+                          onChange={(e) => setInstallments(e.target.value)}
+                          className="h-11"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Valor Mensal (R$)</Label>
+                        <Input
+                          type="number"
+                          value={planValue}
+                          onChange={(e) => setPlanValue(e.target.value)}
+                          className="h-11"
+                        />
+                      </div>
+                      <div className="space-y-2 col-span-2">
+                        <Label>Data do 1º Vencimento</Label>
+                        <Input
+                          type="date"
+                          value={firstDueDate}
+                          onChange={(e) => setFirstDueDate(e.target.value)}
+                          className="h-11"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-span-1 md:col-span-2 pt-4 border-t flex justify-end">
+                    <Button
+                      onClick={handleEnrollExisting}
+                      disabled={submitting}
+                      size="lg"
+                      className="px-8 font-semibold"
+                    >
+                      {submitting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
+                      {submitting ? 'Processando...' : 'Efetivar Matrícula no Banco'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {activeTab === 'efetuar-pre-matricula' && 'Registro de Interesse / Pré-Matrícula'}
-            {activeTab === 'efetivar-pre-matricula' && 'Conversão de Pré-Matrículas'}
-            {activeTab === 'efetuar-matricula' && 'Nova Matrícula e Emissão de Contrato'}
-            {activeTab === 'efetuar-matricula-disciplina' && 'Alocação de Disciplinas'}
-          </CardTitle>
-          <CardDescription>
-            A emissão do contrato gera um log de auditoria e envia cópia ao aluno.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {activeTab === 'efetuar-pre-matricula' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
-              <Input placeholder="Nome do Candidato" />
-              <Input placeholder="E-mail de Contato" />
-              <Input placeholder="Telefone / WhatsApp" />
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Curso de Interesse" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="c1">Engenharia de Software</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button className="col-span-1 md:col-span-2 mt-2">Registrar Pré-Matrícula</Button>
-            </div>
-          )}
-
-          {activeTab === 'efetivar-pre-matricula' && (
-            <div className="space-y-4">
-              <div className="border rounded-md">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Candidato</TableHead>
-                      <TableHead>Curso Pretendido</TableHead>
-                      <TableHead className="text-right">Ação</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>14/05/2026</TableCell>
-                      <TableCell>Lucas Oliveira</TableCell>
-                      <TableCell>Engenharia de Software</TableCell>
-                      <TableCell className="text-right">
-                        <Button size="sm">Efetivar</Button>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'efetuar-matricula' && (
-            <div className="space-y-6 max-w-3xl">
-              <div className="flex gap-2 mb-4">
-                <Badge variant="default" className="text-sm py-1">
-                  Passo 1: Dados Pessoais
-                </Badge>
-                <Badge variant="secondary" className="text-sm py-1">
-                  Passo 2: Curso e Plano
-                </Badge>
-                <Badge variant="outline" className="text-sm py-1 border-primary text-primary">
-                  Passo 3: Contrato Digital
-                </Badge>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input placeholder="Nome Completo" defaultValue="Ana Silva" />
-                <Input placeholder="CPF" defaultValue="123.456.789-00" />
-                <Input placeholder="E-mail" defaultValue="ana.silva@email.com" />
-                <Select defaultValue="c1">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o Curso" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="c1">Engenharia de Software</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="pt-4 border-t border-zinc-200 mt-4">
-                <Button className="w-full sm:w-auto shadow-sm" onClick={handleGenerateContract}>
-                  <FileText className="h-4 w-4 mr-2" /> Gerar Matrícula e Enviar Contrato
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'efetuar-matricula-disciplina' && (
-            <div className="space-y-4 max-w-3xl">
-              <div className="flex gap-4">
-                <Input placeholder="Buscar Aluno Matriculado..." className="flex-1" />
-                <Button variant="secondary">Buscar Grades</Button>
-              </div>
-              <div className="border rounded-md mt-4">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-12">
-                        <Checkbox />
-                      </TableHead>
-                      <TableHead>Código</TableHead>
-                      <TableHead>Disciplina</TableHead>
-                      <TableHead>Créditos</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>
-                        <Checkbox />
-                      </TableCell>
-                      <TableCell>MAT101</TableCell>
-                      <TableCell>Cálculo I</TableCell>
-                      <TableCell>4</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </div>
-              <Button>Confirmar Grade Curricular</Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   )
 }

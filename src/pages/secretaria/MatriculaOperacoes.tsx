@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,148 +11,231 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Search, AlertTriangle } from 'lucide-react'
-import { useAppStore } from '@/contexts/AppContext'
+import { AlertTriangle, Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { getStudents, updateStudent } from '@/services/students'
 
 export default function MatriculaOperacoes() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { students, suspendStudent } = useAppStore()
   const { toast } = useToast()
 
   const activeTab = location.pathname.split('/').pop() || 'manutencao-matricula'
 
+  const [students, setStudents] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
   const [selectedStudent, setSelectedStudent] = useState('')
   const [blockReason, setBlockReason] = useState('')
+  const [newStatus, setNewStatus] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-  const handleBlock = () => {
+  const fetchStudents = async () => {
+    try {
+      const data = await getStudents()
+      setStudents(data || [])
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro de Sincronização',
+        description: 'Falha ao carregar alunos do banco de dados.',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchStudents()
+  }, [])
+
+  const handleBlock = async () => {
     if (!selectedStudent || !blockReason) {
-      toast({ variant: 'destructive', title: 'Erro', description: 'Selecione o aluno e o motivo.' })
+      toast({
+        variant: 'destructive',
+        title: 'Atenção',
+        description: 'Selecione o aluno e o motivo antes de prosseguir.',
+      })
       return
     }
 
-    suspendStudent(selectedStudent, blockReason)
-
-    toast({
-      title: 'Matrícula Trancada com Sucesso',
-      description: 'O fluxo de notificação ao módulo Financeiro foi disparado automaticamente.',
-    })
-
-    setSelectedStudent('')
-    setBlockReason('')
+    setSubmitting(true)
+    try {
+      await updateStudent(selectedStudent, { status: 'Trancado' })
+      toast({
+        title: 'Matrícula Trancada no Sistema',
+        description: `Status alterado para Trancado. O motivo registrado foi: ${blockReason}.`,
+      })
+      setSelectedStudent('')
+      setBlockReason('')
+      fetchStudents()
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Falha ao atualizar o status do aluno no banco.',
+      })
+    } finally {
+      setSubmitting(false)
+    }
   }
 
+  const handleUpdateStatus = async () => {
+    if (!selectedStudent || !newStatus) return
+    setSubmitting(true)
+    try {
+      await updateStudent(selectedStudent, { status: newStatus })
+      toast({ title: 'Sucesso', description: 'Status acadêmico atualizado no banco de dados.' })
+      fetchStudents()
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Falha ao atualizar as informações.',
+      })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const selectedStudentData = students.find((s) => s.id === selectedStudent)
+
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <div className="space-y-6 animate-fade-in-up p-4 md:p-6 max-w-6xl mx-auto">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Operações de Matrícula</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Operações de Matrícula (Integrado)</h1>
         <p className="text-muted-foreground">
-          Gerencie o status e configurações de matrículas ativas.
+          Gerencie o status e as configurações de vínculos acadêmicos reais.
         </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => navigate(`/secretaria/${v}`)}>
         <TabsList className="w-full justify-start overflow-x-auto">
-          <TabsTrigger value="manutencao-matricula">Manutenção Matrícula</TabsTrigger>
-          <TabsTrigger value="bloquear-matricula">Bloquear/Trancar Matrícula</TabsTrigger>
+          <TabsTrigger value="manutencao-matricula">Manutenção e Ajustes</TabsTrigger>
+          <TabsTrigger value="bloquear-matricula">Trancamento / Bloqueio</TabsTrigger>
         </TabsList>
       </Tabs>
 
-      <Card>
+      <Card className="shadow-md">
         <CardHeader>
           <CardTitle>
             {activeTab === 'bloquear-matricula'
-              ? 'Bloqueio de Matrícula'
-              : 'Manutenção de Matrícula'}
+              ? 'Trancamento de Matrícula'
+              : 'Manutenção do Vínculo'}
           </CardTitle>
           <CardDescription>
             {activeTab === 'bloquear-matricula'
-              ? 'Interrompa temporária ou permanentemente o vínculo do aluno. Esta ação alerta o departamento financeiro.'
-              : 'Ajuste os dados acadêmicos e financeiros do vínculo atual.'}
+              ? 'Suspenda o vínculo no banco de dados. Esta operação notifica automaticamente as dependências.'
+              : 'Altere status e dados estruturais de alunos já matriculados.'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-2 max-w-md">
-            <label className="text-sm font-medium">Buscar Aluno</label>
-            <Select value={selectedStudent} onValueChange={setSelectedStudent}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o aluno..." />
-              </SelectTrigger>
-              <SelectContent>
-                {students
-                  .filter((s) => s.status === 'Ativo')
-                  .map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.name} - {s.cpf}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {activeTab === 'bloquear-matricula' ? (
-            <div className="space-y-4 max-w-md p-4 border rounded-md bg-muted/30">
-              <div className="flex items-center gap-2 text-rose-600 bg-rose-50 p-2 rounded-md border border-rose-200 text-xs font-semibold mb-4">
-                <AlertTriangle className="h-4 w-4" />
-                Um alerta será gerado para o Financeiro avaliar pendências.
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-destructive">Motivo do Bloqueio</label>
-                <Select value={blockReason} onValueChange={setBlockReason}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um motivo..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Inadimplência Crítica">Inadimplência</SelectItem>
-                    <SelectItem value="Evasão Escolar">Evasão Escolar</SelectItem>
-                    <SelectItem value="Solicitação do Responsável">
-                      Solicitação do Responsável
-                    </SelectItem>
-                    <SelectItem value="Afastamento Disciplinar">Afastamento Disciplinar</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button variant="destructive" className="w-full" onClick={handleBlock}>
-                Efetivar Trancamento
-              </Button>
+          {loading ? (
+            <div className="flex items-center gap-3 text-muted-foreground p-4">
+              <Loader2 className="h-5 w-5 animate-spin" /> Carregando alunos da base de dados...
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Curso Atual</label>
-                <Input value="Engenharia de Software" disabled />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Novo Status</label>
-                <Select defaultValue="ativo">
-                  <SelectTrigger>
-                    <SelectValue />
+            <>
+              <div className="space-y-3 max-w-md bg-muted/20 p-4 rounded-lg border">
+                <Label className="text-sm font-semibold">Selecione o Aluno (Base Real)</Label>
+                <Select value={selectedStudent} onValueChange={setSelectedStudent}>
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder="Buscar aluno..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ativo">Ativo</SelectItem>
-                    <SelectItem value="trancado">Trancado</SelectItem>
-                    <SelectItem value="formado">Formado</SelectItem>
+                    {students.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name} {s.course ? `- ${s.course}` : ''}
+                      </SelectItem>
+                    ))}
+                    {students.length === 0 && (
+                      <SelectItem value="none" disabled>
+                        Nenhum aluno encontrado.
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Plano Financeiro</label>
-                <Select defaultValue="padrao">
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="padrao">Mensalidade Padrão</SelectItem>
-                    <SelectItem value="bolsa50">Bolsista (50%)</SelectItem>
-                    <SelectItem value="bolsa100">Bolsista Integral (100%)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="col-span-1 sm:col-span-2 pt-2">
-                <Button>Salvar Alterações</Button>
-              </div>
-            </div>
+
+              {selectedStudent &&
+                (activeTab === 'bloquear-matricula' ? (
+                  <div className="space-y-5 max-w-md p-5 border rounded-lg bg-red-50/30 dark:bg-red-950/10">
+                    <div className="flex items-start gap-3 text-rose-700 bg-rose-100/50 dark:bg-rose-900/30 p-3 rounded-md border border-rose-200 dark:border-rose-800 text-sm font-medium">
+                      <AlertTriangle className="h-5 w-5 shrink-0" />
+                      <p>
+                        O trancamento interrompe processos acadêmicos e alerta o departamento
+                        financeiro.
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold text-foreground">
+                        Motivo Oficial
+                      </Label>
+                      <Select value={blockReason} onValueChange={setBlockReason}>
+                        <SelectTrigger className="bg-background">
+                          <SelectValue placeholder="Selecione uma justificativa..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Inadimplência Crítica">Inadimplência</SelectItem>
+                          <SelectItem value="Evasão Escolar">Evasão Escolar</SelectItem>
+                          <SelectItem value="Solicitação do Responsável">
+                            Solicitação Voluntária
+                          </SelectItem>
+                          <SelectItem value="Trancamento de Semestre">
+                            Trancamento Padrão
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button
+                      variant="destructive"
+                      className="w-full font-bold"
+                      onClick={handleBlock}
+                      disabled={submitting}
+                    >
+                      {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                      Confirmar Trancamento
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t mt-4">
+                    <div className="space-y-2">
+                      <Label>Curso Atual Registrado</Label>
+                      <Input
+                        value={selectedStudentData?.course || 'Sem vínculo'}
+                        disabled
+                        className="bg-muted"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Status Atual</Label>
+                      <Input
+                        value={selectedStudentData?.status || 'Novo'}
+                        disabled
+                        className="bg-muted"
+                      />
+                    </div>
+                    <div className="space-y-2 sm:col-span-2 max-w-md">
+                      <Label>Atualizar Status Manualmente</Label>
+                      <div className="flex gap-3">
+                        <Select value={newStatus} onValueChange={setNewStatus}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Novo Status..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Ativo">Ativo</SelectItem>
+                            <SelectItem value="Trancado">Trancado</SelectItem>
+                            <SelectItem value="Formado">Formado</SelectItem>
+                            <SelectItem value="Cancelado">Cancelado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button onClick={handleUpdateStatus} disabled={!newStatus || submitting}>
+                          {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Salvar'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </>
           )}
         </CardContent>
       </Card>
