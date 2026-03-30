@@ -21,6 +21,7 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import { useAppStore } from '@/contexts/AppContext'
 import { ClassRoom } from '@/lib/types'
+import { addClass as addClassDb, updateClass as updateClassDb } from '@/services/db'
 
 const schema = z.object({
   name: z.string().min(3, 'Nome da turma obrigatório'),
@@ -56,18 +57,36 @@ export function TurmaForm({
     },
   })
 
-  const onSubmit = (data: z.infer<typeof schema>) => {
-    if (initialData?.id) {
-      updateClass(initialData.id, data)
-      toast({ title: 'Turma Atualizada', description: 'Registro atualizado com sucesso.' })
-    } else {
-      addClass({
-        ...data,
-        id: `T${Math.floor(Math.random() * 1000)}`,
+  const onSubmit = async (data: z.infer<typeof schema>) => {
+    try {
+      if (initialData?.id) {
+        const updated = await updateClassDb(initialData.id, data)
+        updateClass(initialData.id, updated)
+        toast({
+          title: 'Turma Atualizada',
+          description: 'Registro atualizado com sucesso no banco de dados.',
+        })
+      } else {
+        const newClass = {
+          ...data,
+          id: `T${Math.floor(Math.random() * 1000)}`,
+        }
+        const saved = await addClassDb(newClass)
+        addClass(saved)
+        toast({
+          title: 'Turma Salva',
+          description: 'Registro criado com sucesso no banco de dados.',
+        })
+      }
+      onCancel()
+    } catch (error) {
+      console.error(error)
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível salvar os dados permanentemente.',
+        variant: 'destructive',
       })
-      toast({ title: 'Turma Salva', description: 'Registro criado com sucesso.' })
     }
-    onCancel()
   }
 
   return (

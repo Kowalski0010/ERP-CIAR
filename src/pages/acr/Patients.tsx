@@ -53,6 +53,12 @@ import { useToast } from '@/hooks/use-toast'
 import { ConfirmActionDialog } from '@/components/ConfirmActionDialog'
 import { FileUpload } from '@/components/FileUpload'
 import { AcrPatient, SystemAttachment } from '@/lib/types'
+import {
+  getAcrPatients,
+  addAcrPatient as addAcrPatientDb,
+  updateAcrPatient as updateAcrPatientDb,
+  deleteAcrPatient as deleteAcrPatientDb,
+} from '@/services/db'
 
 const patientSchema = z.object({
   name: z.string().min(3, 'O nome deve ter no mínimo 3 caracteres'),
@@ -72,6 +78,13 @@ export default function Patients() {
   const [searchTerm, setSearchTerm] = useState('')
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editItem, setEditItem] = useState<AcrPatient | null>(null)
+  const [dbPatients, setDbPatients] = useState<AcrPatient[]>([])
+
+  useEffect(() => {
+    getAcrPatients().then(setDbPatients).catch(console.error)
+  }, [])
+
+  const activePatients = dbPatients.length > 0 ? dbPatients : acrPatients
   const [attachmentsItem, setAttachmentsItem] = useState<AcrPatient | null>(null)
   const [confirmState, setConfirmState] = useState({
     open: false,
@@ -154,9 +167,22 @@ export default function Patients() {
     confirmAction(
       'Excluir Paciente',
       'Tem certeza que deseja remover este paciente permanentemente do sistema ACR?',
-      () => {
-        deleteAcrPatient(id)
-        toast({ title: 'Excluído', description: 'Registro de paciente removido com sucesso.' })
+      async () => {
+        try {
+          await deleteAcrPatientDb(id)
+          setDbPatients((prev) => prev.filter((p) => p.id !== id))
+          deleteAcrPatient(id)
+          toast({
+            title: 'Excluído',
+            description: 'Registro removido permanentemente com sucesso.',
+          })
+        } catch (e) {
+          toast({
+            title: 'Erro',
+            description: 'Falha ao excluir do banco.',
+            variant: 'destructive',
+          })
+        }
       },
       true,
     )
@@ -213,24 +239,51 @@ export default function Patients() {
       confirmAction(
         'Salvar Alterações',
         'Deseja confirmar as alterações nos dados deste paciente?',
-        () => {
-          const finalAttachments = [...(editItem.attachments || []), ...newAttachments]
-          updateAcrPatient(editItem.id, { ...baseData, attachments: finalAttachments })
-          toast({ title: 'Paciente Atualizado', description: 'Os dados foram salvos com sucesso.' })
-          setIsFormOpen(false)
+        async () => {
+          try {
+            const finalAttachments = [...(editItem.attachments || []), ...newAttachments]
+            const updated = await updateAcrPatientDb(editItem.id, {
+              ...baseData,
+              attachments: finalAttachments,
+            })
+            setDbPatients((prev) => prev.map((p) => (p.id === editItem.id ? updated : p)))
+            updateAcrPatient(editItem.id, { ...baseData, attachments: finalAttachments })
+            toast({
+              title: 'Paciente Atualizado',
+              description: 'Os dados foram salvos no banco com sucesso.',
+            })
+            setIsFormOpen(false)
+          } catch (e) {
+            toast({
+              title: 'Erro',
+              description: 'Falha ao atualizar no banco.',
+              variant: 'destructive',
+            })
+          }
         },
       )
     } else {
-      addAcrPatient({ ...baseData, attachments: newAttachments })
-      toast({
-        title: 'Paciente Registrado',
-        description: 'O paciente foi adicionado ao sistema ACR.',
-      })
-      setIsFormOpen(false)
+      addAcrPatientDb({ ...baseData, attachments: newAttachments })
+        .then((saved) => {
+          setDbPatients((prev) => [saved, ...prev])
+          addAcrPatient({ ...baseData, attachments: newAttachments, id: saved.id })
+          toast({
+            title: 'Paciente Registrado',
+            description: 'O paciente foi persistido de forma segura no banco ACR.',
+          })
+          setIsFormOpen(false)
+        })
+        .catch((e) => {
+          toast({
+            title: 'Erro',
+            description: 'Falha ao registrar no banco.',
+            variant: 'destructive',
+          })
+        })
     }
   }
 
-  const filteredPatients = acrPatients.filter(
+  const filteredPatients = activePatients.filter(
     (p) =>
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.email.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -395,12 +448,26 @@ export default function Patients() {
               multiple
               accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
               label="Anexar documento ou laudo"
-              onUpload={(files) => {
+              onUpload={async (files) => {
                 if (!attachmentsItem) return
                 const newAttachments = [...(attachmentsItem.attachments || []), ...files]
-                updateAcrPatient(attachmentsItem.id, { attachments: newAttachments })
-                setAttachmentsItem({ ...attachmentsItem, attachments: newAttachments })
-                toast({ title: 'Arquivos anexados com sucesso' })
+                try {
+                  await updateAcrPatientDb(attachmentsItem.id, { attachments: newAttachments })
+                  updateAcrPatient(attachmentsItem.id, { attachments: newAttachments })
+                  setAttachmentsItem({ ...attachmentsItem, attachments: newAttachments })
+                  setDbPatients((prev) =>
+                    prev.map((p) =>
+                      p.id === attachmentsItem.id ? { ...p, attachments: newAttachments } : p,
+                    ),
+                  )
+                  toast({ title: 'Arquivos anexados no banco com sucesso' })
+                } catch (e) {
+                  toast({
+                    title: 'Erro',
+                    description: 'Falha ao salvar arquivo no banco.',
+                    variant: 'destructive',
+                  })
+                }
               }}
             />
             <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
@@ -424,12 +491,28 @@ export default function Patients() {
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7 text-destructive hover:bg-destructive/10 shrink-0"
-                    onClick={() => {
+                    onClick={async () => {
                       const newAttachments = attachmentsItem.attachments!.filter(
                         (a) => a.id !== att.id,
                       )
-                      updateAcrPatient(attachmentsItem.id, { attachments: newAttachments })
-                      setAttachmentsItem({ ...attachmentsItem, attachments: newAttachments })
+                      try {
+                        await updateAcrPatientDb(attachmentsItem.id, {
+                          attachments: newAttachments,
+                        })
+                        updateAcrPatient(attachmentsItem.id, { attachments: newAttachments })
+                        setAttachmentsItem({ ...attachmentsItem, attachments: newAttachments })
+                        setDbPatients((prev) =>
+                          prev.map((p) =>
+                            p.id === attachmentsItem.id ? { ...p, attachments: newAttachments } : p,
+                          ),
+                        )
+                      } catch (e) {
+                        toast({
+                          title: 'Erro',
+                          description: 'Falha ao remover do banco.',
+                          variant: 'destructive',
+                        })
+                      }
                     }}
                   >
                     <Trash2 className="h-4 w-4" />

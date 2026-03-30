@@ -14,6 +14,10 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import { useAppStore } from '@/contexts/AppContext'
 import { Disciplina } from '@/lib/types'
+import {
+  addDisciplina as addDisciplinaDb,
+  updateDisciplina as updateDisciplinaDb,
+} from '@/services/db'
 
 const schema = z.object({
   name: z.string().min(3, 'Nome da disciplina obrigatório'),
@@ -39,15 +43,32 @@ export function DisciplinaForm({
     },
   })
 
-  const onSubmit = (data: z.infer<typeof schema>) => {
-    if (initialData?.id) {
-      updateDisciplina(initialData.id, data)
-      toast({ title: 'Disciplina Atualizada', description: 'Registro atualizado com sucesso.' })
-    } else {
-      addDisciplina(data)
-      toast({ title: 'Disciplina Salva', description: 'Registro criado com sucesso.' })
+  const onSubmit = async (data: z.infer<typeof schema>) => {
+    try {
+      if (initialData?.id) {
+        const updated = await updateDisciplinaDb(initialData.id, data)
+        updateDisciplina(initialData.id, updated)
+        toast({
+          title: 'Disciplina Atualizada',
+          description: 'Registro atualizado com sucesso no banco de dados.',
+        })
+      } else {
+        const saved = await addDisciplinaDb(data)
+        addDisciplina(saved)
+        toast({
+          title: 'Disciplina Salva',
+          description: 'Registro criado com sucesso no banco de dados.',
+        })
+      }
+      onCancel()
+    } catch (error) {
+      console.error(error)
+      toast({
+        title: 'Erro',
+        description: 'Falha ao salvar a disciplina permanentemente.',
+        variant: 'destructive',
+      })
     }
-    onCancel()
   }
 
   return (

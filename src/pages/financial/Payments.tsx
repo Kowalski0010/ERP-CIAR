@@ -62,6 +62,11 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { FileUpload } from '@/components/FileUpload'
 import { Payment } from '@/lib/types'
+import {
+  getPayments,
+  addPayment as addPaymentDb,
+  updatePayment as updatePaymentDb,
+} from '@/services/db'
 
 const paymentSchema = z.object({
   studentId: z.string().min(1, 'Selecione um aluno'),
@@ -86,6 +91,11 @@ export default function Payments() {
   const [isAddPaymentOpen, setIsAddPaymentOpen] = useState(false)
   const [attachmentsItem, setAttachmentsItem] = useState<Payment | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [dbPayments, setDbPayments] = useState<Payment[]>([])
+
+  useEffect(() => {
+    getPayments().then(setDbPayments).catch(console.error)
+  }, [])
 
   const form = useForm<z.infer<typeof paymentSchema>>({
     resolver: zodResolver(paymentSchema),
@@ -116,7 +126,8 @@ export default function Payments() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  const filteredPayments = payments.filter((p) =>
+  const activePayments = dbPayments.length > 0 ? dbPayments : payments
+  const filteredPayments = activePayments.filter((p) =>
     p.studentName.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
@@ -167,25 +178,37 @@ export default function Payments() {
     })
   }
 
-  const handleAddPayment = (data: z.infer<typeof paymentSchema>) => {
+  const handleAddPayment = async (data: z.infer<typeof paymentSchema>) => {
     const student = students.find((s) => s.id === data.studentId)
     if (!student) return
 
-    registerPayment({
+    const newPayment = {
       id: `INV-${Math.floor(Math.random() * 10000)}`,
       studentId: student.id,
       studentName: student.name,
       amount: Number(data.amount),
       dueDate: data.dueDate,
-      status: 'Pendente',
+      status: 'Pendente' as const,
       attachments: data.attachments || [],
-    })
+    }
 
-    toast({
-      title: 'Lançamento Efetuado',
-      description: `Nova fatura gerada para ${student.name}.`,
-    })
-    setIsAddPaymentOpen(false)
+    try {
+      const saved = await addPaymentDb(newPayment)
+      setDbPayments((prev) => [saved, ...prev])
+      registerPayment(saved)
+
+      toast({
+        title: 'Lançamento Efetuado',
+        description: `Nova fatura gerada e persistida no banco de dados para ${student.name}.`,
+      })
+      setIsAddPaymentOpen(false)
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Falha ao salvar no banco de dados.',
+        variant: 'destructive',
+      })
+    }
   }
 
   const getStatusBadge = (status: string) => {
@@ -396,14 +419,28 @@ export default function Payments() {
           <div className="space-y-4 pt-2">
             <FileUpload
               multiple
-              onUpload={(files) => {
+              onUpload={async (files) => {
                 if (!attachmentsItem) return
                 const newAttachments = [...(attachmentsItem.attachments || []), ...files]
-                updatePayment(attachmentsItem.id, { attachments: newAttachments })
-                setAttachmentsItem({ ...attachmentsItem, attachments: newAttachments })
-                toast({ title: 'Arquivos anexados' })
+                try {
+                  await updatePaymentDb(attachmentsItem.id, { attachments: newAttachments })
+                  updatePayment(attachmentsItem.id, { attachments: newAttachments })
+                  setAttachmentsItem({ ...attachmentsItem, attachments: newAttachments })
+                  setDbPayments((prev) =>
+                    prev.map((p) =>
+                      p.id === attachmentsItem.id ? { ...p, attachments: newAttachments } : p,
+                    ),
+                  )
+                  toast({ title: 'Arquivos anexados com sucesso' })
+                } catch (e) {
+                  toast({
+                    title: 'Erro',
+                    description: 'Falha ao salvar anexo no banco.',
+                    variant: 'destructive',
+                  })
+                }
               }}
-            />
+            />{' '}
             <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
               {attachmentsItem?.attachments?.map((att) => (
                 <div
@@ -425,12 +462,26 @@ export default function Payments() {
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7 text-destructive hover:bg-destructive/10 shrink-0"
-                    onClick={() => {
+                    onClick={async () => {
                       const newAttachments = attachmentsItem.attachments!.filter(
                         (a) => a.id !== att.id,
                       )
-                      updatePayment(attachmentsItem.id, { attachments: newAttachments })
-                      setAttachmentsItem({ ...attachmentsItem, attachments: newAttachments })
+                      try {
+                        await updatePaymentDb(attachmentsItem.id, { attachments: newAttachments })
+                        updatePayment(attachmentsItem.id, { attachments: newAttachments })
+                        setAttachmentsItem({ ...attachmentsItem, attachments: newAttachments })
+                        setDbPayments((prev) =>
+                          prev.map((p) =>
+                            p.id === attachmentsItem.id ? { ...p, attachments: newAttachments } : p,
+                          ),
+                        )
+                      } catch (e) {
+                        toast({
+                          title: 'Erro',
+                          description: 'Falha ao remover anexo do banco.',
+                          variant: 'destructive',
+                        })
+                      }
                     }}
                   >
                     <Trash2 className="h-4 w-4" />

@@ -1,5 +1,8 @@
+import { useState, useEffect } from 'react'
 import { useAppStore } from '@/contexts/AppContext'
 import { CalendarDays, Users, BookOpen, MoreVertical } from 'lucide-react'
+import { getClasses } from '@/services/db'
+import { ClassRoom } from '@/lib/types'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -7,7 +10,14 @@ import { Link } from 'react-router-dom'
 import { Progress } from '@/components/ui/progress'
 
 export default function Classes() {
-  const { classes, students } = useAppStore()
+  const { classes: storeClasses, students } = useAppStore()
+  const [dbClasses, setDbClasses] = useState<ClassRoom[]>([])
+
+  useEffect(() => {
+    getClasses().then(setDbClasses).catch(console.error)
+  }, [])
+
+  const classes = dbClasses.length > 0 ? dbClasses : storeClasses
 
   // Helper to count active students per course (mock logic)
   const getStudentCount = (courseName: string) => {
