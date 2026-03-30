@@ -58,6 +58,7 @@ export type Student = {
   status: 'Ativo' | 'Inativo' | 'Formado'
   enrollmentDate: string
   course: string
+  previousGraduation?: string
   avatar?: string
   phone?: string
   cpf?: string

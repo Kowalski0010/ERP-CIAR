@@ -20,6 +20,7 @@ const mapToDb = (student: any) => {
     marital_status: student.maritalStatus,
     mother_name: student.motherName,
     father_name: student.fatherName,
+    previous_graduation: student.previousGraduation,
   }
   if (student.address) {
     dbObj.address_street = student.address.street
@@ -42,6 +43,7 @@ const mapFromDb = (row: any) => ({
   maritalStatus: row.marital_status,
   motherName: row.mother_name,
   fatherName: row.father_name,
+  previousGraduation: row.previous_graduation,
   address: {
     street: row.address_street,
     number: row.address_number,
@@ -62,6 +64,9 @@ export const getStudents = async () => {
 }
 
 export const addStudent = async (student: any) => {
+  if (!student.registrationCode) {
+    student.registrationCode = `MAT-${new Date().getFullYear()}${Math.floor(1000 + Math.random() * 9000)}`
+  }
   const dbStudent = mapToDb(student)
   const { data, error } = await supabase.from('students').insert([dbStudent]).select().single()
   if (error) throw error
