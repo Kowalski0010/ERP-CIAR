@@ -41,3 +41,15 @@ export const getPayments = async () => {
   if (error) throw error
   return data
 }
+
+export const addPayment = async (payment: any) => {
+  const { data, error } = await supabase.from('payments').insert([payment]).select()
+  if (error) throw error
+  return data?.[0] || null
+}
+
+export const updatePayment = async (id: string, updates: any) => {
+  const { data, error } = await supabase.from('payments').update(updates).eq('id', id).select()
+  if (error) throw error
+  return data?.[0] || null
+}
