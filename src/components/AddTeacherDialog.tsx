@@ -59,8 +59,10 @@ export function AddTeacherDialog({ open, onOpenChange, onSuccess }: AddTeacherDi
   }, [open, form])
 
   const onSubmit = (data: z.infer<typeof teacherSchema>) => {
+    const registrationCode = `${new Date().getFullYear()}${Math.floor(1000 + Math.random() * 9000)}`
     const teacher: Teacher = {
       id: Math.random().toString(36).substr(2, 9),
+      registrationCode,
       name: data.name,
       email: data.email,
       phone: data.phone,

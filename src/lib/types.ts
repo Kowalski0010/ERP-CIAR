@@ -52,6 +52,7 @@ export type SystemUser = {
 
 export type Student = {
   id: string
+  registrationCode?: string
   name: string
   email: string
   status: 'Ativo' | 'Inativo' | 'Formado'
@@ -61,6 +62,13 @@ export type Student = {
   phone?: string
   cpf?: string
   rg?: string
+  rgIssuer?: string
+  nationality?: string
+  birthCity?: string
+  birthDate?: string
+  maritalStatus?: string
+  motherName?: string
+  fatherName?: string
   address?: Address
   observations?: Observation[]
   documents?: DigitalDocument[]
@@ -69,6 +77,7 @@ export type Student = {
 
 export type Teacher = {
   id: string
+  registrationCode?: string
   name: string
   email: string
   phone: string
@@ -181,6 +190,7 @@ export type AttendanceRecord = {
 
 export type Employee = {
   id: string
+  registrationCode?: string
   name: string
   department: string
   position: string

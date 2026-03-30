@@ -1,0 +1,14 @@
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS registration_code TEXT;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS nationality TEXT;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS birth_city TEXT;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS birth_date DATE;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS rg_issuer TEXT;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS marital_status TEXT;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS mother_name TEXT;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS father_name TEXT;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS address_street TEXT;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS address_number TEXT;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS address_neighborhood TEXT;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS address_city TEXT;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS address_state TEXT;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS address_zip TEXT;

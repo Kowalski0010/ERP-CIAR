@@ -220,7 +220,13 @@ export default function Employees() {
         setIsFormOpen(false)
       })
     } else {
-      addEmployee({ ...data, admissionDate: new Date().toISOString(), attachments: newAttachments })
+      const registrationCode = `${new Date().getFullYear()}${Math.floor(1000 + Math.random() * 9000)}`
+      addEmployee({
+        ...data,
+        admissionDate: new Date().toISOString(),
+        attachments: newAttachments,
+        registrationCode,
+      })
       toast({ title: 'Cadastrado', description: 'Novo colaborador registrado.' })
       setIsFormOpen(false)
     }
