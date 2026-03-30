@@ -76,7 +76,7 @@ export default function Students() {
 
   const filteredStudents = students.filter(
     (s) =>
-      s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.registrationCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.cpf?.includes(searchTerm),
   )

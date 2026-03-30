@@ -65,7 +65,9 @@ export const getStudents = async () => {
 
 export const addStudent = async (student: any) => {
   if (!student.registrationCode) {
-    student.registrationCode = `MAT-${new Date().getFullYear()}${Math.floor(1000 + Math.random() * 9000)}`
+    const year = new Date().getFullYear().toString().slice(-2)
+    const randomNum = Math.floor(100 + Math.random() * 900)
+    student.registrationCode = `${year}-${randomNum}`
   }
   const dbStudent = mapToDb(student)
   const { data, error } = await supabase.from('students').insert([dbStudent]).select().single()

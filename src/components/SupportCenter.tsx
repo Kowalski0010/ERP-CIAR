@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useOnboarding } from '@/hooks/use-onboarding'
 import { onboardingData } from '@/lib/onboarding-data'
+import { useLocation } from 'react-router-dom'
 
 interface SupportCenterProps {
   isOpen: boolean
@@ -29,6 +30,33 @@ export function SupportCenter({ isOpen, onOpenChange }: SupportCenterProps) {
   const content = onboardingData[currentUserRole] || onboardingData.Default
   const { completedItems, toggleItem } = useOnboarding(currentUserRole)
   const [supportMessage, setSupportMessage] = useState('')
+  const location = useLocation()
+
+  // Dynamic context based on current route
+  const getContextualHelp = () => {
+    const path = location.pathname
+    if (path.includes('financial'))
+      return {
+        title: 'Módulo Financeiro',
+        tip: 'Aqui você gerencia faturas, pagamentos e conciliação. Use os atalhos como Ctrl+N para lançamentos rápidos.',
+      }
+    if (path.includes('academic'))
+      return {
+        title: 'Módulo Acadêmico',
+        tip: 'Gerencie alunos, notas e diários. O formulário "All-in-One" de matrícula já cria o financeiro automaticamente.',
+      }
+    if (path.includes('secretaria'))
+      return {
+        title: 'Secretaria',
+        tip: 'Realize bloqueios e transferências. O bloqueio de um aluno alerta o financeiro automaticamente.',
+      }
+    return {
+      title: 'Geral',
+      tip: 'Bem-vindo ao sistema Integrado! Explore os menus laterais para navegar pelos módulos.',
+    }
+  }
+
+  const contextHelp = getContextualHelp()
 
   const handleSupportSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -75,6 +103,16 @@ export function SupportCenter({ isOpen, onOpenChange }: SupportCenterProps) {
 
           <div className="flex-1 overflow-y-auto p-6">
             <TabsContent value="onboarding" className="m-0 space-y-6 animate-fade-in">
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800/30">
+                <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-1 flex items-center gap-1.5">
+                  <HelpCircle className="h-4 w-4" />
+                  Dica Contextual: {contextHelp.title}
+                </h4>
+                <p className="text-xs text-blue-700/80 dark:text-blue-400/80 leading-relaxed">
+                  {contextHelp.tip}
+                </p>
+              </div>
+
               <div>
                 <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2 mb-3">
                   <CheckCircle2 className="h-4 w-4 text-emerald-500" />

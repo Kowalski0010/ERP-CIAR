@@ -61,12 +61,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { FileUpload } from '@/components/FileUpload'
-import { Payment } from '@/lib/types'
+import { Payment, Student } from '@/lib/types'
+import { getStudents } from '@/services/students'
 import {
   getPayments,
   addPayment as addPaymentDb,
   updatePayment as updatePaymentDb,
-} from '@/services/db'
+} from '@/services/payments'
 
 const paymentSchema = z.object({
   studentId: z.string().min(1, 'Selecione um aluno'),
@@ -92,9 +93,29 @@ export default function Payments() {
   const [attachmentsItem, setAttachmentsItem] = useState<Payment | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [dbPayments, setDbPayments] = useState<Payment[]>([])
+  const [dbStudents, setDbStudents] = useState<Student[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const [paymentsData, studentsData] = await Promise.all([getPayments(), getStudents()])
+      setDbPayments(paymentsData)
+      setDbStudents(studentsData)
+    } catch (error) {
+      console.error('Failed to fetch financial data', error)
+      toast({
+        title: 'Erro',
+        description: 'Falha ao carregar dados financeiros.',
+        variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    getPayments().then(setDbPayments).catch(console.error)
+    fetchData()
   }, [])
 
   const form = useForm<z.infer<typeof paymentSchema>>({
@@ -126,9 +147,8 @@ export default function Payments() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  const activePayments = dbPayments.length > 0 ? dbPayments : payments
-  const filteredPayments = activePayments.filter((p) =>
-    p.studentName.toLowerCase().includes(searchTerm.toLowerCase()),
+  const filteredPayments = dbPayments.filter((p) =>
+    p.studentName?.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
   const recentSuspensions = notifications.filter(
@@ -179,11 +199,10 @@ export default function Payments() {
   }
 
   const handleAddPayment = async (data: z.infer<typeof paymentSchema>) => {
-    const student = students.find((s) => s.id === data.studentId)
+    const student = dbStudents.find((s) => s.id === data.studentId)
     if (!student) return
 
     const newPayment = {
-      id: `INV-${Math.floor(Math.random() * 10000)}`,
       studentId: student.id,
       studentName: student.name,
       amount: Number(data.amount),
@@ -194,8 +213,11 @@ export default function Payments() {
 
     try {
       const saved = await addPaymentDb(newPayment)
-      setDbPayments((prev) => [saved, ...prev])
-      registerPayment(saved)
+      setDbPayments((prev) =>
+        [...prev, saved].sort(
+          (a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime(),
+        ),
+      )
 
       toast({
         title: 'Lançamento Efetuado',
@@ -337,9 +359,7 @@ export default function Payments() {
               {filteredPayments.map((payment) => (
                 <TableRow key={payment.id} className="group hover:bg-muted/30 transition-colors">
                   <TableCell className="font-mono text-xs text-muted-foreground font-medium">
-                    {payment.id.startsWith('INV') || payment.id.startsWith('ACR')
-                      ? payment.id
-                      : payment.id.padStart(6, '0')}
+                    {payment.id?.substring(0, 8).toUpperCase() || 'INV-001'}
                   </TableCell>
                   <TableCell className="font-semibold text-foreground text-sm">
                     {payment.studentName}
@@ -424,7 +444,7 @@ export default function Payments() {
                 const newAttachments = [...(attachmentsItem.attachments || []), ...files]
                 try {
                   await updatePaymentDb(attachmentsItem.id, { attachments: newAttachments })
-                  updatePayment(attachmentsItem.id, { attachments: newAttachments })
+                  // updatePayment(attachmentsItem.id, { attachments: newAttachments }) // using DB now
                   setAttachmentsItem({ ...attachmentsItem, attachments: newAttachments })
                   setDbPayments((prev) =>
                     prev.map((p) =>
@@ -464,11 +484,11 @@ export default function Payments() {
                     className="h-7 w-7 text-destructive hover:bg-destructive/10 shrink-0"
                     onClick={async () => {
                       const newAttachments = attachmentsItem.attachments!.filter(
-                        (a) => a.id !== att.id,
+                        (a: any) => a.id !== att.id,
                       )
                       try {
                         await updatePaymentDb(attachmentsItem.id, { attachments: newAttachments })
-                        updatePayment(attachmentsItem.id, { attachments: newAttachments })
+                        // updatePayment(attachmentsItem.id, { attachments: newAttachments }) // using DB now
                         setAttachmentsItem({ ...attachmentsItem, attachments: newAttachments })
                         setDbPayments((prev) =>
                           prev.map((p) =>
@@ -521,7 +541,7 @@ export default function Payments() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {students.map((student) => (
+                        {dbStudents.map((student) => (
                           <SelectItem key={student.id} value={student.id}>
                             {student.name}
                           </SelectItem>

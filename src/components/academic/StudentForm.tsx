@@ -12,10 +12,20 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
 import { Student } from '@/lib/types'
 import { addStudent, updateStudent } from '@/services/students'
-import { Loader2 } from 'lucide-react'
+import { createInstallments } from '@/services/payments'
+import { Loader2, Check } from 'lucide-react'
+import { FileUpload } from '@/components/FileUpload'
 
 const studentSchema = z.object({
   name: z.string().min(3, 'Nome obrigatório'),
@@ -42,6 +52,13 @@ const studentSchema = z.object({
       state: z.string().optional(),
     })
     .optional(),
+  // Financial Plan
+  planInstallments: z.coerce.number().min(1, 'Mínimo 1').optional(),
+  planValue: z.coerce.number().min(0, 'Valor inválido').optional(),
+  planFirstDueDate: z.string().optional(),
+  // Docs
+  avatar: z.string().optional(),
+  documents: z.any().optional(),
 })
 
 export function StudentForm({
@@ -82,6 +99,10 @@ export function StudentForm({
         city: initialData?.address?.city || '',
         state: initialData?.address?.state || '',
       },
+      planInstallments: 12,
+      planValue: 850,
+      planFirstDueDate: new Date().toISOString().split('T')[0],
+      avatar: initialData?.avatar || '',
     },
   })
 
@@ -92,8 +113,27 @@ export function StudentForm({
         await updateStudent(initialData.id, data)
         toast({ title: 'Sucesso', description: 'Aluno atualizado com sucesso.' })
       } else {
-        await addStudent({ ...data, status: 'Ativo', enrollmentDate: new Date().toISOString() })
-        toast({ title: 'Sucesso', description: 'Aluno cadastrado com sucesso.' })
+        const newStudent = await addStudent({
+          ...data,
+          status: 'Ativo',
+          enrollmentDate: new Date().toISOString(),
+        })
+
+        // Se for aluno novo e tiver plano financeiro preenchido, gera os pagamentos
+        if (data.planInstallments && data.planValue && data.planFirstDueDate) {
+          await createInstallments(
+            newStudent.id,
+            newStudent.name,
+            data.planInstallments,
+            data.planValue,
+            data.planFirstDueDate,
+          )
+        }
+
+        toast({
+          title: 'Matrícula Realizada',
+          description: 'Aluno cadastrado e financeiro gerado com sucesso.',
+        })
       }
       onSuccess()
     } catch (error: any) {
@@ -130,315 +170,197 @@ export function StudentForm({
     }
   }
 
+  const renderInput = (name: any, label: string, type = 'text', placeholder = '') => (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{label}</FormLabel>
+          <FormControl>
+            <Input type={type} placeholder={placeholder} {...field} value={field.value || ''} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  )
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nome Completo</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>E-mail</FormLabel>
-                <FormControl>
-                  <Input type="email" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Telefone Celular</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="cpf"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>CPF</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="rg"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>RG</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="rgIssuer"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Órgão Emissor</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="birthDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data de Nascimento</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="nationality"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nacionalidade</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="birthCity"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Cidade Natal</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="maritalStatus"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Estado Civil</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ex: Solteiro(a)" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="motherName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nome da Mãe</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="fatherName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nome do Pai</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <Tabs defaultValue="pessoais" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="pessoais" className="text-xs">
+              Pessoais
+            </TabsTrigger>
+            <TabsTrigger value="endereco" className="text-xs">
+              Endereço
+            </TabsTrigger>
+            <TabsTrigger value="academico" className="text-xs">
+              Acadêmico
+            </TabsTrigger>
+            <TabsTrigger value="financeiro" className="text-xs">
+              Financeiro/Docs
+            </TabsTrigger>
+          </TabsList>
 
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium border-b pb-2">Endereço</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="address.zipCode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    CEP {cepLoading && <Loader2 className="inline h-3 w-3 animate-spin ml-2" />}
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      onBlur={(e) => {
-                        field.onBlur()
-                        handleCepBlur(e)
-                      }}
-                      placeholder="00000-000"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="address.street"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Logradouro</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="address.number"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Número</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="address.neighborhood"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Bairro</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="address.city"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cidade</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="address.state"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Estado (UF)</FormLabel>
-                  <FormControl>
-                    <Input maxLength={2} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
+          <TabsContent value="pessoais" className="space-y-4 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {renderInput('name', 'Nome Completo', 'text', 'Nome do Aluno')}
+              {renderInput('email', 'E-mail', 'email')}
+              {renderInput('phone', 'Telefone Celular', 'text', '(00) 00000-0000')}
+              {renderInput('cpf', 'CPF', 'text', '000.000.000-00')}
+              {renderInput('rg', 'RG')}
+              {renderInput('rgIssuer', 'Órgão Emissor')}
+              {renderInput('birthDate', 'Data de Nascimento', 'date')}
+              {renderInput('nationality', 'Nacionalidade')}
+              {renderInput('birthCity', 'Cidade Natal')}
+              {renderInput('maritalStatus', 'Estado Civil')}
+              {renderInput('motherName', 'Nome da Mãe')}
+              {renderInput('fatherName', 'Nome do Pai')}
+            </div>
+          </TabsContent>
 
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium border-b pb-2">Dados Acadêmicos</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="course"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Curso na IES</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: Engenharia Civil" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="previousGraduation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Graduação Anterior (Fora da IES)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: Administração pela USP" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
+          <TabsContent value="endereco" className="space-y-4 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="address.zipCode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      CEP {cepLoading && <Loader2 className="inline h-3 w-3 animate-spin ml-2" />}
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        onBlur={(e) => {
+                          field.onBlur()
+                          handleCepBlur(e)
+                        }}
+                        placeholder="00000-000"
+                        value={field.value || ''}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {renderInput('address.street', 'Logradouro')}
+              {renderInput('address.number', 'Número')}
+              {renderInput('address.neighborhood', 'Bairro')}
+              {renderInput('address.city', 'Cidade')}
+              {renderInput('address.state', 'Estado (UF)')}
+            </div>
+          </TabsContent>
 
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium border-b pb-2">Documentos</h3>
-          <div className="grid grid-cols-1 gap-4">
-            <FormItem>
-              <FormLabel>Anexar Cópias de Documentos (RG, CPF, Certificados)</FormLabel>
-              <FormControl>
-                <Input type="file" multiple accept=".pdf,.jpg,.jpeg,.png" />
-              </FormControl>
-              <p className="text-xs text-muted-foreground">
-                Apenas arquivos PDF ou imagens. (Upload em desenvolvimento)
-              </p>
-            </FormItem>
-          </div>
-        </div>
+          <TabsContent value="academico" className="space-y-4 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="course"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-2">
+                    <FormLabel>Graduação / Curso</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ''}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o curso" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Engenharia de Software">
+                          Engenharia de Software
+                        </SelectItem>
+                        <SelectItem value="Administração">Administração</SelectItem>
+                        <SelectItem value="Direito">Direito</SelectItem>
+                        <SelectItem value="Design Gráfico">Design Gráfico</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {renderInput('previousGraduation', 'Graduação Anterior (Fora da IES)')}
+            </div>
+          </TabsContent>
 
-        <div className="flex justify-end gap-2 pt-4">
+          <TabsContent value="financeiro" className="space-y-4 mt-4">
+            {!initialData?.id && (
+              <>
+                <h4 className="text-sm font-semibold text-foreground border-b pb-2">
+                  Plano Financeiro (Geração Automática)
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {renderInput('planInstallments', 'Qtd. Parcelas', 'number')}
+                  {renderInput('planValue', 'Valor Mensalidade (R$)', 'number')}
+                  {renderInput('planFirstDueDate', '1º Vencimento', 'date')}
+                </div>
+              </>
+            )}
+
+            <h4 className="text-sm font-semibold text-foreground border-b pb-2 mt-6">
+              Documentação
+            </h4>
+            <div className="grid grid-cols-1 gap-4">
+              <FormField
+                control={form.control}
+                name="avatar"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Foto do Perfil</FormLabel>
+                    <FormControl>
+                      <FileUpload
+                        accept="image/*"
+                        label="Anexar Foto"
+                        onUpload={(files) => field.onChange(files[0]?.url)}
+                      />
+                    </FormControl>
+                    {field.value && (
+                      <p className="text-xs text-emerald-600 mt-1">
+                        <Check className="inline w-3 h-3 mr-1" /> Foto anexada com sucesso
+                      </p>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="documents"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Documentos Pessoais (RG, CPF, Comprovantes)</FormLabel>
+                    <FormControl>
+                      <FileUpload
+                        multiple
+                        accept="image/*,application/pdf"
+                        label="Anexar Documentos"
+                        onUpload={(files) => field.onChange(files)}
+                      />
+                    </FormControl>
+                    {field.value?.length > 0 && (
+                      <p className="text-xs text-emerald-600 mt-1">
+                        <Check className="inline w-3 h-3 mr-1" /> {field.value.length} arquivo(s)
+                        anexado(s)
+                      </p>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        <div className="flex justify-end gap-2 pt-4 border-t">
           <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
             Cancelar
           </Button>
           <Button type="submit" disabled={loading}>
             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            {initialData?.id ? 'Atualizar' : 'Salvar Aluno'}
+            {initialData?.id ? 'Atualizar Aluno' : 'Efetivar Matrícula'}
           </Button>
         </div>
       </form>
