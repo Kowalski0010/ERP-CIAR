@@ -116,7 +116,6 @@ const appModules = [
       { title: 'Pagamentos e Faturas', url: '/financial/payments' },
       { title: 'Fluxo de Caixa', url: '/financial/cash-flow' },
       { title: 'Análise Financeira (BI)', url: '/financial/analytics' },
-      { title: 'Monitoramento CFTV', url: '/admin/security' },
       { title: 'Integrações Oficiais', url: '/admin/integrations' },
     ],
   },

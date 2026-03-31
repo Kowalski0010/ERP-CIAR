@@ -34,40 +34,75 @@ export default function AdminDataImport() {
     if (!file) return
     setStatus('processing')
 
-    // Simulate parsing and processing delay
-    setTimeout(() => {
-      // Generate mock data based on type
-      let mockPayload: any[] = []
-      if (importType === 'students') {
-        mockPayload = Array.from({ length: 15 }).map((_, i) => ({
-          name: `Aluno Importado ${i + 1}`,
-          course: 'Curso Geral',
-          email: `aluno${i}@import.com`,
-        }))
-      } else if (importType === 'classes') {
-        mockPayload = Array.from({ length: 3 }).map((_, i) => ({
-          name: `Turma Imp. 0${i + 1}`,
-          course: 'Geral',
-          semester: '2024-1',
-        }))
-      } else if (importType === 'teachers') {
-        mockPayload = Array.from({ length: 5 }).map((_, i) => ({
-          name: `Prof. Importado ${i + 1}`,
-          subjects: ['Diversos'],
-          workload: 20,
-        }))
-      }
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      setTimeout(() => {
+        try {
+          const content = e.target?.result as string
+          let records = []
 
-      bulkImportData(importType, mockPayload)
-      setResults({ success: mockPayload.length, errors: 2 }) // Mock errors
+          if (file.name.endsWith('.json')) {
+            records = JSON.parse(content)
+          } else {
+            // Basic CSV parser
+            const lines = content.split('\n').filter((l) => l.trim())
+            if (lines.length > 1) {
+              const headers = lines[0].split(',')
+              records = lines.slice(1).map((line) => {
+                const values = line.split(',')
+                const obj: any = {}
+                headers.forEach((h, i) => {
+                  obj[h.trim()] = values[i]?.trim()
+                })
+                return obj
+              })
+            }
+          }
+
+          if (records.length > 0) {
+            bulkImportData(importType, records)
+            setResults({ success: records.length, errors: 0 })
+            setStatus('done')
+            toast({
+              title: 'Importação Finalizada',
+              description: `${records.length} registros processados com sucesso.`,
+            })
+          } else {
+            throw new Error('Arquivo vazio ou formato inválido')
+          }
+        } catch (error) {
+          setResults({ success: 0, errors: 1 })
+          setStatus('done')
+          toast({
+            title: 'Erro na Importação',
+            description: 'Falha ao ler o arquivo. Verifique o formato.',
+            variant: 'destructive',
+          })
+        }
+      }, 1000)
+    }
+
+    if (file.name.endsWith('.json') || file.name.endsWith('.csv')) {
+      reader.readAsText(file)
+    } else {
       setStatus('done')
-      toast({ title: 'Importação Finalizada', description: 'Os dados foram inseridos no banco.' })
-    }, 2000)
+      setResults({ success: 0, errors: 1 })
+      toast({
+        title: 'Erro',
+        description: 'Formato de arquivo não suportado',
+        variant: 'destructive',
+      })
+    }
   }
 
   const getTemplateUrl = () => {
-    // In real app, this downloads a CSV template
-    return '#'
+    if (importType === 'students') {
+      return `data:text/csv;charset=utf-8,${encodeURIComponent('name,email,course,phone\nJoão Silva,joao@email.com,Engenharia,11999999999\nMaria Santos,maria@email.com,Direito,11888888888')}`
+    }
+    if (importType === 'teachers') {
+      return `data:text/csv;charset=utf-8,${encodeURIComponent('name,email,subjects,workload\nProf. Carlos,carlos@ies.edu,Cálculo,40')}`
+    }
+    return `data:text/csv;charset=utf-8,${encodeURIComponent('name,course,semester\nTurma 101,Engenharia,2024.1')}`
   }
 
   return (
@@ -130,6 +165,7 @@ export default function AdminDataImport() {
             <div className="flex justify-between items-center pt-2">
               <a
                 href={getTemplateUrl()}
+                download={`template_${importType}.csv`}
                 className="text-xs text-blue-600 hover:underline flex items-center gap-1"
               >
                 <FileSpreadsheet className="w-3.5 h-3.5" /> Baixar Template Modelo

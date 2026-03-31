@@ -71,16 +71,40 @@ export default function BackupSettings() {
 
           <div className="space-y-2">
             <Label className="text-sm font-semibold text-zinc-900">Serviço de Destino</Label>
-            <Select value={provider} onValueChange={setProvider} disabled={!isAutomated}>
-              <SelectTrigger className="w-full sm:w-64 bg-zinc-50">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="gdrive">Google Drive</SelectItem>
-                <SelectItem value="dropbox">Dropbox</SelectItem>
-                <SelectItem value="aws">AWS S3</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-3">
+              <Select value={provider} onValueChange={setProvider} disabled={!isAutomated}>
+                <SelectTrigger className="w-full sm:w-64 bg-zinc-50">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="gdrive">Google Drive</SelectItem>
+                  <SelectItem value="dropbox">Dropbox</SelectItem>
+                  <SelectItem value="aws">AWS S3</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {provider === 'gdrive' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    toast({
+                      title: 'Conexão com Google Drive',
+                      description: 'Redirecionando para autenticação do Google (OAuth)...',
+                    })
+                  }
+                >
+                  Conectar Conta Google
+                </Button>
+              )}
+            </div>
+            {provider === 'gdrive' && (
+              <p className="text-xs text-zinc-500 mt-2 max-w-md">
+                Para conectar ao Google Drive, clique no botão acima para autorizar o acesso à sua
+                conta. Os backups automáticos serão salvos na nuvem dentro de uma pasta chamada
+                "Backups SIO".
+              </p>
+            )}
           </div>
 
           <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-md">

@@ -25,8 +25,8 @@ const teacherSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
   email: z.string().email('E-mail inválido'),
   phone: z.string().min(10, 'Telefone inválido'),
-  cpf: z.string().min(11, 'CPF inválido'),
-  rg: z.string().min(5, 'RG obrigatório'),
+  cpf: z.string().optional(),
+  rg: z.string().optional(),
   subjects: z.string().min(2, 'Informe pelo menos uma disciplina'),
   workload: z.coerce.number().min(1, 'Carga horária deve ser maior que 0'),
 })

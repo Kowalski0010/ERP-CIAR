@@ -21,6 +21,9 @@ export const addDisciplina = async (d: Partial<Disciplina>) => {
         name: d.name,
         workload: d.workload,
         status: d.status || 'Ativo',
+        teacher: d.teacher,
+        course: d.course,
+        observations: d.observations,
       },
     ])
     .select()
@@ -36,6 +39,9 @@ export const updateDisciplina = async (id: string, d: Partial<Disciplina>) => {
       name: d.name,
       workload: d.workload,
       status: d.status,
+      teacher: d.teacher,
+      course: d.course,
+      observations: d.observations,
     })
     .eq('id', id)
     .select()
