@@ -21,13 +21,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { useAppStore } from '@/contexts/AppContext'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
-const mockPerformanceData = [
-  { term: '1º Sem/23', media: 7.5, mediaTurma: 7.0 },
-  { term: '2º Sem/23', media: 8.2, mediaTurma: 7.2 },
-  { term: '1º Sem/24', media: 7.8, mediaTurma: 6.9 },
-  { term: '2º Sem/24', media: 9.1, mediaTurma: 7.5 },
-  { term: 'Atual', media: 8.9, mediaTurma: 7.3 },
-]
+const mockPerformanceData: any[] = []
 
 const chartConfig = {
   media: { label: 'Desempenho Aluno', color: 'hsl(var(--primary))' },
@@ -218,21 +212,7 @@ export default function PedagogicalTracking() {
                   </CardHeader>
                   <CardContent className="p-0">
                     <div className="divide-y divide-zinc-100">
-                      {[
-                        {
-                          nome: 'Cálculo Avançado',
-                          media: 8.5,
-                          freq: '95%',
-                          status: 'Acima da Média',
-                        },
-                        { nome: 'Física Clássica', media: 7.0, freq: '88%', status: 'Na Média' },
-                        {
-                          nome: 'Estatística Aplicada',
-                          media: 5.5,
-                          freq: '78%',
-                          status: 'Atenção',
-                        },
-                      ].map((disc) => (
+                      {[].map((disc: any) => (
                         <div
                           key={disc.nome}
                           className="p-4 flex items-center justify-between hover:bg-zinc-50 transition-colors"

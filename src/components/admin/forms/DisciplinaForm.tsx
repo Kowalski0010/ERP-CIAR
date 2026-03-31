@@ -22,6 +22,9 @@ import {
 const schema = z.object({
   name: z.string().min(3, 'Nome da disciplina obrigatório'),
   workload: z.coerce.number().min(1, 'Carga horária deve ser maior que zero'),
+  teacher: z.string().optional(),
+  course: z.string().optional(),
+  observations: z.string().optional(),
 })
 
 export function DisciplinaForm({
@@ -40,6 +43,9 @@ export function DisciplinaForm({
     defaultValues: {
       name: initialData?.name || '',
       workload: initialData?.workload || 40,
+      teacher: initialData?.teacher || '',
+      course: initialData?.course || '',
+      observations: initialData?.observations || '',
     },
   })
 
@@ -95,6 +101,49 @@ export function DisciplinaForm({
               <FormLabel>Carga Horária Semestral (h)</FormLabel>
               <FormControl>
                 <Input type="number" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="teacher"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Professor da Disciplina</FormLabel>
+              <FormControl>
+                <Input placeholder="Nome do Professor" {...field} value={field.value || ''} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="course"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Curso Vinculado</FormLabel>
+              <FormControl>
+                <Input placeholder="Nome do Curso" {...field} value={field.value || ''} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="observations"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Observações</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Informações adicionais..."
+                  {...field}
+                  value={field.value || ''}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

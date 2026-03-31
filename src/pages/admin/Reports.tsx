@@ -11,7 +11,6 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid } from 'recharts'
-import { mockFinancialChart } from '@/lib/mockData'
 
 const chartConfig = {
   receitas: { label: 'Receitas', color: 'hsl(var(--primary))' },
@@ -109,10 +108,7 @@ export default function Reports() {
           <CardContent className="pt-6">
             <ChartContainer config={chartConfig} className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={mockFinancialChart}
-                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                >
+                <BarChart data={[]} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e4e7" />
                   <XAxis
                     dataKey="month"

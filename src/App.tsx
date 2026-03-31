@@ -111,6 +111,14 @@ import StudentFeedback from './pages/student/StudentFeedback'
 import StudentProfile from './pages/student/StudentProfile'
 import ParentDashboard from './pages/parent/ParentDashboard'
 import PortalDashboard from './pages/portal/PortalDashboard'
+import ProfileEdit from './pages/student/ProfileEdit'
+import DocumentRequests from './pages/student/DocumentRequests'
+import StudentHistory from './pages/academic/StudentHistory'
+import CourseExemptions from './pages/academic/CourseExemptions'
+import StudentLeaves from './pages/academic/StudentLeaves'
+import GeneralReports from './pages/admin/GeneralReports'
+import ScheduleMaintenance from './pages/admin/ScheduleMaintenance'
+import PaymentPlans from './pages/admin/PaymentPlans'
 
 // Public Forms
 import TeacherApplication from './pages/public/TeacherApplication'
@@ -163,6 +171,9 @@ function App() {
                   <Route path="performance" element={<AcademicPerformance />} />
                   <Route path="roll-call" element={<DigitalRollCall />} />
                   <Route path="extracurricular" element={<Extracurricular />} />
+                  <Route path="student-history" element={<StudentHistory />} />
+                  <Route path="course-exemptions" element={<CourseExemptions />} />
+                  <Route path="student-leaves" element={<StudentLeaves />} />
                   <Route path="control/:id" element={<AcademicControlView />} />
                 </Route>
 
@@ -180,8 +191,10 @@ function App() {
                   <Route path="schedule" element={<StudentSchedule />} />
                   <Route path="financial" element={<StudentFinancial />} />
                   <Route path="documents" element={<StudentDocuments />} />
+                  <Route path="document-requests" element={<DocumentRequests />} />
                   <Route path="feedback" element={<StudentFeedback />} />
                   <Route path="profile" element={<StudentProfile />} />
+                  <Route path="profile-edit" element={<ProfileEdit />} />
                 </Route>
 
                 <Route path="parent">
@@ -271,6 +284,9 @@ function App() {
                   <Route path="events" element={<Events />} />
                   <Route path="surveys" element={<Surveys />} />
                   <Route path="data-import" element={<AdminDataImport />} />
+                  <Route path="general-reports" element={<GeneralReports />} />
+                  <Route path="schedule-maintenance" element={<ScheduleMaintenance />} />
+                  <Route path="payment-plans" element={<PaymentPlans />} />
                 </Route>
 
                 {/* Generic Reports */}
