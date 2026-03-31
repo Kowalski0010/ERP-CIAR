@@ -71,7 +71,14 @@ export const addStudent = async (student: any) => {
     const randomNum = Math.floor(100 + Math.random() * 900)
     student.registrationCode = `${year}-${randomNum}`
   }
+
   const dbStudent = mapToDb(student)
+
+  // Clean up ID explicitly to avoid sending null and let DB trigger/default handle it
+  if (!dbStudent.id) {
+    delete dbStudent.id
+  }
+
   const { data, error } = await supabase.from('students').insert([dbStudent]).select().single()
   if (error) throw error
   return mapFromDb(data)

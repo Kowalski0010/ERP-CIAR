@@ -154,9 +154,12 @@ export function StudentForm({
       }
       onSuccess()
     } catch (error: any) {
+      console.error('Submit Error:', error)
       toast({
-        title: 'Erro',
-        description: error.message || 'Erro ao salvar aluno',
+        title: 'Erro no Cadastro',
+        description:
+          error.message ||
+          'Falha ao comunicar com o banco de dados. Verifique sua conexão e tente novamente.',
         variant: 'destructive',
       })
     } finally {
