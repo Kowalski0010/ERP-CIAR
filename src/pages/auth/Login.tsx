@@ -18,20 +18,20 @@ import { Role } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 export default function Login() {
-  const { login, isAuthenticated, setCurrentUserRole } = useAppStore()
-  const { signIn, user } = useAuth()
+  const { login, setCurrentUserRole } = useAppStore()
+  const { signIn, user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [role, setRole] = useState<Role>('Admin')
-  const [email, setEmail] = useState('demo@instituicao.com')
-  const [password, setPassword] = useState('demo1234')
+  const [email, setEmail] = useState('kowalski0010@gmail.com')
+  const [password, setPassword] = useState('securepassword123')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (isAuthenticated || user) {
+    if (!authLoading && user) {
       navigate('/', { replace: true })
     }
-  }, [isAuthenticated, user, navigate])
+  }, [user, authLoading, navigate])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -48,6 +48,17 @@ export default function Login() {
 
     setCurrentUserRole(role)
     login(role)
+  }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-muted/30 dark:bg-background flex items-center justify-center p-4">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="h-16 w-16 bg-muted rounded-xl"></div>
+          <div className="h-6 w-32 bg-muted rounded"></div>
+        </div>
+      </div>
+    )
   }
 
   return (
