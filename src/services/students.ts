@@ -2,7 +2,6 @@ import { supabase } from '@/lib/supabase/client'
 
 const mapToDb = (student: any) => {
   const dbObj: any = {
-    id: student.id,
     name: student.name,
     email: student.email,
     phone: student.phone,
@@ -21,6 +20,9 @@ const mapToDb = (student: any) => {
     mother_name: student.motherName,
     father_name: student.fatherName,
     previous_graduation: student.previousGraduation,
+  }
+  if (student.id) {
+    dbObj.id = student.id
   }
   if (student.address) {
     dbObj.address_street = student.address.street
