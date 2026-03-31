@@ -49,7 +49,8 @@ export function DisciplinaForm({
   const onSubmit = async (data: z.infer<typeof schema>) => {
     try {
       if (initialData?.id) {
-        const { data: updated, error } = await supabase
+        // Tenta atualizar primeiro, removendo o .single() para evitar erro se for ID local/mock
+        let { data: updated, error } = await supabase
           .from('disciplinas')
           .update({
             name: data.name,
@@ -60,11 +61,29 @@ export function DisciplinaForm({
           })
           .eq('id', initialData.id)
           .select()
-          .single()
 
-        if (error) throw error
+        // Se nenhum registro foi afetado, possivelmente o ID era mock local. Forçamos o insert.
+        if (!error && (!updated || updated.length === 0)) {
+          const { data: inserted, error: insertError } = await supabase
+            .from('disciplinas')
+            .insert([
+              {
+                name: data.name,
+                workload: data.workload,
+                teacher: data.teacher || null,
+                course: data.course || null,
+                observations: data.observations || null,
+              },
+            ])
+            .select()
 
-        updateDisciplina(initialData.id, updated as any)
+          if (insertError) throw insertError
+          updated = inserted
+        } else if (error) {
+          throw error
+        }
+
+        updateDisciplina(initialData.id, updated?.[0] as any)
         toast({
           title: 'Disciplina Atualizada',
           description: 'Registro atualizado com sucesso no banco de dados.',
@@ -82,11 +101,10 @@ export function DisciplinaForm({
             },
           ])
           .select()
-          .single()
 
         if (error) throw error
 
-        addDisciplina(saved as any)
+        addDisciplina(saved?.[0] as any)
         toast({
           title: 'Disciplina Salva',
           description: 'Registro criado com sucesso no banco de dados.',

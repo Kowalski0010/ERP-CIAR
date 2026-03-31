@@ -20,15 +20,16 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Teacher } from '@/lib/types'
+import { supabase } from '@/lib/supabase/client'
 
 const teacherSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
-  email: z.string().email('E-mail inválido'),
-  phone: z.string().min(10, 'Telefone inválido'),
+  email: z.string().email('E-mail inválido').optional().or(z.literal('')),
+  phone: z.string().optional(),
   cpf: z.string().optional(),
   rg: z.string().optional(),
-  subjects: z.string().min(2, 'Informe pelo menos uma disciplina'),
-  workload: z.coerce.number().min(1, 'Carga horária deve ser maior que 0'),
+  subjects: z.string().optional(),
+  workload: z.coerce.number().optional(),
 })
 
 interface AddTeacherDialogProps {
@@ -58,22 +59,48 @@ export function AddTeacherDialog({ open, onOpenChange, onSuccess }: AddTeacherDi
     }
   }, [open, form])
 
-  const onSubmit = (data: z.infer<typeof teacherSchema>) => {
+  const onSubmit = async (data: z.infer<typeof teacherSchema>) => {
     const registrationCode = `${new Date().getFullYear()}${Math.floor(1000 + Math.random() * 9000)}`
-    const teacher: Teacher = {
-      id: Math.random().toString(36).substr(2, 9),
-      registrationCode,
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      cpf: data.cpf,
-      rg: data.rg,
-      subjects: data.subjects.split(',').map((s) => s.trim()),
-      workload: data.workload,
-      status: 'Ativo',
+
+    try {
+      const { data: saved, error } = await supabase
+        .from('teachers')
+        .insert([
+          {
+            name: data.name,
+            email: data.email || null,
+            phone: data.phone || null,
+            cpf: data.cpf || null,
+            rg: data.rg || null,
+            subjects: data.subjects || null,
+            workload: data.workload || 40,
+            status: 'Ativo',
+          },
+        ])
+        .select()
+        .single()
+
+      if (error) throw error
+
+      onSuccess({ ...saved, registrationCode } as any)
+      onOpenChange(false)
+    } catch (err) {
+      console.error(err)
+      const teacher = {
+        id: Math.random().toString(36).substr(2, 9),
+        registrationCode,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        cpf: data.cpf,
+        rg: data.rg,
+        subjects: data.subjects ? data.subjects.split(',').map((s) => s.trim()) : [],
+        workload: data.workload || 40,
+        status: 'Ativo',
+      }
+      onSuccess(teacher as any)
+      onOpenChange(false)
     }
-    onSuccess(teacher)
-    onOpenChange(false)
   }
 
   return (

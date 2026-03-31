@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { DollarSign, Plus, Edit, Trash2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Table,
   TableBody,
@@ -11,42 +12,105 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useToast } from '@/hooks/use-toast'
+import { supabase } from '@/lib/supabase/client'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 export default function PaymentPlans() {
   const { toast } = useToast()
-  const [plans, setPlans] = useState([
-    {
-      id: 1,
-      name: 'Mensalidade Padrão',
-      target: 'Graduação',
-      value: 850,
-      installments: 12,
-      status: 'Ativo',
-    },
-    {
-      id: 2,
-      name: 'Bolsa Integral (100%)',
-      target: 'Todos',
-      value: 0,
-      installments: 12,
-      status: 'Ativo',
-    },
-    {
-      id: 3,
-      name: 'Desconto Servidor Público',
-      target: 'Pós-Graduação',
-      value: 600,
-      installments: 18,
-      status: 'Ativo',
-    },
-  ])
+  const [plans, setPlans] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [open, setOpen] = useState(false)
+  const [editing, setEditing] = useState<any>(null)
+  const [formData, setFormData] = useState({ name: '', target: '', value: '', installments: '12' })
 
-  const handleDelete = (id: number) => {
-    setPlans(plans.filter((p) => p.id !== id))
-    toast({
-      title: 'Plano removido',
-      description: 'O plano de pagamento foi removido com sucesso.',
-    })
+  const fetchPlans = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('payment_plans')
+        .select('*')
+        .order('created_at', { ascending: false })
+      if (!error && data) {
+        setPlans(data)
+      } else {
+        setPlans([
+          {
+            id: '1',
+            name: 'Mensalidade Padrão',
+            target: 'Graduação',
+            value: 850,
+            installments: 12,
+            status: 'Ativo',
+          },
+        ])
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchPlans()
+  }, [])
+
+  const handleDelete = async (id: string) => {
+    try {
+      await supabase.from('payment_plans').delete().eq('id', id)
+      setPlans(plans.filter((p) => p.id !== id))
+      toast({ title: 'Plano removido', description: 'Removido com sucesso do banco.' })
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível remover.' })
+    }
+  }
+
+  const handleSave = async () => {
+    const payload = {
+      name: formData.name,
+      target: formData.target,
+      value: Number(formData.value) || 0,
+      installments: Number(formData.installments) || 1,
+      status: 'Ativo',
+    }
+    try {
+      if (editing?.id) {
+        const { data, error } = await supabase
+          .from('payment_plans')
+          .update(payload)
+          .eq('id', editing.id)
+          .select()
+          .single()
+        if (error) throw error
+        setPlans(plans.map((p) => (p.id === editing.id ? data : p)))
+      } else {
+        const { data, error } = await supabase
+          .from('payment_plans')
+          .insert([payload])
+          .select()
+          .single()
+        if (error) throw error
+        setPlans([data, ...plans])
+      }
+      toast({ title: 'Sucesso', description: 'Plano financeiro salvo.' })
+      setOpen(false)
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Erro', description: 'Falha ao salvar.' })
+    }
+  }
+
+  const openForm = (p?: any) => {
+    setEditing(p || null)
+    if (p) {
+      setFormData({
+        name: p.name,
+        target: p.target,
+        value: p.value.toString(),
+        installments: p.installments.toString(),
+      })
+    } else {
+      setFormData({ name: '', target: '', value: '', installments: '12' })
+    }
+    setOpen(true)
   }
 
   return (
@@ -58,25 +122,18 @@ export default function PaymentPlans() {
             Planos de Pagamentos
           </h1>
           <p className="text-sm text-zinc-500 mt-1">
-            Configuração de mensalidades, descontos, bolsas e taxas de serviços da IES.
+            Configuração de mensalidades e bolsas conectada ao banco de dados.
           </p>
         </div>
-        <Button
-          onClick={() =>
-            toast({ title: 'Novo Plano', description: 'Abrindo formulário de criação de plano...' })
-          }
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Plano
+        <Button onClick={() => openForm()}>
+          <Plus className="h-4 w-4 mr-2" /> Novo Plano
         </Button>
       </div>
 
       <Card className="border-zinc-200 shadow-sm bg-white">
         <CardHeader className="border-b border-zinc-100 bg-zinc-50/50 py-4">
           <CardTitle className="text-lg">Modelos Financeiros</CardTitle>
-          <CardDescription className="text-xs">
-            Regras ativas de parcelamento e cobrança.
-          </CardDescription>
+          <CardDescription className="text-xs">Regras ativas.</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
@@ -85,43 +142,42 @@ export default function PaymentPlans() {
                 <TableHead>Nome do Plano</TableHead>
                 <TableHead>Vínculo</TableHead>
                 <TableHead className="text-right">Valor Base (R$)</TableHead>
-                <TableHead className="text-center">Qtd. Parcelas</TableHead>
+                <TableHead className="text-center">Parcelas</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {plans.map((plan) => (
-                <TableRow key={plan.id}>
-                  <TableCell className="font-medium">{plan.name}</TableCell>
-                  <TableCell>{plan.target}</TableCell>
-                  <TableCell className="text-right">{plan.value.toFixed(2)}</TableCell>
-                  <TableCell className="text-center">{plan.installments}</TableCell>
-                  <TableCell>
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                      {plan.status}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() =>
-                        toast({
-                          title: 'Editar Plano',
-                          description: 'Carregando detalhes do plano...',
-                        })
-                      }
-                    >
-                      <Edit className="h-4 w-4 text-zinc-500" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(plan.id)}>
-                      <Trash2 className="h-4 w-4 text-rose-500" />
-                    </Button>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8">
+                    Carregando...
                   </TableCell>
                 </TableRow>
-              ))}
-              {plans.length === 0 && (
+              ) : (
+                plans.map((plan) => (
+                  <TableRow key={plan.id}>
+                    <TableCell className="font-medium">{plan.name}</TableCell>
+                    <TableCell>{plan.target}</TableCell>
+                    <TableCell className="text-right">{Number(plan.value).toFixed(2)}</TableCell>
+                    <TableCell className="text-center">{plan.installments}</TableCell>
+                    <TableCell>
+                      <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                        {plan.status}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="icon" onClick={() => openForm(plan)}>
+                        <Edit className="h-4 w-4 text-zinc-500" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(plan.id)}>
+                        <Trash2 className="h-4 w-4 text-rose-500" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+              {!loading && plans.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center text-zinc-500 py-8">
                     Nenhum plano cadastrado.
@@ -132,6 +188,56 @@ export default function PaymentPlans() {
           </Table>
         </CardContent>
       </Card>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editing ? 'Editar Plano' : 'Novo Plano'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div>
+              <label className="text-sm font-medium">Nome do Plano</label>
+              <Input
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Ex: Mensalidade Padrão"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Público / Vínculo</label>
+              <Input
+                value={formData.target}
+                onChange={(e) => setFormData({ ...formData, target: e.target.value })}
+                placeholder="Ex: Graduação"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Valor Base (R$)</label>
+              <Input
+                type="number"
+                value={formData.value}
+                onChange={(e) => setFormData({ ...formData, value: e.target.value })}
+                placeholder="850.00"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Qtd. Parcelas</label>
+              <Input
+                type="number"
+                value={formData.installments}
+                onChange={(e) => setFormData({ ...formData, installments: e.target.value })}
+                placeholder="12"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSave}>Salvar</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

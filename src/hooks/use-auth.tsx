@@ -29,20 +29,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange((event, currentSession) => {
       if (!mounted) return
-      setSession(session)
-      setUser(session?.user ?? null)
+
+      setSession((prev) => {
+        if (prev?.access_token === currentSession?.access_token) return prev
+        return currentSession
+      })
+      setUser(currentSession?.user ?? null)
       setLoading(false)
     })
 
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
+    supabase.auth.getSession().then(({ data: { session: initialSession }, error }) => {
       if (!mounted) return
       if (error) {
         console.error('Error fetching session:', error)
       }
-      setSession(session)
-      setUser(session?.user ?? null)
+      setSession(initialSession)
+      setUser(initialSession?.user ?? null)
       setLoading(false)
     })
 

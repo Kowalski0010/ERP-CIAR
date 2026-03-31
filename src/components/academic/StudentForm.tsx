@@ -41,7 +41,7 @@ const studentSchema = z.object({
   maritalStatus: z.string().optional(),
   motherName: z.string().optional(),
   fatherName: z.string().optional(),
-  course: z.string().min(1, 'Curso na IES é obrigatório'),
+  course: z.string().optional(),
   previousGraduation: z.string().optional(),
   address: z
     .object({

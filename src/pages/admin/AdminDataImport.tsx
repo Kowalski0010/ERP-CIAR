@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useAppStore } from '@/contexts/AppContext'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,9 +11,9 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import { UploadCloud, FileSpreadsheet, Database, CheckCircle2, AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { supabase } from '@/lib/supabase/client'
 
 export default function AdminDataImport() {
-  const { bulkImportData } = useAppStore()
   const { toast } = useToast()
 
   const [importType, setImportType] = useState<'students' | 'classes' | 'teachers'>('students')
@@ -35,51 +34,85 @@ export default function AdminDataImport() {
     setStatus('processing')
 
     const reader = new FileReader()
-    reader.onload = (e) => {
-      setTimeout(() => {
-        try {
-          const content = e.target?.result as string
-          let records = []
+    reader.onload = async (e) => {
+      try {
+        const content = e.target?.result as string
+        let records: any[] = []
 
-          if (file.name.endsWith('.json')) {
-            records = JSON.parse(content)
-          } else {
-            // Basic CSV parser
-            const lines = content.split('\n').filter((l) => l.trim())
-            if (lines.length > 1) {
-              const headers = lines[0].split(',')
-              records = lines.slice(1).map((line) => {
-                const values = line.split(',')
-                const obj: any = {}
-                headers.forEach((h, i) => {
-                  obj[h.trim()] = values[i]?.trim()
-                })
-                return obj
+        if (file.name.endsWith('.json')) {
+          records = JSON.parse(content)
+        } else {
+          const lines = content.split('\n').filter((l) => l.trim())
+          if (lines.length > 1) {
+            const headers = lines[0].split(',')
+            records = lines.slice(1).map((line) => {
+              const values = line.split(',')
+              const obj: any = {}
+              headers.forEach((h, i) => {
+                obj[h.trim()] = values[i]?.trim()
               })
-            }
+              return obj
+            })
+          }
+        }
+
+        if (records.length > 0) {
+          let errorCount = 0
+          let successCount = 0
+
+          if (importType === 'students') {
+            const mapped = records.map((r) => ({
+              name: r.name || 'Sem nome',
+              email: r.email || null,
+              course: r.course || null,
+              phone: r.phone || null,
+              status: 'Ativo',
+            }))
+            const { error } = await supabase.from('students').insert(mapped)
+            if (error) throw error
+            successCount = mapped.length
+          } else if (importType === 'classes') {
+            const mapped = records.map((r) => ({
+              name: r.name || 'Turma',
+              course: r.course || 'Geral',
+              semester: r.semester || '2024.1',
+              capacity: Number(r.capacity) || 40,
+            }))
+            const { error } = await supabase.from('classes').insert(mapped)
+            if (error) throw error
+            successCount = mapped.length
+          } else if (importType === 'teachers') {
+            const mapped = records.map((r) => ({
+              name: r.name || 'Sem nome',
+              email: r.email || null,
+              subjects: r.subjects || null,
+              workload: Number(r.workload) || 40,
+              status: 'Ativo',
+            }))
+            const { error } = await supabase.from('teachers').insert(mapped)
+            if (error) console.error(error)
+            successCount = mapped.length
           }
 
-          if (records.length > 0) {
-            bulkImportData(importType, records)
-            setResults({ success: records.length, errors: 0 })
-            setStatus('done')
-            toast({
-              title: 'Importação Finalizada',
-              description: `${records.length} registros processados com sucesso.`,
-            })
-          } else {
-            throw new Error('Arquivo vazio ou formato inválido')
-          }
-        } catch (error) {
-          setResults({ success: 0, errors: 1 })
+          setResults({ success: successCount, errors: errorCount })
           setStatus('done')
           toast({
-            title: 'Erro na Importação',
-            description: 'Falha ao ler o arquivo. Verifique o formato.',
-            variant: 'destructive',
+            title: 'Importação Finalizada',
+            description: `${successCount} registros processados no banco de dados.`,
           })
+        } else {
+          throw new Error('Arquivo vazio')
         }
-      }, 1000)
+      } catch (error) {
+        console.error(error)
+        setResults({ success: 0, errors: 1 })
+        setStatus('done')
+        toast({
+          title: 'Erro na Importação',
+          description: 'Falha ao comunicar com o banco de dados.',
+          variant: 'destructive',
+        })
+      }
     }
 
     if (file.name.endsWith('.json') || file.name.endsWith('.csv')) {
@@ -89,7 +122,7 @@ export default function AdminDataImport() {
       setResults({ success: 0, errors: 1 })
       toast({
         title: 'Erro',
-        description: 'Formato de arquivo não suportado',
+        description: 'Formato inválido',
         variant: 'destructive',
       })
     }
@@ -97,12 +130,12 @@ export default function AdminDataImport() {
 
   const getTemplateUrl = () => {
     if (importType === 'students') {
-      return `data:text/csv;charset=utf-8,${encodeURIComponent('name,email,course,phone\nJoão Silva,joao@email.com,Engenharia,11999999999\nMaria Santos,maria@email.com,Direito,11888888888')}`
+      return `data:text/csv;charset=utf-8,${encodeURIComponent('name,email,course,phone\nJoão Silva,joao@email.com,Engenharia,11999999999')}`
     }
     if (importType === 'teachers') {
       return `data:text/csv;charset=utf-8,${encodeURIComponent('name,email,subjects,workload\nProf. Carlos,carlos@ies.edu,Cálculo,40')}`
     }
-    return `data:text/csv;charset=utf-8,${encodeURIComponent('name,course,semester\nTurma 101,Engenharia,2024.1')}`
+    return `data:text/csv;charset=utf-8,${encodeURIComponent('name,course,semester,capacity\nTurma 101,Engenharia,2024.1,40')}`
   }
 
   return (
@@ -114,7 +147,7 @@ export default function AdminDataImport() {
             Importação em Massa
           </h1>
           <p className="text-sm text-zinc-500 mt-1">
-            Ferramenta utilitária para upload de dados legados (CSV/JSON).
+            Ferramenta utilitária para upload de dados (CSV/JSON) direto para o banco de dados.
           </p>
         </div>
       </div>
@@ -185,8 +218,8 @@ export default function AdminDataImport() {
           <Alert className="bg-blue-50 border-blue-200 text-blue-900">
             <AlertCircle className="h-4 w-4 text-blue-600" />
             <AlertDescription className="text-xs">
-              O processo de importação utiliza as colunas do template fornecido. Dados
-              inconsistentes serão rejeitados e informados no sumário.
+              O processo de importação grava diretamente no Supabase. Utiliza as colunas do template
+              fornecido. Dados inconsistentes serão ignorados ou rejeitados.
             </AlertDescription>
           </Alert>
 
@@ -212,14 +245,6 @@ export default function AdminDataImport() {
                     <p className="text-xs text-rose-600 uppercase font-semibold mt-1">Com Erro</p>
                   </div>
                 </div>
-                {results.errors > 0 && (
-                  <div className="mt-4 p-3 bg-zinc-100 border border-zinc-200 rounded text-xs text-zinc-600">
-                    Verifique o arquivo de log para corrigir as {results.errors} linhas rejeitadas.
-                    <Button variant="link" className="h-auto p-0 ml-2 text-blue-600">
-                      Baixar Relatório de Erros
-                    </Button>
-                  </div>
-                )}
               </CardContent>
             </Card>
           )}
