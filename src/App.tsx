@@ -280,7 +280,6 @@ function App() {
                   <Route path="communication-logs" element={<CommunicationLogs />} />
                   <Route path="registry/:id" element={<RegistryView />} />
                   <Route path="backup" element={<BackupSettings />} />
-                  <Route path="security" element={<SecurityCameras />} />
                   <Route path="events" element={<Events />} />
                   <Route path="surveys" element={<Surveys />} />
                   <Route path="data-import" element={<AdminDataImport />} />

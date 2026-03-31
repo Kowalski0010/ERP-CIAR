@@ -14,10 +14,7 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import { useAppStore } from '@/contexts/AppContext'
 import { Disciplina } from '@/lib/types'
-import {
-  addDisciplina as addDisciplinaDb,
-  updateDisciplina as updateDisciplinaDb,
-} from '@/services/db'
+import { supabase } from '@/lib/supabase/client'
 
 const schema = z.object({
   name: z.string().min(3, 'Nome da disciplina obrigatório'),
@@ -52,15 +49,44 @@ export function DisciplinaForm({
   const onSubmit = async (data: z.infer<typeof schema>) => {
     try {
       if (initialData?.id) {
-        const updated = await updateDisciplinaDb(initialData.id, data)
-        updateDisciplina(initialData.id, updated)
+        const { data: updated, error } = await supabase
+          .from('disciplinas')
+          .update({
+            name: data.name,
+            workload: data.workload,
+            teacher: data.teacher || null,
+            course: data.course || null,
+            observations: data.observations || null,
+          })
+          .eq('id', initialData.id)
+          .select()
+          .single()
+
+        if (error) throw error
+
+        updateDisciplina(initialData.id, updated as any)
         toast({
           title: 'Disciplina Atualizada',
           description: 'Registro atualizado com sucesso no banco de dados.',
         })
       } else {
-        const saved = await addDisciplinaDb(data)
-        addDisciplina(saved)
+        const { data: saved, error } = await supabase
+          .from('disciplinas')
+          .insert([
+            {
+              name: data.name,
+              workload: data.workload,
+              teacher: data.teacher || null,
+              course: data.course || null,
+              observations: data.observations || null,
+            },
+          ])
+          .select()
+          .single()
+
+        if (error) throw error
+
+        addDisciplina(saved as any)
         toast({
           title: 'Disciplina Salva',
           description: 'Registro criado com sucesso no banco de dados.',
@@ -68,7 +94,7 @@ export function DisciplinaForm({
       }
       onCancel()
     } catch (error) {
-      console.error(error)
+      console.error('Erro ao salvar disciplina:', error)
       toast({
         title: 'Erro',
         description: 'Falha ao salvar a disciplina permanentemente.',
