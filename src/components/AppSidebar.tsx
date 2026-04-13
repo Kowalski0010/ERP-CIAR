@@ -114,6 +114,8 @@ const appModules = [
     icon: DollarSign,
     items: [
       { title: 'Pagamentos e Faturas', url: '/financial/payments' },
+      { title: 'Controle de Lançamentos', url: '/financial/transactions' },
+      { title: 'Plano de Contas', url: '/financial/accounts' },
       { title: 'Fluxo de Caixa', url: '/financial/cash-flow' },
       { title: 'Análise Financeira (BI)', url: '/financial/analytics' },
       { title: 'Integrações Oficiais', url: '/admin/integrations' },

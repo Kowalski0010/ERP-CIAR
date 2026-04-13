@@ -142,6 +142,26 @@ export type CashFlowTransaction = {
   amount: number
 }
 
+export type FinancialAccount = {
+  id: string
+  name: string
+  type: 'Receita' | 'Despesa'
+  description?: string
+  createdAt: string
+}
+
+export type FinancialTransaction = {
+  id: string
+  accountId?: string
+  accountName?: string
+  description: string
+  amount: number
+  type: 'Receita' | 'Despesa'
+  date: string
+  status: 'Realizado' | 'Previsto'
+  createdAt: string
+}
+
 export type FinancialPlan = {
   installments: number
   value: number

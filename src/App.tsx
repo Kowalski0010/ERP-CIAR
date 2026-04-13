@@ -64,6 +64,8 @@ import Certificados from './pages/secretaria/Certificados'
 import Payments from './pages/financial/Payments'
 import CashFlow from './pages/financial/CashFlow'
 import FinancialAnalytics from './pages/financial/FinancialAnalytics'
+import ChartOfAccounts from './pages/financial/ChartOfAccounts'
+import FinancialTransactions from './pages/financial/FinancialTransactions'
 
 // Commercial
 import Leads from './pages/commercial/Leads'
@@ -238,6 +240,8 @@ function App() {
                   <Route path="payments" element={<Payments />} />
                   <Route path="cash-flow" element={<CashFlow />} />
                   <Route path="analytics" element={<FinancialAnalytics />} />
+                  <Route path="accounts" element={<ChartOfAccounts />} />
+                  <Route path="transactions" element={<FinancialTransactions />} />
                 </Route>
 
                 {/* Commercial CRM */}
