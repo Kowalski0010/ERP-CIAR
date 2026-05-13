@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAppStore } from '@/contexts/AppContext'
+import logoCiar from '@/assets/logo-ciar-copia-fd838.pdf'
 import {
   Search,
   CalendarDays,
@@ -219,16 +220,12 @@ export function AppSidebar() {
   return (
     <Sidebar className="border-r border-border bg-card shadow-sm font-sans" collapsible="icon">
       <SidebarHeader className="p-0 border-b-0">
-        <div className="flex flex-col items-center justify-center pt-8 pb-4 group-data-[collapsible=icon]:hidden">
-          <div className="relative flex items-center justify-center h-20 w-20 mb-2">
-            <div className="absolute w-12 h-12 rounded-full bg-primary top-0 left-2 opacity-90 mix-blend-multiply flex items-center justify-center">
-              <div className="w-4 h-4 bg-background rounded-full absolute -top-1 -right-1" />
-            </div>
-            <div className="absolute w-14 h-14 rounded-full bg-emerald-500 bottom-0 right-1 opacity-90 mix-blend-multiply flex items-center justify-center">
-              <div className="w-5 h-5 bg-background rounded-full absolute -top-1 -left-1" />
-            </div>
-          </div>
-          <span className="text-3xl font-extrabold text-primary tracking-[0.2em] mt-1">CIAR</span>
+        <div className="flex flex-col items-center justify-center pt-8 pb-4 group-data-[collapsible=icon]:hidden px-6">
+          <img
+            src={logoCiar}
+            alt="Logo CIAR"
+            className="w-full max-w-[140px] object-contain mb-2"
+          />
         </div>
         <div className="px-4 pb-4 pt-2 group-data-[collapsible=icon]:hidden">
           <div className="relative">

@@ -3,6 +3,7 @@ import { useAppStore } from '@/contexts/AppContext'
 import { useAuth } from '@/hooks/use-auth'
 import { useNavigate, Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import logoCiar from '@/assets/logo-ciar-copia-fd838.pdf'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -65,11 +66,11 @@ export default function Login() {
     <div className="min-h-screen bg-muted/30 dark:bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-lg border-border">
         <CardHeader className="text-center space-y-2 pb-4">
-          <div className="mx-auto w-16 h-16 bg-primary rounded-xl flex items-center justify-center mb-4">
-            <Lock className="w-8 h-8 text-primary-foreground" />
+          <div className="mx-auto mb-2 flex justify-center">
+            <img src={logoCiar} alt="CIAR" className="h-16 object-contain" />
           </div>
           <CardTitle className="text-2xl font-bold tracking-tight text-primary">
-            CIAR Portal
+            Portal de Acesso
           </CardTitle>
           <CardDescription>Faça login para acessar o sistema integrado</CardDescription>
         </CardHeader>
