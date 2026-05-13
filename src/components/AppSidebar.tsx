@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAppStore } from '@/contexts/AppContext'
-import logoCiar from '@/assets/logo-ciar-copia-fd838.pdf'
+import logoCiar from '@/assets/logo-ciar-e8b89.png'
 import {
   Search,
   CalendarDays,
