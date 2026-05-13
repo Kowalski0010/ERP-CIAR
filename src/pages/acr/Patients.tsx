@@ -62,8 +62,8 @@ import {
 
 const patientSchema = z.object({
   name: z.string().min(3, 'O nome deve ter no mínimo 3 caracteres'),
-  email: z.string().email('E-mail inválido. Verifique a formatação'),
-  phone: z.string().min(10, 'Telefone deve ter DDD e número válidos'),
+  email: z.string().email('E-mail inválido. Verifique a formatação').or(z.literal('')).optional(),
+  phone: z.string().or(z.literal('')).optional(),
   birthDate: z.string().min(1, 'A data de nascimento é obrigatória'),
   background: z.string().min(10, 'Descreva o motivo da busca (mínimo de 10 caracteres)'),
   rgDoc: z.string().optional(),
@@ -151,10 +151,10 @@ export default function Patients() {
     setEditItem(p)
     form.reset({
       name: p.name,
-      email: p.email,
-      phone: p.phone,
-      birthDate: p.birthDate,
-      background: p.background,
+      email: p.email || '',
+      phone: p.phone || '',
+      birthDate: p.birthDate || '',
+      background: p.background || '',
       rgDoc: '',
       cpfDoc: '',
       addressDoc: '',
@@ -229,8 +229,8 @@ export default function Patients() {
 
     const baseData = {
       name: data.name,
-      email: data.email,
-      phone: data.phone,
+      email: data.email || '',
+      phone: data.phone || '',
       birthDate: data.birthDate,
       background: data.background,
     }
@@ -286,7 +286,7 @@ export default function Patients() {
   const filteredPatients = activePatients.filter(
     (p) =>
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.email.toLowerCase().includes(searchTerm.toLowerCase()),
+      (p.email && p.email.toLowerCase().includes(searchTerm.toLowerCase())),
   )
 
   const renderDocUpload = (name: any, label: string) => (
@@ -383,8 +383,10 @@ export default function Patients() {
                   <TableCell className="font-semibold text-sm">{p.name}</TableCell>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="text-xs text-foreground/80">{p.email}</span>
-                      <span className="text-[10px] text-muted-foreground">{p.phone}</span>
+                      <span className="text-xs text-foreground/80">{p.email || 'Sem e-mail'}</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {p.phone || 'Sem telefone'}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell className="text-xs text-foreground/70">
@@ -571,7 +573,7 @@ export default function Patients() {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Telefone / WhatsApp</FormLabel>
+                      <FormLabel>Telefone / WhatsApp (Opcional)</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -585,7 +587,7 @@ export default function Patients() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>E-mail</FormLabel>
+                    <FormLabel>E-mail (Opcional)</FormLabel>
                     <FormControl>
                       <Input type="email" {...field} />
                     </FormControl>
