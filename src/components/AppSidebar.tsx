@@ -220,21 +220,21 @@ export function AppSidebar() {
   return (
     <Sidebar className="border-r border-border bg-card shadow-sm font-sans" collapsible="icon">
       <SidebarHeader className="p-0 border-b-0">
-        <div className="flex flex-col items-center justify-center pt-8 pb-4 group-data-[collapsible=icon]:hidden px-6">
+        <div className="flex flex-col items-center justify-center pt-4 pb-2 group-data-[collapsible=icon]:hidden px-6">
           <img
             src={logoCiar}
             alt="Logo CIAR"
-            className="w-full max-w-[140px] object-contain mb-2"
+            className="w-full max-w-[120px] object-contain mb-1"
           />
         </div>
-        <div className="px-4 pb-4 pt-2 group-data-[collapsible=icon]:hidden">
+        <div className="px-4 pb-2 pt-0 group-data-[collapsible=icon]:hidden">
           <div className="relative">
             <Input
               type="search"
               placeholder="Pesquisar..."
-              className="pl-3 pr-8 h-9 text-xs border-input bg-background focus-visible:ring-primary"
+              className="pl-3 pr-8 h-8 text-xs border-input bg-background focus-visible:ring-primary"
             />
-            <Search className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute right-2.5 top-2 h-4 w-4 text-muted-foreground" />
           </div>
         </div>
       </SidebarHeader>
@@ -343,14 +343,14 @@ export function AppSidebar() {
           </SidebarMenu>
         </SidebarGroup>
 
-        <div className="mt-2 bg-zinc-900 dark:bg-zinc-950 flex-1 pb-4 group-data-[collapsible=icon]:bg-transparent overflow-y-auto">
+        <div className="mt-0 bg-zinc-900 dark:bg-zinc-950 flex-1 pb-4 group-data-[collapsible=icon]:bg-transparent overflow-y-auto">
           <SidebarGroup className="p-0">
             <SidebarMenu className="gap-0">
               {filteredModules.map((module) => (
                 <Collapsible key={module.title} defaultOpen={false} className="group/root">
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
-                      <SidebarMenuButton className="rounded-none h-11 px-4 border-b border-zinc-800 dark:border-zinc-800/50 text-zinc-300 hover:bg-zinc-800 hover:text-white dark:hover:bg-zinc-900 text-[13px] font-medium group-data-[collapsible=icon]:text-muted-foreground group-data-[collapsible=icon]:border-none">
+                      <SidebarMenuButton className="rounded-none h-10 px-4 border-b border-zinc-800 dark:border-zinc-800/50 text-zinc-300 hover:bg-zinc-800 hover:text-white dark:hover:bg-zinc-900 text-[13px] font-medium group-data-[collapsible=icon]:text-muted-foreground group-data-[collapsible=icon]:border-none">
                         <module.icon className="h-[18px] w-[18px]" />
                         <span className="group-data-[collapsible=icon]:hidden">{module.title}</span>
                         {module.items && (
@@ -365,7 +365,7 @@ export function AppSidebar() {
                           <SidebarMenuSubItem key={item.title}>
                             <SidebarMenuSubButton
                               asChild
-                              className="rounded-none h-10 pl-11 pr-4 text-zinc-400 hover:bg-zinc-800 hover:text-white dark:hover:bg-zinc-800/50 text-[12px] font-medium border-b border-zinc-900 dark:border-zinc-800"
+                              className="rounded-none h-9 pl-11 pr-4 text-zinc-400 hover:bg-zinc-800 hover:text-white dark:hover:bg-zinc-800/50 text-[12px] font-medium border-b border-zinc-900 dark:border-zinc-800"
                             >
                               <Link to={item.url}>{item.title}</Link>
                             </SidebarMenuSubButton>
