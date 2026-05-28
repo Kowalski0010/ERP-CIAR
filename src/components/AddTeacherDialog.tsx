@@ -25,9 +25,9 @@ import { supabase } from '@/lib/supabase/client'
 const teacherSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
   email: z.string().email('E-mail inválido').optional().or(z.literal('')),
-  phone: z.string().optional(),
-  cpf: z.string().optional(),
-  rg: z.string().optional(),
+  phone: z.string().optional().or(z.literal('')),
+  cpf: z.string().optional().or(z.literal('')),
+  rg: z.string().optional().or(z.literal('')),
   subjects: z.string().optional(),
   workload: z.coerce.number().optional(),
 })
@@ -144,7 +144,7 @@ export function AddTeacherDialog({ open, onOpenChange, onSuccess }: AddTeacherDi
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Telefone</FormLabel>
+                    <FormLabel>Telefone (Opcional)</FormLabel>
                     <FormControl>
                       <Input placeholder="(11) 90000-0000" {...field} />
                     </FormControl>

@@ -55,10 +55,10 @@ import { Teacher } from '@/lib/types'
 
 const editTeacherSchema = z.object({
   name: z.string().min(3, 'Obrigatório'),
-  email: z.string().email('Inválido'),
-  phone: z.string(),
-  cpf: z.string(),
-  rg: z.string(),
+  email: z.string().email('Inválido').optional().or(z.literal('')),
+  phone: z.string().optional().or(z.literal('')),
+  cpf: z.string().optional().or(z.literal('')),
+  rg: z.string().optional().or(z.literal('')),
   subjects: z.string().min(2),
   workload: z.coerce.number().min(1),
 })
@@ -106,10 +106,10 @@ export default function Teachers() {
     setEditItem(t)
     editForm.reset({
       name: t.name,
-      email: t.email,
-      phone: t.phone,
-      cpf: t.cpf,
-      rg: t.rg,
+      email: t.email || '',
+      phone: t.phone || '',
+      cpf: t.cpf || '',
+      rg: t.rg || '',
       subjects: t.subjects.join(', '),
       workload: t.workload,
     })
@@ -134,6 +134,10 @@ export default function Teachers() {
       () => {
         updateTeacher(editItem!.id, {
           ...data,
+          phone: data.phone === '' ? null : data.phone,
+          email: data.email === '' ? null : data.email,
+          cpf: data.cpf === '' ? null : data.cpf,
+          rg: data.rg === '' ? null : data.rg,
           subjects: data.subjects.split(',').map((s) => s.trim()),
         })
         toast({ title: 'Atualizado', description: 'Dados salvos com sucesso.' })
@@ -382,7 +386,7 @@ export default function Teachers() {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Telefone</FormLabel>
+                      <FormLabel>Telefone (Opcional)</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>

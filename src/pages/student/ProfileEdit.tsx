@@ -59,7 +59,7 @@ export default function ProfileEdit() {
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-                  Telefone Celular
+                  Telefone Celular (Opcional)
                 </Label>
                 <Input defaultValue={student.phone || ''} className="h-9" />
               </div>

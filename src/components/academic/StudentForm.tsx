@@ -31,9 +31,9 @@ import { FileUpload } from '@/components/FileUpload'
 const studentSchema = z.object({
   name: z.string().min(3, 'Nome obrigatório'),
   email: z.string().email('E-mail inválido').optional().or(z.literal('')),
-  phone: z.string().optional(),
-  cpf: z.string().optional(),
-  rg: z.string().optional(),
+  phone: z.string().optional().or(z.literal('')),
+  cpf: z.string().optional().or(z.literal('')),
+  rg: z.string().optional().or(z.literal('')),
   rgIssuer: z.string().optional(),
   nationality: z.string().optional(),
   birthCity: z.string().optional(),
@@ -242,8 +242,8 @@ export function StudentForm({
           <TabsContent value="pessoais" className="space-y-4 mt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {renderInput('name', 'Nome Completo', 'text', 'Nome do Aluno')}
-              {renderInput('email', 'E-mail', 'email')}
-              {renderInput('phone', 'Telefone Celular', 'text', '(00) 00000-0000')}
+              {renderInput('email', 'E-mail (Opcional)', 'email')}
+              {renderInput('phone', 'Telefone Celular (Opcional)', 'text', '(00) 00000-0000')}
               {renderInput('cpf', 'CPF', 'text', '000.000.000-00')}
               {renderInput('rg', 'RG')}
               {renderInput('rgIssuer', 'Órgão Emissor')}
