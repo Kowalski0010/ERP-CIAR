@@ -25,8 +25,10 @@ import { Curso } from '@/lib/types'
 
 const schema = z.object({
   name: z.string().min(3, 'Nome do curso é obrigatório'),
-  mode: z.string().min(1, 'Modalidade obrigatória'),
-  duration: z.coerce.number().min(1, 'Duração deve ser maior que zero'),
+  mode: z.string().optional(),
+  duration: z
+    .union([z.coerce.number().min(1, 'Duração deve ser maior que zero'), z.literal('')])
+    .optional(),
   description: z.string().optional(),
 })
 
@@ -52,11 +54,18 @@ export function CursoForm({
   })
 
   const onSubmit = (data: z.infer<typeof schema>) => {
+    const cleanData = {
+      ...data,
+      mode: data.mode === '' ? null : data.mode,
+      duration: data.duration === '' ? null : data.duration,
+      description: data.description === '' ? null : data.description,
+    } as any
+
     if (initialData?.id) {
-      updateCurso(initialData.id, data)
+      updateCurso(initialData.id, cleanData)
       toast({ title: 'Curso Atualizado', description: 'Registro atualizado com sucesso.' })
     } else {
-      addCurso(data)
+      addCurso(cleanData)
       toast({ title: 'Curso Salvo', description: 'Registro criado com sucesso.' })
     }
     onCancel()

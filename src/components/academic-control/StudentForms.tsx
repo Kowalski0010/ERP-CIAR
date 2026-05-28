@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/use-toast'
 const editarSchema = z.object({
   id: z.string().min(1, 'Matrícula é obrigatória'),
   name: z.string().min(3, 'Nome obrigatório'),
-  email: z.string().email('E-mail inválido'),
+  email: z.string().email('E-mail inválido').optional().or(z.literal('')),
 })
 
 export function EditarAlunoForm({ onCancel }: { onCancel: () => void }) {
@@ -28,6 +28,7 @@ export function EditarAlunoForm({ onCancel }: { onCancel: () => void }) {
   })
 
   const onSubmit = (data: z.infer<typeof editarSchema>) => {
+    const cleanData = { ...data, email: data.email === '' ? null : data.email }
     toast({ title: 'Aluno Atualizado', description: 'Registro acadêmico modificado.' })
     onCancel()
   }

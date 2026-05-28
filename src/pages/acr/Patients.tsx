@@ -64,8 +64,8 @@ const patientSchema = z.object({
   name: z.string().min(3, 'O nome deve ter no mínimo 3 caracteres'),
   email: z.string().email('E-mail inválido. Verifique a formatação').or(z.literal('')).optional(),
   phone: z.string().or(z.literal('')).optional(),
-  birthDate: z.string().min(1, 'A data de nascimento é obrigatória'),
-  background: z.string().min(10, 'Descreva o motivo da busca (mínimo de 10 caracteres)'),
+  birthDate: z.string().optional().or(z.literal('')),
+  background: z.string().optional().or(z.literal('')),
   rgDoc: z.string().optional(),
   cpfDoc: z.string().optional(),
   addressDoc: z.string().optional(),
@@ -229,10 +229,10 @@ export default function Patients() {
 
     const baseData = {
       name: data.name,
-      email: data.email || '',
-      phone: data.phone || '',
-      birthDate: data.birthDate,
-      background: data.background,
+      email: data.email === '' ? null : data.email,
+      phone: data.phone === '' ? null : data.phone,
+      birthDate: data.birthDate === '' ? null : data.birthDate,
+      background: data.background === '' ? null : data.background,
     }
 
     if (editItem) {
@@ -390,10 +390,12 @@ export default function Patients() {
                     </div>
                   </TableCell>
                   <TableCell className="text-xs text-foreground/70">
-                    {new Date(p.birthDate).toLocaleDateString('pt-BR')}
+                    {p.birthDate ? new Date(p.birthDate).toLocaleDateString('pt-BR') : '-'}
                   </TableCell>
                   <TableCell className="text-xs text-foreground/70">
-                    {new Date(p.registrationDate).toLocaleDateString('pt-BR')}
+                    {p.registrationDate
+                      ? new Date(p.registrationDate).toLocaleDateString('pt-BR')
+                      : '-'}
                   </TableCell>
                   <TableCell className="text-right p-2">
                     <DropdownMenu>

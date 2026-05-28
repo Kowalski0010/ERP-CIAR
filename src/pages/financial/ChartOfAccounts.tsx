@@ -48,8 +48,8 @@ import {
 
 const accountSchema = z.object({
   name: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres.'),
-  type: z.enum(['Receita', 'Despesa']),
-  description: z.string().optional(),
+  type: z.enum(['Receita', 'Despesa']).optional().default('Despesa'),
+  description: z.string().optional().or(z.literal('')),
 })
 
 export default function ChartOfAccounts() {
@@ -101,7 +101,11 @@ export default function ChartOfAccounts() {
 
   const onSubmit = async (data: z.infer<typeof accountSchema>) => {
     try {
-      await saveFinancialAccount({ ...data, id: editItem?.id })
+      const cleanData = {
+        ...data,
+        description: data.description === '' ? null : data.description,
+      } as any
+      await saveFinancialAccount({ ...cleanData, id: editItem?.id })
       toast({ title: 'Sucesso', description: 'Conta salva com sucesso.' })
       setIsFormOpen(false)
       loadData()

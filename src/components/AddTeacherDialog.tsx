@@ -68,12 +68,12 @@ export function AddTeacherDialog({ open, onOpenChange, onSuccess }: AddTeacherDi
         .insert([
           {
             name: data.name,
-            email: data.email || null,
-            phone: data.phone || null,
-            cpf: data.cpf || null,
-            rg: data.rg || null,
-            subjects: data.subjects || null,
-            workload: data.workload || 40,
+            email: data.email === '' ? null : data.email,
+            phone: data.phone === '' ? null : data.phone,
+            cpf: data.cpf === '' ? null : data.cpf,
+            rg: data.rg === '' ? null : data.rg,
+            subjects: data.subjects === '' ? null : data.subjects,
+            workload: data.workload || null,
             status: 'Ativo',
           },
         ])
@@ -90,12 +90,12 @@ export function AddTeacherDialog({ open, onOpenChange, onSuccess }: AddTeacherDi
         id: Math.random().toString(36).substr(2, 9),
         registrationCode,
         name: data.name,
-        email: data.email,
-        phone: data.phone,
-        cpf: data.cpf,
-        rg: data.rg,
+        email: data.email === '' ? null : data.email,
+        phone: data.phone === '' ? null : data.phone,
+        cpf: data.cpf === '' ? null : data.cpf,
+        rg: data.rg === '' ? null : data.rg,
         subjects: data.subjects ? data.subjects.split(',').map((s) => s.trim()) : [],
-        workload: data.workload || 40,
+        workload: data.workload || null,
         status: 'Ativo',
       }
       onSuccess(teacher as any)

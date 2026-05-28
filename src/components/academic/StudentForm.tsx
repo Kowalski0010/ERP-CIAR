@@ -54,8 +54,8 @@ const studentSchema = z.object({
     })
     .optional(),
   // Financial Plan
-  planInstallments: z.coerce.number().min(1, 'Mínimo 1').optional(),
-  planValue: z.coerce.number().min(0, 'Valor inválido').optional(),
+  planInstallments: z.union([z.coerce.number().min(1, 'Mínimo 1'), z.literal('')]).optional(),
+  planValue: z.union([z.coerce.number().min(0, 'Valor inválido'), z.literal('')]).optional(),
   planFirstDueDate: z.string().optional(),
   // Docs
   avatar: z.string().optional(),
@@ -126,24 +126,38 @@ export function StudentForm({
   const onSubmit = async (data: z.infer<typeof studentSchema>) => {
     setLoading(true)
     try {
+      const sanitize = (val: any): any => {
+        if (val === '') return null
+        if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
+          const cleanObj: any = {}
+          for (const key in val) {
+            cleanObj[key] = sanitize(val[key])
+          }
+          return cleanObj
+        }
+        return val
+      }
+
+      const cleanData = sanitize(data)
+
       if (initialData?.id) {
-        await updateStudent(initialData.id, data)
+        await updateStudent(initialData.id, cleanData)
         toast({ title: 'Sucesso', description: 'Aluno atualizado com sucesso.' })
       } else {
         const newStudent = await addStudent({
-          ...data,
+          ...cleanData,
           status: 'Ativo',
           enrollmentDate: new Date().toISOString(),
         })
 
         // Se for aluno novo e tiver plano financeiro preenchido, gera os pagamentos
-        if (data.planInstallments && data.planValue && data.planFirstDueDate) {
+        if (cleanData.planInstallments && cleanData.planValue && cleanData.planFirstDueDate) {
           await createInstallments(
             newStudent.id,
             newStudent.name,
-            data.planInstallments,
-            data.planValue,
-            data.planFirstDueDate,
+            cleanData.planInstallments,
+            cleanData.planValue,
+            cleanData.planFirstDueDate,
           )
         }
 

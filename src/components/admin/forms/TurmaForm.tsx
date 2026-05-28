@@ -25,12 +25,14 @@ import { addClass as addClassDb, updateClass as updateClassDb } from '@/services
 
 const schema = z.object({
   name: z.string().min(3, 'Nome da turma obrigatório'),
-  course: z.string().min(2, 'Curso obrigatório'),
-  semester: z.string().min(1, 'Semestre obrigatório'),
-  capacity: z.coerce.number().min(1, 'Capacidade deve ser maior que zero'),
-  room: z.string().optional(),
-  year: z.string().optional(),
-  shift: z.string().optional(),
+  course: z.string().optional().or(z.literal('')),
+  semester: z.string().optional().or(z.literal('')),
+  capacity: z
+    .union([z.coerce.number().min(1, 'Capacidade deve ser maior que zero'), z.literal('')])
+    .optional(),
+  room: z.string().optional().or(z.literal('')),
+  year: z.string().optional().or(z.literal('')),
+  shift: z.string().optional().or(z.literal('')),
 })
 
 export function TurmaForm({
@@ -59,8 +61,18 @@ export function TurmaForm({
 
   const onSubmit = async (data: z.infer<typeof schema>) => {
     try {
+      const cleanData = {
+        ...data,
+        course: data.course === '' ? null : data.course,
+        semester: data.semester === '' ? null : data.semester,
+        capacity: data.capacity === '' ? null : data.capacity,
+        room: data.room === '' ? null : data.room,
+        year: data.year === '' ? null : data.year,
+        shift: data.shift === '' ? null : data.shift,
+      } as any
+
       if (initialData?.id) {
-        const updated = await updateClassDb(initialData.id, data)
+        const updated = await updateClassDb(initialData.id, cleanData)
         updateClass(initialData.id, updated)
         toast({
           title: 'Turma Atualizada',
@@ -68,7 +80,7 @@ export function TurmaForm({
         })
       } else {
         const newClass = {
-          ...data,
+          ...cleanData,
           id: `T${Math.floor(Math.random() * 1000)}`,
         }
         const saved = await addClassDb(newClass)
