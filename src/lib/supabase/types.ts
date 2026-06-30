@@ -42,6 +42,45 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_posts: {
+        Row: {
+          author: string | null
+          category: string | null
+          content: string
+          created_at: string | null
+          excerpt: string | null
+          id: string
+          image_url: string | null
+          published_at: string | null
+          slug: string
+          title: string
+        }
+        Insert: {
+          author?: string | null
+          category?: string | null
+          content: string
+          created_at?: string | null
+          excerpt?: string | null
+          id?: string
+          image_url?: string | null
+          published_at?: string | null
+          slug: string
+          title: string
+        }
+        Update: {
+          author?: string | null
+          category?: string | null
+          content?: string
+          created_at?: string | null
+          excerpt?: string | null
+          id?: string
+          image_url?: string | null
+          published_at?: string | null
+          slug?: string
+          title?: string
+        }
+        Relationships: []
+      }
       classes: {
         Row: {
           capacity: number
@@ -206,6 +245,30 @@ export type Database = {
           },
         ]
       }
+      partners: {
+        Row: {
+          created_at: string | null
+          id: string
+          logo_url: string
+          name: string
+          order_index: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          logo_url: string
+          name: string
+          order_index?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          logo_url?: string
+          name?: string
+          order_index?: number | null
+        }
+        Relationships: []
+      }
       payment_plans: {
         Row: {
           created_at: string | null
@@ -305,6 +368,36 @@ export type Database = {
         }
         Relationships: []
       }
+      site_content: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          id: string
+          key: string
+          label: string
+          sort_order: number | null
+          value: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          key: string
+          label: string
+          sort_order?: number | null
+          value: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          key?: string
+          label?: string
+          sort_order?: number | null
+          value?: string
+        }
+        Relationships: []
+      }
       students: {
         Row: {
           address_city: string | null
@@ -394,37 +487,52 @@ export type Database = {
       }
       teachers: {
         Row: {
+          avatar_url: string | null
           cpf: string | null
           created_at: string | null
           email: string | null
+          featured: boolean | null
           id: string
           name: string
+          order_index: number | null
           phone: string | null
+          qualifications: string | null
           rg: string | null
+          role: string | null
           status: string | null
           subjects: string | null
           workload: number | null
         }
         Insert: {
+          avatar_url?: string | null
           cpf?: string | null
           created_at?: string | null
           email?: string | null
+          featured?: boolean | null
           id?: string
           name: string
+          order_index?: number | null
           phone?: string | null
+          qualifications?: string | null
           rg?: string | null
+          role?: string | null
           status?: string | null
           subjects?: string | null
           workload?: number | null
         }
         Update: {
+          avatar_url?: string | null
           cpf?: string | null
           created_at?: string | null
           email?: string | null
+          featured?: boolean | null
           id?: string
           name?: string
+          order_index?: number | null
           phone?: string | null
+          qualifications?: string | null
           rg?: string | null
+          role?: string | null
           status?: string | null
           subjects?: string | null
           workload?: number | null
@@ -567,231 +675,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-
-// ====== DATABASE EXTENDED CONTEXT (auto-generated) ======
-// This section contains actual PostgreSQL column types, constraints, RLS policies,
-// functions, triggers, indexes and materialized views not present in the type definitions above.
-// IMPORTANT: The TypeScript types above map UUID, TEXT, VARCHAR all to "string".
-// Use the COLUMN TYPES section below to know the real PostgreSQL type for each column.
-// Always use the correct PostgreSQL type when writing SQL migrations.
-
-// --- COLUMN TYPES (actual PostgreSQL types) ---
-// Use this to know the real database type when writing migrations.
-// "string" in TypeScript types above may be uuid, text, varchar, timestamptz, etc.
-// Table: acr_patients
-//   id: text (not null, default: (gen_random_uuid())::text)
-//   name: text (not null)
-//   email: text (nullable)
-//   phone: text (nullable)
-//   birth_date: date (nullable)
-//   background: text (nullable)
-//   registration_date: timestamp with time zone (nullable, default: now())
-//   attachments: jsonb (nullable, default: '[]'::jsonb)
-// Table: classes
-//   id: text (not null, default: (gen_random_uuid())::text)
-//   name: text (not null)
-//   course: text (not null)
-//   semester: text (not null)
-//   capacity: integer (not null, default: 40)
-//   room: text (nullable)
-//   year: text (nullable)
-//   shift: text (nullable)
-//   created_at: timestamp with time zone (nullable, default: now())
-// Table: courses
-//   id: text (not null, default: (gen_random_uuid())::text)
-//   name: text (not null)
-//   mode: text (not null)
-//   duration: integer (not null)
-//   status: text (nullable, default: 'Ativo'::text)
-//   description: text (nullable)
-//   created_at: timestamp with time zone (nullable, default: now())
-// Table: disciplinas
-//   id: text (not null, default: (gen_random_uuid())::text)
-//   name: text (not null)
-//   workload: integer (not null)
-//   status: text (nullable, default: 'Ativo'::text)
-//   date: timestamp with time zone (nullable, default: now())
-//   teacher: text (nullable)
-//   course: text (nullable)
-//   observations: text (nullable)
-// Table: financial_accounts
-//   id: uuid (not null, default: gen_random_uuid())
-//   name: text (not null)
-//   type: text (not null)
-//   description: text (nullable)
-//   created_at: timestamp with time zone (nullable, default: now())
-// Table: financial_transactions
-//   id: uuid (not null, default: gen_random_uuid())
-//   account_id: uuid (nullable)
-//   description: text (not null)
-//   amount: numeric (not null)
-//   type: text (not null)
-//   date: date (not null)
-//   status: text (not null)
-//   created_at: timestamp with time zone (nullable, default: now())
-// Table: payment_plans
-//   id: text (not null, default: (gen_random_uuid())::text)
-//   name: text (not null)
-//   target: text (not null)
-//   value: numeric (not null)
-//   installments: integer (not null)
-//   status: text (nullable, default: 'Ativo'::text)
-//   created_at: timestamp with time zone (nullable, default: now())
-// Table: payments
-//   id: text (not null, default: (gen_random_uuid())::text)
-//   student_id: text (nullable)
-//   student_name: text (nullable)
-//   amount: numeric (not null)
-//   due_date: date (not null)
-//   status: text (nullable, default: 'Pendente'::text)
-//   installment_number: integer (nullable)
-//   total_installments: integer (nullable)
-//   attachments: jsonb (nullable, default: '[]'::jsonb)
-//   created_at: timestamp with time zone (nullable, default: now())
-// Table: schedules
-//   id: text (not null, default: (gen_random_uuid())::text)
-//   course: text (not null)
-//   subject: text (not null)
-//   days: text (not null)
-//   time: text (not null)
-//   room: text (nullable)
-//   created_at: timestamp with time zone (nullable, default: now())
-// Table: students
-//   id: text (not null, default: (gen_random_uuid())::text)
-//   name: text (not null)
-//   email: text (nullable)
-//   phone: text (nullable)
-//   cpf: text (nullable)
-//   rg: text (nullable)
-//   course: text (nullable)
-//   status: text (nullable, default: 'Ativo'::text)
-//   enrollment_date: timestamp with time zone (nullable, default: now())
-//   avatar: text (nullable)
-//   created_at: timestamp with time zone (nullable, default: now())
-//   registration_code: text (nullable)
-//   nationality: text (nullable)
-//   birth_city: text (nullable)
-//   birth_date: date (nullable)
-//   rg_issuer: text (nullable)
-//   marital_status: text (nullable)
-//   mother_name: text (nullable)
-//   father_name: text (nullable)
-//   address_street: text (nullable)
-//   address_number: text (nullable)
-//   address_neighborhood: text (nullable)
-//   address_city: text (nullable)
-//   address_state: text (nullable)
-//   address_zip: text (nullable)
-//   previous_graduation: text (nullable)
-// Table: teachers
-//   id: text (not null, default: (gen_random_uuid())::text)
-//   name: text (not null)
-//   email: text (nullable)
-//   phone: text (nullable)
-//   cpf: text (nullable)
-//   rg: text (nullable)
-//   subjects: text (nullable)
-//   workload: integer (nullable, default: 40)
-//   status: text (nullable, default: 'Ativo'::text)
-//   created_at: timestamp with time zone (nullable, default: now())
-
-// --- CONSTRAINTS ---
-// Table: acr_patients
-//   PRIMARY KEY acr_patients_pkey: PRIMARY KEY (id)
-// Table: classes
-//   PRIMARY KEY classes_pkey: PRIMARY KEY (id)
-// Table: courses
-//   PRIMARY KEY courses_pkey: PRIMARY KEY (id)
-// Table: disciplinas
-//   PRIMARY KEY disciplinas_pkey: PRIMARY KEY (id)
-// Table: financial_accounts
-//   PRIMARY KEY financial_accounts_pkey: PRIMARY KEY (id)
-//   CHECK financial_accounts_type_check: CHECK ((type = ANY (ARRAY['Receita'::text, 'Despesa'::text])))
-// Table: financial_transactions
-//   FOREIGN KEY financial_transactions_account_id_fkey: FOREIGN KEY (account_id) REFERENCES financial_accounts(id) ON DELETE SET NULL
-//   PRIMARY KEY financial_transactions_pkey: PRIMARY KEY (id)
-//   CHECK financial_transactions_status_check: CHECK ((status = ANY (ARRAY['Realizado'::text, 'Previsto'::text])))
-//   CHECK financial_transactions_type_check: CHECK ((type = ANY (ARRAY['Receita'::text, 'Despesa'::text])))
-// Table: payment_plans
-//   PRIMARY KEY payment_plans_pkey: PRIMARY KEY (id)
-// Table: payments
-//   PRIMARY KEY payments_pkey: PRIMARY KEY (id)
-// Table: schedules
-//   PRIMARY KEY schedules_pkey: PRIMARY KEY (id)
-// Table: students
-//   PRIMARY KEY students_pkey: PRIMARY KEY (id)
-// Table: teachers
-//   PRIMARY KEY teachers_pkey: PRIMARY KEY (id)
-
-// --- ROW LEVEL SECURITY POLICIES ---
-// Table: acr_patients
-//   Policy "authenticated_all_acr_patients" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: classes
-//   Policy "authenticated_all_classes" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: courses
-//   Policy "authenticated_delete_courses" (DELETE, PERMISSIVE) roles={authenticated}
-//     USING: true
-//   Policy "authenticated_insert_courses" (INSERT, PERMISSIVE) roles={authenticated}
-//     WITH CHECK: true
-//   Policy "authenticated_select_courses" (SELECT, PERMISSIVE) roles={authenticated}
-//     USING: true
-//   Policy "authenticated_update_courses" (UPDATE, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: disciplinas
-//   Policy "authenticated_all_disciplinas" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: financial_accounts
-//   Policy "authenticated_all_financial_accounts" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: financial_transactions
-//   Policy "authenticated_all_financial_transactions" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: payment_plans
-//   Policy "authenticated_all_payment_plans" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: payments
-//   Policy "authenticated_all_payments" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: schedules
-//   Policy "authenticated_all_schedules" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: students
-//   Policy "authenticated_all_students" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: teachers
-//   Policy "authenticated_all_teachers" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-
-// --- DATABASE FUNCTIONS ---
-// FUNCTION force_generate_id()
-//   CREATE OR REPLACE FUNCTION public.force_generate_id()
-//    RETURNS trigger
-//    LANGUAGE plpgsql
-//   AS $function$
-//   BEGIN
-//     IF NEW.id IS NULL THEN
-//       NEW.id := gen_random_uuid()::text;
-//     END IF;
-//     RETURN NEW;
-//   END;
-//   $function$
-//
-
-// --- TRIGGERS ---
-// Table: payments
-//   ensure_payment_id: CREATE TRIGGER ensure_payment_id BEFORE INSERT ON public.payments FOR EACH ROW EXECUTE FUNCTION force_generate_id()
-// Table: students
-//   ensure_student_id: CREATE TRIGGER ensure_student_id BEFORE INSERT ON public.students FOR EACH ROW EXECUTE FUNCTION force_generate_id()

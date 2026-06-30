@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -8,21 +8,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useToast } from '@/hooks/use-toast'
-import { UploadCloud, FileSpreadsheet, Database, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Progress } from '@/components/ui/progress'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { supabase } from '@/lib/supabase/client'
+import { useToast } from '@/hooks/use-toast'
+import { UploadCloud, Database, CheckCircle2, AlertCircle, Download } from 'lucide-react'
+import {
+  ENTITY_CONFIGS,
+  generateCsvTemplate,
+  generateJsonTemplate,
+  type ImportEntityType,
+} from '@/services/data-import'
+import { processImport, type ImportResult } from '@/services/data-import-processor'
 
 export default function AdminDataImport() {
   const { toast } = useToast()
-
-  const [importType, setImportType] = useState<'students' | 'classes' | 'teachers'>('students')
+  const [importType, setImportType] = useState<ImportEntityType>('students')
+  const [templateFormat, setTemplateFormat] = useState<'csv' | 'json'>('csv')
   const [file, setFile] = useState<File | null>(null)
   const [status, setStatus] = useState<'idle' | 'processing' | 'done'>('idle')
-  const [results, setResults] = useState<{ success: number; errors: number } | null>(null)
+  const [progress, setProgress] = useState({ current: 0, total: 0 })
+  const [results, setResults] = useState<ImportResult | null>(null)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
+    if (e.target.files?.[0]) {
       setFile(e.target.files[0])
       setStatus('idle')
       setResults(null)
@@ -32,122 +47,59 @@ export default function AdminDataImport() {
   const handleImport = () => {
     if (!file) return
     setStatus('processing')
-
+    setProgress({ current: 0, total: 0 })
     const reader = new FileReader()
     reader.onload = async (e) => {
       try {
         const content = e.target?.result as string
-        let records: any[] = []
-
-        if (file.name.endsWith('.json')) {
-          records = JSON.parse(content)
-        } else {
-          const lines = content.split('\n').filter((l) => l.trim())
-          if (lines.length > 1) {
-            const headers = lines[0].split(',')
-            records = lines.slice(1).map((line) => {
-              const values = line.split(',')
-              const obj: any = {}
-              headers.forEach((h, i) => {
-                obj[h.trim()] = values[i]?.trim()
-              })
-              return obj
-            })
-          }
-        }
-
-        if (records.length > 0) {
-          let errorCount = 0
-          let successCount = 0
-
-          if (importType === 'students') {
-            const mapped = records.map((r) => ({
-              name: r.name || 'Sem nome',
-              email: r.email || null,
-              course: r.course || null,
-              phone: r.phone || null,
-              status: 'Ativo',
-            }))
-            const { error } = await supabase.from('students').insert(mapped)
-            if (error) throw error
-            successCount = mapped.length
-          } else if (importType === 'classes') {
-            const mapped = records.map((r) => ({
-              name: r.name || 'Turma',
-              course: r.course || 'Geral',
-              semester: r.semester || '2024.1',
-              capacity: Number(r.capacity) || 40,
-            }))
-            const { error } = await supabase.from('classes').insert(mapped)
-            if (error) throw error
-            successCount = mapped.length
-          } else if (importType === 'teachers') {
-            const mapped = records.map((r) => ({
-              name: r.name || 'Sem nome',
-              email: r.email || null,
-              subjects: r.subjects || null,
-              workload: Number(r.workload) || 40,
-              status: 'Ativo',
-            }))
-            const { error } = await supabase.from('teachers').insert(mapped)
-            if (error) console.error(error)
-            successCount = mapped.length
-          }
-
-          setResults({ success: successCount, errors: errorCount })
-          setStatus('done')
-          toast({
-            title: 'Importação Finalizada',
-            description: `${successCount} registros processados no banco de dados.`,
-          })
-        } else {
-          throw new Error('Arquivo vazio')
-        }
+        const result = await processImport(content, file.name, importType, (c, t) =>
+          setProgress({ current: c, total: t }),
+        )
+        setResults(result)
+        setStatus('done')
+        toast({
+          title: 'Importação Finalizada',
+          description: `${result.success} importados, ${result.errors} com erro.`,
+        })
       } catch (error) {
-        console.error(error)
-        setResults({ success: 0, errors: 1 })
+        setResults({ success: 0, errors: 1, rowErrors: [{ row: 0, message: String(error) }] })
         setStatus('done')
         toast({
           title: 'Erro na Importação',
-          description: 'Falha ao comunicar com o banco de dados.',
+          description: 'Falha ao processar arquivo.',
           variant: 'destructive',
         })
       }
     }
-
-    if (file.name.endsWith('.json') || file.name.endsWith('.csv')) {
-      reader.readAsText(file)
-    } else {
+    if (file.name.endsWith('.json') || file.name.endsWith('.csv')) reader.readAsText(file)
+    else {
       setStatus('done')
-      setResults({ success: 0, errors: 1 })
       toast({
         title: 'Erro',
-        description: 'Formato inválido',
+        description: 'Formato inválido. Use CSV ou JSON.',
         variant: 'destructive',
       })
     }
   }
 
   const getTemplateUrl = () => {
-    if (importType === 'students') {
-      return `data:text/csv;charset=utf-8,${encodeURIComponent('name,email,course,phone\nJoão Silva,joao@email.com,Engenharia,11999999999')}`
-    }
-    if (importType === 'teachers') {
-      return `data:text/csv;charset=utf-8,${encodeURIComponent('name,email,subjects,workload\nProf. Carlos,carlos@ies.edu,Cálculo,40')}`
-    }
-    return `data:text/csv;charset=utf-8,${encodeURIComponent('name,course,semester,capacity\nTurma 101,Engenharia,2024.1,40')}`
+    const content =
+      templateFormat === 'csv' ? generateCsvTemplate(importType) : generateJsonTemplate(importType)
+    const mime = templateFormat === 'csv' ? 'text/csv' : 'application/json'
+    return `data:${mime};charset=utf-8,${encodeURIComponent(content)}`
   }
+
+  const entityOptions = Object.entries(ENTITY_CONFIGS) as [ImportEntityType, { label: string }][]
 
   return (
     <div className="space-y-6 animate-fade-in-up pb-8 max-w-[1000px] mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-2">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900 flex items-center gap-2">
-            <Database className="h-7 w-7 text-zinc-400" />
-            Importação em Massa
+            <Database className="h-7 w-7 text-zinc-400" /> Importação em Massa
           </h1>
           <p className="text-sm text-zinc-500 mt-1">
-            Ferramenta utilitária para upload de dados (CSV/JSON) direto para o banco de dados.
+            Ferramenta para upload de dados (CSV/JSON) direto para o banco de dados.
           </p>
         </div>
       </div>
@@ -160,18 +112,37 @@ export default function AdminDataImport() {
           <CardContent className="pt-6 space-y-5">
             <div className="space-y-2">
               <label className="text-xs font-semibold text-zinc-700">Entidade de Destino</label>
-              <Select value={importType} onValueChange={(v: any) => setImportType(v)}>
+              <Select
+                value={importType}
+                onValueChange={(v) => setImportType(v as ImportEntityType)}
+              >
                 <SelectTrigger className="bg-zinc-50">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="students">Alunos (Matrículas Ativas)</SelectItem>
-                  <SelectItem value="teachers">Corpo Docente</SelectItem>
-                  <SelectItem value="classes">Turmas e Grades</SelectItem>
+                  {entityOptions.map(([key, cfg]) => (
+                    <SelectItem key={key} value={key}>
+                      {cfg.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
-
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-zinc-700">Formato do Template</label>
+              <Select
+                value={templateFormat}
+                onValueChange={(v) => setTemplateFormat(v as 'csv' | 'json')}
+              >
+                <SelectTrigger className="bg-zinc-50">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="csv">CSV</SelectItem>
+                  <SelectItem value="json">JSON</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-zinc-700">Arquivo de Dados</label>
               <div className="border-2 border-dashed border-zinc-200 rounded-lg p-6 flex flex-col items-center justify-center text-center bg-zinc-50 hover:bg-zinc-100 transition-colors cursor-pointer relative">
@@ -189,19 +160,19 @@ export default function AdminDataImport() {
                     <p className="text-sm font-medium text-zinc-900">
                       Arraste ou clique para enviar
                     </p>
-                    <p className="text-xs text-zinc-500 mt-1">Formatos aceitos: .csv ou .json</p>
+                    <p className="text-xs text-zinc-500 mt-1">Formatos: .csv ou .json</p>
                   </>
                 )}
               </div>
             </div>
-
             <div className="flex justify-between items-center pt-2">
               <a
                 href={getTemplateUrl()}
-                download={`template_${importType}.csv`}
+                download={`template_${importType}.${templateFormat}`}
                 className="text-xs text-blue-600 hover:underline flex items-center gap-1"
               >
-                <FileSpreadsheet className="w-3.5 h-3.5" /> Baixar Template Modelo
+                <Download className="w-3.5 h-3.5" /> Baixar Template ({templateFormat.toUpperCase()}
+                )
               </a>
               <Button
                 onClick={handleImport}
@@ -218,10 +189,21 @@ export default function AdminDataImport() {
           <Alert className="bg-blue-50 border-blue-200 text-blue-900">
             <AlertCircle className="h-4 w-4 text-blue-600" />
             <AlertDescription className="text-xs">
-              O processo de importação grava diretamente no Supabase. Utiliza as colunas do template
-              fornecido. Dados inconsistentes serão ignorados ou rejeitados.
+              O processo grava diretamente no Supabase. Dados inválidos serão rejeitados. Relações
+              (FK) são validadas antes da importação. Registros duplicados (por ID) são ignorados.
             </AlertDescription>
           </Alert>
+
+          {status === 'processing' && progress.total > 0 && (
+            <Card className="border-zinc-200 shadow-sm bg-white">
+              <CardContent className="p-6">
+                <p className="text-sm font-medium text-zinc-700 mb-2">
+                  Importando... {progress.current}/{progress.total}
+                </p>
+                <Progress value={(progress.current / progress.total) * 100} className="h-2" />
+              </CardContent>
+            </Card>
+          )}
 
           {status === 'done' && results && (
             <Card className="border-zinc-200 shadow-sm bg-white animate-fade-in">
@@ -245,6 +227,31 @@ export default function AdminDataImport() {
                     <p className="text-xs text-rose-600 uppercase font-semibold mt-1">Com Erro</p>
                   </div>
                 </div>
+                {results.rowErrors.length > 0 && (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="w-full mt-4" size="sm">
+                        Ver Detalhes dos Erros ({results.rowErrors.length})
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-lg max-h-[400px] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Detalhes dos Erros</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-2">
+                        {results.rowErrors.map((err, i) => (
+                          <div
+                            key={i}
+                            className="flex items-start gap-2 p-2 bg-rose-50 rounded text-sm"
+                          >
+                            <AlertCircle className="h-4 w-4 text-rose-500 mt-0.5 shrink-0" />
+                            <span className="text-rose-800">{err.message}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
               </CardContent>
             </Card>
           )}
