@@ -216,16 +216,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const login = async (role?: Role) => {
+  const login = (role?: Role) => {
     setIsAuthenticated(true)
     try {
       localStorage.setItem('sio_auth', 'true')
-      await supabase.auth.signInWithPassword({
-        email: 'kowalski0010@gmail.com',
-        password: 'securepassword123',
-      })
     } catch (e) {
-      console.warn('LocalStorage unavailable or Supabase auth failed', e)
+      console.warn('LocalStorage unavailable', e)
     }
     if (role) setCurrentUserRole(role)
 
@@ -268,16 +264,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(mockChatMessages)
 
   useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        setIsAuthenticated(true)
+        try {
+          localStorage.setItem('sio_auth', 'true')
+        } catch {
+          console.warn('LocalStorage unavailable')
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setIsAuthenticated(false)
+        try {
+          localStorage.removeItem('sio_auth')
+        } catch {
+          console.warn('LocalStorage unavailable')
+        }
+      }
+    })
+
     const fetchData = async () => {
       try {
         const {
           data: { session },
         } = await supabase.auth.getSession()
-        if (!session) {
-          await supabase.auth.signInWithPassword({
-            email: 'kowalski0010@gmail.com',
-            password: 'securepassword123',
-          })
+        if (session) {
+          setIsAuthenticated(true)
         }
 
         const [studentsData, coursesData] = await Promise.all([getStudents(), getCourses()])
@@ -304,6 +317,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     }
     fetchData()
+
+    return () => subscription.unsubscribe()
   }, [])
 
   const [manualTransactions, setManualTransactions] = useState<CashFlowTransaction[]>([

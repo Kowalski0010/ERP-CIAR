@@ -24,7 +24,7 @@ export default function Login() {
   const navigate = useNavigate()
   const [role, setRole] = useState<Role>('Admin')
   const [email, setEmail] = useState('kowalski0010@gmail.com')
-  const [password, setPassword] = useState('securepassword123')
+  const [password, setPassword] = useState('Skip@Pass')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -42,7 +42,7 @@ export default function Login() {
     const { error: signInError } = await signIn(email, password)
 
     if (signInError) {
-      setError('Credenciais inválidas. Verifique o e-mail e senha.')
+      setError(signInError.message || 'Credenciais inválidas. Verifique o e-mail e senha.')
       setLoading(false)
       return
     }
@@ -140,6 +140,13 @@ export default function Login() {
               {loading ? 'Entrando...' : 'Entrar no Sistema'}
             </Button>
           </form>
+
+          <div className="mt-6 text-center text-sm text-muted-foreground">
+            Não tem uma conta?{' '}
+            <Link to="/register" className="text-primary hover:underline font-medium">
+              Cadastre-se
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>
