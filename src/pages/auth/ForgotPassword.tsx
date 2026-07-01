@@ -7,10 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Mail, ArrowLeft, CheckCircle2, Send } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
+import { useToast } from '@/hooks/use-toast'
 import logoCiar from '@/assets/logo-ciar-e8b89.png'
 
 export default function ForgotPassword() {
   const { resetPasswordForEmail } = useAuth()
+  const { toast } = useToast()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -29,6 +31,10 @@ export default function ForgotPassword() {
       return
     }
 
+    toast({
+      title: 'E-mail Enviado!',
+      description: 'Verifique sua caixa de entrada para o link de recuperação de senha.',
+    })
     setSuccess(true)
     setLoading(false)
   }

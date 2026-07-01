@@ -7,10 +7,22 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { CheckCircle2, UserPlus, Mail } from 'lucide-react'
+import { CheckCircle2, Mail } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
+
+const getRegisterErrorMessage = (msg: string): string => {
+  if (msg.includes('already registered') || msg.includes('already exists'))
+    return 'Este e-mail já está cadastrado no sistema.'
+  if (msg.includes('invalid format') || msg.includes('Unable to validate'))
+    return 'Formato de e-mail inválido.'
+  if (msg.toLowerCase().includes('password'))
+    return 'Senha muito fraca. Use pelo menos 8 caracteres.'
+  return msg || 'Erro ao registrar. Tente novamente.'
+}
 
 export default function Register() {
   const { signUp, user, loading: authLoading } = useAuth()
+  const { toast } = useToast()
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -43,14 +55,18 @@ export default function Register() {
       return
     }
 
-    const { error: signUpError } = await signUp(email, password)
+    const { error: signUpError } = await signUp(email, password, { name })
 
     if (signUpError) {
-      setError(signUpError.message || 'Erro ao registrar. Tente novamente.')
+      setError(getRegisterErrorMessage(signUpError.message || ''))
       setLoading(false)
       return
     }
 
+    toast({
+      title: 'Cadastro Realizado!',
+      description: 'Verifique sua caixa de entrada para o link de confirmação.',
+    })
     setSuccess(true)
     setLoading(false)
   }

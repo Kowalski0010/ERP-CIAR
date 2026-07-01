@@ -52,13 +52,6 @@ const userSchema = z.object({
   role: z.string().min(1, 'Selecione um perfil de acesso'),
 })
 
-const generateTempPassword = () => {
-  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%'
-  let pwd = ''
-  for (let i = 0; i < 12; i++) pwd += chars[Math.floor(Math.random() * chars.length)]
-  return pwd
-}
-
 const getAuthErrorMessage = (msg: string): string => {
   if (msg.includes('already registered')) return 'Este e-mail já está cadastrado no sistema.'
   if (msg.includes('invalid format') || msg.includes('Unable to validate'))
@@ -144,16 +137,12 @@ export default function UserManagement() {
           description: 'Os dados foram atualizados com sucesso.',
         })
       } else {
-        const { error } = await createUserAuth(
-          data.email,
-          generateTempPassword(),
-          data.name,
-          data.role,
-        )
+        const { error } = await createUserAuth(data.email, data.name, data.role)
         if (error) throw error
         toast({
           title: 'Usuário Criado',
-          description: 'Um e-mail de confirmação foi enviado para o usuário.',
+          description:
+            'Um e-mail de convite foi enviado. O usuário deve clicar no link para ativar a conta.',
         })
       }
       setIsAddOpen(false)
@@ -424,8 +413,8 @@ export default function UserManagement() {
               />
               {!editUser && (
                 <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 text-blue-800 dark:text-blue-300 text-xs p-3 rounded-md">
-                  Uma senha temporária será gerada automaticamente. O usuário receberá um e-mail de
-                  confirmação para ativar a conta e definir sua própria senha.
+                  Um e-mail de convite será enviado automaticamente. O usuário deverá clicar no link
+                  para definir sua senha e ativar a conta.
                 </div>
               )}
               <div className="pt-4 flex justify-end gap-2 border-t border-border">

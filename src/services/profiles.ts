@@ -35,21 +35,20 @@ export async function updateProfile(id: string, updates: Partial<Profile>): Prom
   return data as Profile
 }
 
-export async function createUserAuth(
-  email: string,
-  password: string,
-  fullName: string,
-  role: string,
-) {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: `${window.location.origin}/`,
-      data: { name: fullName, role },
-    },
+export async function createUserAuth(email: string, fullName: string, role: string) {
+  const { data, error } = await supabase.functions.invoke('admin-create-user', {
+    body: { email, fullName, role },
   })
-  return { data, error }
+
+  if (error && !data) {
+    return { data: null, error: { message: 'Erro de conexão com o servidor.' } }
+  }
+
+  if (data?.error) {
+    return { data: null, error: { message: data.error } }
+  }
+
+  return { data, error: null }
 }
 
 export async function sendPasswordReset(email: string) {
