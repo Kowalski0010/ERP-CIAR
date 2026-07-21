@@ -20,6 +20,12 @@ const mapToDb = (student: any) => {
     mother_name: student.motherName,
     father_name: student.fatherName,
     previous_graduation: student.previousGraduation,
+    contract: student.contract,
+    observations: student.observations,
+    due_day: student.dueDay,
+  }
+  if (student.uploadedDocuments !== undefined) {
+    dbObj.documents = student.uploadedDocuments
   }
   if (student.id) {
     dbObj.id = student.id
@@ -54,6 +60,10 @@ const mapFromDb = (row: any) => ({
     state: row.address_state,
     zipCode: row.address_zip,
   },
+  contract: row.contract,
+  observations: row.observations,
+  dueDay: row.due_day,
+  uploadedDocuments: row.documents || [],
 })
 
 export const getStudents = async () => {

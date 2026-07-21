@@ -33,6 +33,16 @@ export type DigitalDocument = {
   type: string
 }
 
+export type StudentDocument = {
+  docType: string
+  label: string
+  url: string
+  path: string
+  name: string
+  type: string
+  date: string
+}
+
 export type SystemAttachment = {
   id: string
   name: string
@@ -74,6 +84,9 @@ export type Student = {
   observations?: Observation[]
   documents?: DigitalDocument[]
   attachments?: SystemAttachment[]
+  contract?: string
+  dueDay?: string | number
+  uploadedDocuments?: StudentDocument[]
 }
 
 export type Teacher = {

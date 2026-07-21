@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -21,28 +22,30 @@ import {
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
-import { Student } from '@/lib/types'
+import { Student, StudentDocument } from '@/lib/types'
 import { addStudent, updateStudent } from '@/services/students'
 import { createInstallments } from '@/services/payments'
 import { getCourses } from '@/services/courses'
-import { Loader2, Check } from 'lucide-react'
-import { FileUpload } from '@/components/FileUpload'
+import { uploadDocument } from '@/services/storage'
+import { Loader2 } from 'lucide-react'
+import {
+  StudentDocumentManager,
+  DOCUMENT_TYPES,
+} from '@/components/academic/StudentDocumentManager'
 
 const studentSchema = z.object({
   name: z.string().min(3, 'Nome obrigatório'),
+  registrationCode: z.string().optional().or(z.literal('')),
+  nationality: z.string().optional().or(z.literal('')),
+  birthCity: z.string().optional().or(z.literal('')),
   email: z.string().email('E-mail inválido').optional().or(z.literal('')),
-  phone: z.string().optional().or(z.literal('')),
-  cpf: z.string().optional().or(z.literal('')),
+  birthDate: z.string().optional().or(z.literal('')),
   rg: z.string().optional().or(z.literal('')),
-  rgIssuer: z.string().optional(),
-  nationality: z.string().optional(),
-  birthCity: z.string().optional(),
-  birthDate: z.string().optional(),
-  maritalStatus: z.string().optional(),
-  motherName: z.string().optional(),
-  fatherName: z.string().optional(),
-  course: z.string().optional(),
-  previousGraduation: z.string().optional(),
+  rgIssuer: z.string().optional().or(z.literal('')),
+  cpf: z.string().optional().or(z.literal('')),
+  maritalStatus: z.string().optional().or(z.literal('')),
+  motherName: z.string().optional().or(z.literal('')),
+  fatherName: z.string().optional().or(z.literal('')),
   address: z
     .object({
       zipCode: z.string().optional(),
@@ -53,13 +56,15 @@ const studentSchema = z.object({
       state: z.string().optional(),
     })
     .optional(),
-  // Financial Plan
-  planInstallments: z.union([z.coerce.number().min(1, 'Mínimo 1'), z.literal('')]).optional(),
-  planValue: z.union([z.coerce.number().min(0, 'Valor inválido'), z.literal('')]).optional(),
-  planFirstDueDate: z.string().optional(),
-  // Docs
-  avatar: z.string().optional(),
-  documents: z.any().optional(),
+  phone: z.string().optional().or(z.literal('')),
+  course: z.string().optional().or(z.literal('')),
+  previousGraduation: z.string().optional().or(z.literal('')),
+  contract: z.string().optional().or(z.literal('')),
+  observations: z.string().optional().or(z.literal('')),
+  dueDay: z.union([z.coerce.number(), z.literal('')]).optional(),
+  planInstallments: z.union([z.coerce.number().min(1), z.literal('')]).optional(),
+  planValue: z.union([z.coerce.number().min(0), z.literal('')]).optional(),
+  planFirstDueDate: z.string().optional().or(z.literal('')),
 })
 
 export function StudentForm({
@@ -76,38 +81,33 @@ export function StudentForm({
   const [cepLoading, setCepLoading] = useState(false)
   const [courses, setCourses] = useState<any[]>([])
   const [coursesLoading, setCoursesLoading] = useState(true)
+  const [documents, setDocuments] = useState<StudentDocument[]>(
+    initialData?.uploadedDocuments || [],
+  )
+  const [pendingFiles, setPendingFiles] = useState<Record<string, File>>({})
 
   useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const data = await getCourses()
-        setCourses(data || [])
-      } catch (error) {
-        console.error('Failed to fetch courses:', error)
-      } finally {
-        setCoursesLoading(false)
-      }
-    }
-    fetchCourses()
+    getCourses()
+      .then(setCourses)
+      .catch(() => {})
+      .finally(() => setCoursesLoading(false))
   }, [])
 
   const form = useForm<z.infer<typeof studentSchema>>({
     resolver: zodResolver(studentSchema),
     defaultValues: {
       name: initialData?.name || '',
-      email: initialData?.email || '',
-      phone: initialData?.phone || '',
-      cpf: initialData?.cpf || '',
-      rg: initialData?.rg || '',
-      rgIssuer: initialData?.rgIssuer || '',
+      registrationCode: initialData?.registrationCode || '',
       nationality: initialData?.nationality || '',
       birthCity: initialData?.birthCity || '',
+      email: initialData?.email || '',
       birthDate: initialData?.birthDate || '',
+      rg: initialData?.rg || '',
+      rgIssuer: initialData?.rgIssuer || '',
+      cpf: initialData?.cpf || '',
       maritalStatus: initialData?.maritalStatus || '',
       motherName: initialData?.motherName || '',
       fatherName: initialData?.fatherName || '',
-      course: initialData?.course || '',
-      previousGraduation: initialData?.previousGraduation || '',
       address: {
         zipCode: initialData?.address?.zipCode || '',
         street: initialData?.address?.street || '',
@@ -116,41 +116,50 @@ export function StudentForm({
         city: initialData?.address?.city || '',
         state: initialData?.address?.state || '',
       },
+      phone: initialData?.phone || '',
+      course: initialData?.course || '',
+      previousGraduation: initialData?.previousGraduation || '',
+      contract: initialData?.contract || '',
+      observations: initialData?.observations || '',
+      dueDay: initialData?.dueDay || '',
       planInstallments: 12,
       planValue: 850,
       planFirstDueDate: new Date().toISOString().split('T')[0],
-      avatar: initialData?.avatar || '',
     },
   })
+
+  const sanitize = (val: any): any => {
+    if (val === '') return null
+    if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
+      const o: any = {}
+      for (const k in val) o[k] = sanitize(val[k])
+      return o
+    }
+    return val
+  }
 
   const onSubmit = async (data: z.infer<typeof studentSchema>) => {
     setLoading(true)
     try {
-      const sanitize = (val: any): any => {
-        if (val === '') return null
-        if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
-          const cleanObj: any = {}
-          for (const key in val) {
-            cleanObj[key] = sanitize(val[key])
-          }
-          return cleanObj
-        }
-        return val
-      }
-
       const cleanData = sanitize(data)
-
       if (initialData?.id) {
-        await updateStudent(initialData.id, cleanData)
+        await updateStudent(initialData.id, { ...cleanData, uploadedDocuments: documents })
         toast({ title: 'Sucesso', description: 'Aluno atualizado com sucesso.' })
       } else {
         const newStudent = await addStudent({
           ...cleanData,
           status: 'Ativo',
           enrollmentDate: new Date().toISOString(),
+          uploadedDocuments: [],
         })
-
-        // Se for aluno novo e tiver plano financeiro preenchido, gera os pagamentos
+        const uploadedDocs: StudentDocument[] = []
+        for (const [docType, file] of Object.entries(pendingFiles)) {
+          const label = DOCUMENT_TYPES.find((d) => d.key === docType)?.label || docType
+          const result = await uploadDocument(newStudent.id, docType, file)
+          uploadedDocs.push({ docType, label, ...result })
+        }
+        if (uploadedDocs.length > 0)
+          await updateStudent(newStudent.id, { uploadedDocuments: uploadedDocs })
         if (cleanData.planInstallments && cleanData.planValue && cleanData.planFirstDueDate) {
           await createInstallments(
             newStudent.id,
@@ -160,20 +169,16 @@ export function StudentForm({
             cleanData.planFirstDueDate,
           )
         }
-
         toast({
           title: 'Matrícula Realizada',
-          description: 'Aluno cadastrado e financeiro gerado com sucesso.',
+          description: 'Aluno cadastrado e documentos salvos.',
         })
       }
       onSuccess()
     } catch (error: any) {
-      console.error('Submit Error:', error)
       toast({
         title: 'Erro no Cadastro',
-        description:
-          error.message ||
-          'Falha ao comunicar com o banco de dados. Verifique sua conexão e tente novamente.',
+        description: error.message || 'Falha ao cadastrar.',
         variant: 'destructive',
       })
     } finally {
@@ -184,27 +189,24 @@ export function StudentForm({
   const handleCepBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
     const cep = e.target.value.replace(/\D/g, '')
     if (cep.length !== 8) return
-
     setCepLoading(true)
     try {
       const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
-      const data = await res.json()
-      if (!data.erro) {
-        form.setValue('address.street', data.logradouro)
-        form.setValue('address.neighborhood', data.bairro)
-        form.setValue('address.city', data.localidade)
-        form.setValue('address.state', data.uf)
-      } else {
-        toast({ title: 'CEP não encontrado', variant: 'destructive' })
+      const d = await res.json()
+      if (!d.erro) {
+        form.setValue('address.street', d.logradouro)
+        form.setValue('address.neighborhood', d.bairro)
+        form.setValue('address.city', d.localidade)
+        form.setValue('address.state', d.uf)
       }
-    } catch (err) {
-      toast({ title: 'Erro ao buscar CEP', variant: 'destructive' })
+    } catch {
+      /* intentionally ignored */
     } finally {
       setCepLoading(false)
     }
   }
 
-  const renderInput = (name: any, label: string, type = 'text', placeholder = '') => (
+  const ri = (name: any, label: string, type = 'text', ph = '') => (
     <FormField
       control={form.control}
       name={name}
@@ -212,7 +214,22 @@ export function StudentForm({
         <FormItem>
           <FormLabel>{label}</FormLabel>
           <FormControl>
-            <Input type={type} placeholder={placeholder} {...field} value={field.value || ''} />
+            <Input type={type} placeholder={ph} {...field} value={field.value || ''} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  )
+  const rt = (name: any, label: string, rows = 3) => (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{label}</FormLabel>
+          <FormControl>
+            <Textarea rows={rows} {...field} value={field.value || ''} />
           </FormControl>
           <FormMessage />
         </FormItem>
@@ -234,25 +251,25 @@ export function StudentForm({
             <TabsTrigger value="academico" className="text-xs">
               Acadêmico
             </TabsTrigger>
-            <TabsTrigger value="financeiro" className="text-xs">
-              Financeiro/Docs
+            <TabsTrigger value="docs" className="text-xs">
+              Documentos
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="pessoais" className="space-y-4 mt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {renderInput('name', 'Nome Completo', 'text', 'Nome do Aluno')}
-              {renderInput('email', 'E-mail (Opcional)', 'email')}
-              {renderInput('phone', 'Telefone Celular (Opcional)', 'text', '(00) 00000-0000')}
-              {renderInput('cpf', 'CPF', 'text', '000.000.000-00')}
-              {renderInput('rg', 'RG')}
-              {renderInput('rgIssuer', 'Órgão Emissor')}
-              {renderInput('birthDate', 'Data de Nascimento', 'date')}
-              {renderInput('nationality', 'Nacionalidade')}
-              {renderInput('birthCity', 'Cidade Natal')}
-              {renderInput('maritalStatus', 'Estado Civil')}
-              {renderInput('motherName', 'Nome da Mãe')}
-              {renderInput('fatherName', 'Nome do Pai')}
+              {ri('name', 'Nome Completo', 'text', 'Nome do Aluno')}
+              {ri('registrationCode', 'Matrícula', 'text', 'Ex: 26-001')}
+              {ri('nationality', 'Nacionalidade')}
+              {ri('birthCity', 'Cidade Natal')}
+              {ri('email', 'E-mail', 'email')}
+              {ri('birthDate', 'Data de Nascimento', 'date')}
+              {ri('rg', 'RG')}
+              {ri('rgIssuer', 'Órgão Emissor')}
+              {ri('cpf', 'CPF', 'text', '000.000.000-00')}
+              {ri('maritalStatus', 'Estado Civil')}
+              {ri('motherName', 'Nome da Mãe')}
+              {ri('fatherName', 'Nome do Pai')}
             </div>
           </TabsContent>
 
@@ -281,11 +298,12 @@ export function StudentForm({
                   </FormItem>
                 )}
               />
-              {renderInput('address.street', 'Logradouro')}
-              {renderInput('address.number', 'Número')}
-              {renderInput('address.neighborhood', 'Bairro')}
-              {renderInput('address.city', 'Cidade')}
-              {renderInput('address.state', 'Estado (UF)')}
+              {ri('address.street', 'Logradouro')}
+              {ri('address.number', 'Número')}
+              {ri('address.neighborhood', 'Bairro')}
+              {ri('address.city', 'Cidade')}
+              {ri('address.state', 'Estado (UF)')}
+              {ri('phone', 'Telefone Celular', 'text', '(00) 00000-0000')}
             </div>
           </TabsContent>
 
@@ -316,86 +334,40 @@ export function StudentForm({
                             {c.name}
                           </SelectItem>
                         ))}
-                        {courses.length === 0 && !coursesLoading && (
-                          <SelectItem value="none" disabled>
-                            Nenhum curso cadastrado
-                          </SelectItem>
-                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              {renderInput('previousGraduation', 'Graduação Anterior (Fora da IES)')}
+              {ri('previousGraduation', 'Graduação Anterior')}
+              {ri('dueDay', 'Dia de Vencimento', 'number')}
             </div>
-          </TabsContent>
-
-          <TabsContent value="financeiro" className="space-y-4 mt-4">
+            <div className="grid grid-cols-1 gap-4">
+              {rt('contract', 'Contrato', 4)}
+              {rt('observations', 'Observações', 4)}
+            </div>
             {!initialData?.id && (
               <>
-                <h4 className="text-sm font-semibold text-foreground border-b pb-2">
+                <h4 className="text-sm font-semibold text-foreground border-b pb-2 mt-4">
                   Plano Financeiro (Geração Automática)
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {renderInput('planInstallments', 'Qtd. Parcelas', 'number')}
-                  {renderInput('planValue', 'Valor Mensalidade (R$)', 'number')}
-                  {renderInput('planFirstDueDate', '1º Vencimento', 'date')}
+                  {ri('planInstallments', 'Qtd. Parcelas', 'number')}
+                  {ri('planValue', 'Valor Mensalidade (R$)', 'number')}
+                  {ri('planFirstDueDate', '1º Vencimento', 'date')}
                 </div>
               </>
             )}
+          </TabsContent>
 
-            <h4 className="text-sm font-semibold text-foreground border-b pb-2 mt-6">
-              Documentação
-            </h4>
-            <div className="grid grid-cols-1 gap-4">
-              <FormField
-                control={form.control}
-                name="avatar"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Foto do Perfil</FormLabel>
-                    <FormControl>
-                      <FileUpload
-                        accept="image/*"
-                        label="Anexar Foto"
-                        onUpload={(files) => field.onChange(files[0]?.url)}
-                      />
-                    </FormControl>
-                    {field.value && (
-                      <p className="text-xs text-emerald-600 mt-1">
-                        <Check className="inline w-3 h-3 mr-1" /> Foto anexada com sucesso
-                      </p>
-                    )}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="documents"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Documentos Pessoais (RG, CPF, Comprovantes)</FormLabel>
-                    <FormControl>
-                      <FileUpload
-                        multiple
-                        accept="image/*,application/pdf"
-                        label="Anexar Documentos"
-                        onUpload={(files) => field.onChange(files)}
-                      />
-                    </FormControl>
-                    {field.value?.length > 0 && (
-                      <p className="text-xs text-emerald-600 mt-1">
-                        <Check className="inline w-3 h-3 mr-1" /> {field.value.length} arquivo(s)
-                        anexado(s)
-                      </p>
-                    )}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+          <TabsContent value="docs" className="space-y-4 mt-4">
+            <StudentDocumentManager
+              studentId={initialData?.id}
+              documents={documents}
+              onDocumentsChange={setDocuments}
+              onPendingFilesChange={setPendingFiles}
+            />
           </TabsContent>
         </Tabs>
 
@@ -404,7 +376,7 @@ export function StudentForm({
             Cancelar
           </Button>
           <Button type="submit" disabled={loading}>
-            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {initialData?.id ? 'Atualizar Aluno' : 'Efetivar Matrícula'}
           </Button>
         </div>
