@@ -193,7 +193,7 @@ function templateExample(field: FieldConfig): string {
 }
 
 function convertDateToISO(value: string): string | null {
-  const match = value.match(/^(\d{2})-(\d{2})-(\d{4})$/)
+  const match = value.match(/^(\d{2})[-/](\d{2})[-/](\d{4})$/)
   if (!match) return null
   const day = match[1]
   const month = match[2]

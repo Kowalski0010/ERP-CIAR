@@ -307,7 +307,9 @@ export default function AdminDataImport() {
                 </li>
                 <li>Campos opcionais podem ser deixados vazios.</li>
                 <li>
-                  Datas devem estar no formato <strong>DD-MM-AAAA</strong> (ex: 15-03-1990).
+                  Datas devem estar no formato <strong>DD-MM-AAAA</strong> ou{' '}
+                  <strong>DD/MM/AAAA</strong> (ex: 15-03-1990 ou 15/03/1990). Ambos os separadores
+                  são aceitos.
                 </li>
                 <li>
                   A linha de cabeçalho deve corresponder <strong>exatamente</strong> aos nomes das

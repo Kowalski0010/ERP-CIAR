@@ -14,12 +14,12 @@ export interface ImportResult {
 }
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-const DATE_REGEX = /^\d{2}-\d{2}-\d{4}$/
+const DATE_REGEX = /^\d{2}[-/]\d{2}[-/]\d{4}$/
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const CPF_REGEX = /^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/
 
 function convertDateToISO(value: string): string | null {
-  const match = value.match(/^(\d{2})-(\d{2})-(\d{4})$/)
+  const match = value.match(/^(\d{2})[-/](\d{2})[-/](\d{4})$/)
   if (!match) return null
   const day = match[1]
   const month = match[2]
@@ -95,7 +95,7 @@ function validateRow(
       if (field.type === 'uuid' && !UUID_REGEX.test(value))
         return `Linha ${rowNum}: UUID inválido para "${field.name}"`
       if (field.type === 'date' && !DATE_REGEX.test(value))
-        return `Linha ${rowNum}: Data inválida para "${label}" (formato esperado: DD-MM-AAAA, ex: 15-03-1990). Valor recebido: "${value}"`
+        return `Linha ${rowNum}: Data inválida para "${label}" (formatos aceitos: DD-MM-AAAA ou DD/MM/AAAA, ex: 15-03-1990 ou 15/03/1990). Valor recebido: "${value}"`
       if (field.type === 'date' && !convertDateToISO(value))
         return `Linha ${rowNum}: Data fora do intervalo válido para "${label}". Valor recebido: "${value}"`
       if (field.type === 'number' && isNaN(Number(value)))
