@@ -10,20 +10,55 @@ export interface ImportResult {
   success: number
   errors: number
   rowErrors: RowError[]
+  warning?: string | null
 }
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-const DATE_REGEX = /^\d{4}-\d{2}-\d{2}/
+const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const CPF_REGEX = /^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/
+
+function detectDelimiter(firstLine: string): string {
+  const commas = (firstLine.match(/,/g) || []).length
+  const semicolons = (firstLine.match(/;/g) || []).length
+  return semicolons > commas ? ';' : ','
+}
+
+function parseCsvLine(line: string, delimiter: string): string[] {
+  const result: string[] = []
+  let current = ''
+  let inQuotes = false
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i]
+    if (char === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"'
+        i++
+      } else {
+        inQuotes = !inQuotes
+      }
+    } else if (char === delimiter && !inQuotes) {
+      result.push(current)
+      current = ''
+    } else {
+      current += char
+    }
+  }
+  result.push(current)
+  return result.map((v) => v.trim())
+}
 
 function parseCsv(content: string): Record<string, string>[] {
-  const lines = content.split('\n').filter((l) => l.trim())
+  const normalized = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+  const lines = normalized.split('\n').filter((l) => l.trim())
   if (lines.length < 2) return []
-  const headers = lines[0].split(',').map((h) => h.trim())
+  const delimiter = detectDelimiter(lines[0])
+  const headers = parseCsvLine(lines[0], delimiter)
   return lines.slice(1).map((line) => {
-    const values = line.split(',')
+    const values = parseCsvLine(line, delimiter)
     const obj: Record<string, string> = {}
     headers.forEach((h, i) => {
-      obj[h] = values[i]?.trim() ?? ''
+      obj[h] = values[i] ?? ''
     })
     return obj
   })
@@ -37,16 +72,21 @@ function validateRow(
   const config = ENTITY_CONFIGS[entity]
   for (const field of config.fields) {
     const value = row[field.name]
+    const label = field.label || field.name
     if (field.required && (!value || value === '')) {
-      return `Row ${rowNum}: Missing required field "${field.name}"`
+      return `Linha ${rowNum}: campo '${field.name}' obrigatório ausente`
     }
     if (value && value !== '') {
       if (field.type === 'uuid' && !UUID_REGEX.test(value))
-        return `Row ${rowNum}: Invalid UUID for "${field.name}"`
+        return `Linha ${rowNum}: UUID inválido para "${field.name}"`
       if (field.type === 'date' && !DATE_REGEX.test(value))
-        return `Row ${rowNum}: Invalid date for "${field.name}" (expected YYYY-MM-DD)`
+        return `Linha ${rowNum}: Data inválida para "${label}" (formato esperado: AAAA-MM-DD)`
       if (field.type === 'number' && isNaN(Number(value)))
-        return `Row ${rowNum}: Invalid number for "${field.name}"`
+        return `Linha ${rowNum}: Número inválido para "${field.name}"`
+      if (field.validation === 'email' && !EMAIL_REGEX.test(value))
+        return `Linha ${rowNum}: E-mail inválido para "${label}": "${value}"`
+      if (field.validation === 'cpf' && !CPF_REGEX.test(value))
+        return `Linha ${rowNum}: CPF inválido para "${label}": "${value}"`
     }
   }
   return null
@@ -73,6 +113,7 @@ async function validateForeignKeys(
   if (!config.fkValidations) return errors
   for (const fk of config.fkValidations) {
     const items = records
+      .filter((r) => !errors.has(r.originalIndex + 1))
       .map((r) => ({ id: r.row[fk.field], idx: r.originalIndex }))
       .filter((x) => x.id && x.id !== '')
     if (items.length === 0) continue
@@ -81,7 +122,50 @@ async function validateForeignKeys(
     const existing = new Set(data?.map((r: any) => r.id) || [])
     for (const { id, idx } of items) {
       if (!existing.has(id))
-        errors.set(idx + 1, `Row ${idx + 1}: ${fk.field} "${id}" not found in ${fk.table}`)
+        errors.set(idx + 1, `Linha ${idx + 1}: ${fk.field} "${id}" não encontrado em ${fk.table}`)
+    }
+  }
+  return errors
+}
+
+async function detectDuplicates(
+  entity: ImportEntityType,
+  records: { row: Record<string, any>; originalIndex: number }[],
+): Promise<Map<number, string>> {
+  const config = ENTITY_CONFIGS[entity]
+  const errors = new Map<number, string>()
+  if (!config.duplicateFields) return errors
+
+  for (const field of config.duplicateFields) {
+    const seenInFile = new Map<string, number>()
+    for (const { row, originalIndex } of records) {
+      if (errors.has(originalIndex + 1)) continue
+      const value = row[field]
+      if (!value || value === '') continue
+      if (seenInFile.has(value)) {
+        errors.set(
+          originalIndex + 1,
+          `Linha ${originalIndex + 1}: Registro duplicado no arquivo - "${field}" "${value}" já aparece na linha ${seenInFile.get(value)! + 1}`,
+        )
+      } else {
+        seenInFile.set(value, originalIndex)
+      }
+    }
+    const items = records
+      .filter((r) => !errors.has(r.originalIndex + 1))
+      .map((r) => ({ value: r.row[field], idx: r.originalIndex }))
+      .filter((x) => x.value && x.value !== '')
+    if (items.length === 0) continue
+    const uniqueValues = [...new Set(items.map((x) => x.value))]
+    const { data } = await supabase.from(config.table).select(field).in(field, uniqueValues)
+    const existing = new Set(data?.map((r: any) => r[field]).filter(Boolean) || [])
+    for (const { value, idx } of items) {
+      if (existing.has(value) && !errors.has(idx + 1)) {
+        errors.set(
+          idx + 1,
+          `Linha ${idx + 1}: Registro duplicado - "${field}" "${value}" já existe no banco de dados`,
+        )
+      }
     }
   }
   return errors
@@ -93,8 +177,20 @@ export async function processImport(
   entity: ImportEntityType,
   onProgress?: (current: number, total: number) => void,
 ): Promise<ImportResult> {
-  const records = filename.endsWith('.json') ? JSON.parse(content) : parseCsv(content)
-  const result: ImportResult = { success: 0, errors: 0, rowErrors: [] }
+  const result: ImportResult = { success: 0, errors: 0, rowErrors: [], warning: null }
+
+  let records: Record<string, any>[]
+  if (filename.endsWith('.json')) {
+    records = JSON.parse(content)
+  } else {
+    const firstLine = content.split('\n')[0] || ''
+    if (detectDelimiter(firstLine) === ';') {
+      result.warning =
+        'O arquivo CSV usa ponto e vírgula (;) como separador. Foi convertido automaticamente, mas recomenda-se usar vírgula (,) nas próximas importações.'
+    }
+    records = parseCsv(content)
+  }
+
   if (!records.length) {
     result.errors = 1
     result.rowErrors.push({ row: 0, message: 'Arquivo vazio ou sem dados' })
@@ -114,14 +210,13 @@ export async function processImport(
   if (!valid.length) return result
 
   const fkErrors = await validateForeignKeys(entity, valid)
+  const dupErrors = await detectDuplicates(entity, valid)
   const toImport: Record<string, any>[] = []
   valid.forEach((v) => {
-    if (fkErrors.has(v.originalIndex + 1)) {
+    const rowErr = fkErrors.get(v.originalIndex + 1) || dupErrors.get(v.originalIndex + 1)
+    if (rowErr) {
       result.errors++
-      result.rowErrors.push({
-        row: v.originalIndex + 1,
-        message: fkErrors.get(v.originalIndex + 1)!,
-      })
+      result.rowErrors.push({ row: v.originalIndex + 1, message: rowErr })
     } else {
       toImport.push(mapRow(v.row, entity))
     }
@@ -137,7 +232,7 @@ export async function processImport(
       .upsert(batch, { onConflict: 'id', ignoreDuplicates: true })
     if (error) {
       result.errors += batch.length
-      result.rowErrors.push({ row: i + 1, message: `Batch error: ${error.message}` })
+      result.rowErrors.push({ row: i + 1, message: `Erro em lote: ${error.message}` })
     } else {
       result.success += batch.length
     }

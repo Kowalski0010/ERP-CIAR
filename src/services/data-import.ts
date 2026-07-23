@@ -13,6 +13,8 @@ interface FieldConfig {
   name: string
   type: 'string' | 'number' | 'date' | 'uuid'
   required: boolean
+  label?: string
+  validation?: 'email' | 'cpf'
 }
 
 interface EntityConfig {
@@ -21,6 +23,7 @@ interface EntityConfig {
   fields: FieldConfig[]
   fkValidations?: { field: string; table: string }[]
   defaultValues?: Record<string, any>
+  duplicateFields?: string[]
 }
 
 export const ENTITY_CONFIGS: Record<ImportEntityType, EntityConfig> = {
@@ -28,12 +31,32 @@ export const ENTITY_CONFIGS: Record<ImportEntityType, EntityConfig> = {
     label: 'Alunos (Matrículas Ativas)',
     table: 'students',
     fields: [
-      { name: 'name', type: 'string', required: true },
-      { name: 'email', type: 'string', required: false },
-      { name: 'course', type: 'string', required: false },
-      { name: 'phone', type: 'string', required: false },
+      { name: 'name', type: 'string', required: true, label: 'Nome' },
+      { name: 'registration_code', type: 'string', required: false, label: 'Matrícula' },
+      { name: 'nationality', type: 'string', required: false, label: 'Nacionalidade' },
+      { name: 'birth_city', type: 'string', required: false, label: 'Cidade natal' },
+      { name: 'email', type: 'string', required: false, label: 'E-mail', validation: 'email' },
+      { name: 'birth_date', type: 'date', required: false, label: 'Data de nascimento' },
+      { name: 'rg', type: 'string', required: false, label: 'RG' },
+      { name: 'rg_issuer', type: 'string', required: false, label: 'Órgão emissor' },
+      { name: 'cpf', type: 'string', required: false, label: 'CPF', validation: 'cpf' },
+      { name: 'marital_status', type: 'string', required: false, label: 'Estado civil' },
+      { name: 'mother_name', type: 'string', required: false, label: 'Nome da mãe' },
+      { name: 'father_name', type: 'string', required: false, label: 'Nome do pai' },
+      { name: 'address_zip', type: 'string', required: false, label: 'CEP' },
+      { name: 'address_street', type: 'string', required: false, label: 'Rua' },
+      { name: 'address_number', type: 'string', required: false, label: 'Número' },
+      { name: 'address_neighborhood', type: 'string', required: false, label: 'Bairro' },
+      { name: 'address_city', type: 'string', required: false, label: 'Cidade' },
+      { name: 'address_state', type: 'string', required: false, label: 'Estado' },
+      { name: 'phone', type: 'string', required: false, label: 'Telefone celular' },
+      { name: 'previous_graduation', type: 'string', required: false, label: 'Graduação anterior' },
+      { name: 'contract', type: 'string', required: false, label: 'Contrato' },
+      { name: 'observations', type: 'string', required: false, label: 'Observações' },
+      { name: 'due_day', type: 'string', required: false, label: 'Dia de vencimento' },
     ],
     defaultValues: { status: 'Ativo' },
+    duplicateFields: ['registration_code', 'cpf'],
   },
   teachers: {
     label: 'Corpo Docente',
@@ -134,19 +157,52 @@ export const ENTITY_CONFIGS: Record<ImportEntityType, EntityConfig> = {
   },
 }
 
+const EXAMPLE_VALUES: Record<string, string> = {
+  name: 'João da Silva',
+  registration_code: '26-001',
+  nationality: 'Brasileira',
+  birth_city: 'São Paulo',
+  email: 'joao.silva@email.com',
+  birth_date: '1995-05-15',
+  rg: '12.345.678-9',
+  rg_issuer: 'SSP',
+  cpf: '123.456.789-00',
+  marital_status: 'Solteiro',
+  mother_name: 'Maria da Silva',
+  father_name: 'José da Silva',
+  address_zip: '01000-000',
+  address_street: 'Rua das Flores',
+  address_number: '123',
+  address_neighborhood: 'Centro',
+  address_city: 'São Paulo',
+  address_state: 'SP',
+  phone: '(11) 99999-9999',
+  previous_graduation: 'Ensino Médio',
+  contract: 'Contrato Padrão',
+  observations: 'Sem observações',
+  due_day: '10',
+}
+
 function templateExample(field: FieldConfig): string {
+  if (EXAMPLE_VALUES[field.name]) return EXAMPLE_VALUES[field.name]
   if (field.type === 'number') return '100'
   if (field.type === 'date') return '2024-01-15'
   if (field.type === 'uuid') return '00000000-0000-0000-0000-000000000000'
-  if (field.name === 'email') return 'exemplo@email.com'
   if (field.name === 'phone') return '11999999999'
   return 'Texto Exemplo'
+}
+
+function escapeCsvValue(value: string): string {
+  if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+    return `"${value.replace(/"/g, '""')}"`
+  }
+  return value
 }
 
 export function generateCsvTemplate(entity: ImportEntityType): string {
   const config = ENTITY_CONFIGS[entity]
   const headers = config.fields.map((f) => f.name).join(',')
-  const example = config.fields.map((f) => templateExample(f)).join(',')
+  const example = config.fields.map((f) => escapeCsvValue(templateExample(f))).join(',')
   return `${headers}\n${example}`
 }
 
@@ -154,10 +210,21 @@ export function generateJsonTemplate(entity: ImportEntityType): string {
   const config = ENTITY_CONFIGS[entity]
   const example: Record<string, any> = {}
   config.fields.forEach((f) => {
-    if (f.type === 'number') example[f.name] = 100
-    else if (f.type === 'date') example[f.name] = '2024-01-15'
-    else if (f.type === 'uuid') example[f.name] = '00000000-0000-0000-0000-000000000000'
-    else example[f.name] = templateExample(f)
+    if (f.type === 'number') {
+      example[f.name] = Number(templateExample(f)) || 100
+    } else {
+      example[f.name] = templateExample(f)
+    }
   })
   return JSON.stringify([example], null, 2)
+}
+
+export function getFieldList(
+  entity: ImportEntityType,
+): { name: string; label: string; required: boolean }[] {
+  return ENTITY_CONFIGS[entity].fields.map((f) => ({
+    name: f.name,
+    label: f.label || f.name,
+    required: f.required,
+  }))
 }

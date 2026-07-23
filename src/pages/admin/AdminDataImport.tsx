@@ -17,12 +17,22 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
-import { UploadCloud, Database, CheckCircle2, AlertCircle, Download } from 'lucide-react'
+import {
+  UploadCloud,
+  Database,
+  CheckCircle2,
+  AlertCircle,
+  Download,
+  Info,
+  FileSpreadsheet,
+} from 'lucide-react'
 import {
   ENTITY_CONFIGS,
   generateCsvTemplate,
   generateJsonTemplate,
+  getFieldList,
   type ImportEntityType,
 } from '@/services/data-import'
 import { processImport, type ImportResult } from '@/services/data-import-processor'
@@ -90,6 +100,8 @@ export default function AdminDataImport() {
   }
 
   const entityOptions = Object.entries(ENTITY_CONFIGS) as [ImportEntityType, { label: string }][]
+  const fieldList = getFieldList(importType)
+  const showStudentInstructions = importType === 'students'
 
   return (
     <div className="space-y-6 animate-fade-in-up pb-8 max-w-[1000px] mx-auto">
@@ -190,9 +202,19 @@ export default function AdminDataImport() {
             <AlertCircle className="h-4 w-4 text-blue-600" />
             <AlertDescription className="text-xs">
               O processo grava diretamente no Supabase. Dados inválidos serão rejeitados. Relações
-              (FK) são validadas antes da importação. Registros duplicados (por ID) são ignorados.
+              (FK) são validadas antes da importação. Registros duplicados são ignorados.
             </AlertDescription>
           </Alert>
+
+          {showStudentInstructions && (
+            <Alert className="bg-amber-50 border-amber-200 text-amber-900">
+              <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
+              <AlertDescription className="text-xs">
+                O arquivo CSV deve usar vírgula como separador. Cada campo deve estar em uma coluna
+                separada, nunca dentro de uma única célula.
+              </AlertDescription>
+            </Alert>
+          )}
 
           {status === 'processing' && progress.total > 0 && (
             <Card className="border-zinc-200 shadow-sm bg-white">
@@ -213,6 +235,12 @@ export default function AdminDataImport() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
+                {results.warning && (
+                  <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                    <span className="text-xs text-amber-800">{results.warning}</span>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-4 text-center">
                   <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-lg">
                     <CheckCircle2 className="h-6 w-6 text-emerald-500 mx-auto mb-2" />
@@ -257,6 +285,97 @@ export default function AdminDataImport() {
           )}
         </div>
       </div>
+
+      {showStudentInstructions && (
+        <Card className="border-zinc-200 shadow-sm bg-white">
+          <CardHeader className="border-b border-zinc-100 bg-zinc-50/50">
+            <CardTitle className="text-base text-zinc-800 flex items-center gap-2">
+              <Info className="h-4 w-4 text-blue-500" />
+              Instruções para Importação de Alunos
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-4">
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-zinc-700 uppercase">Formato do Arquivo</h4>
+              <ul className="text-xs text-zinc-600 space-y-1.5 list-disc list-inside">
+                <li>
+                  Cada campo deve estar em uma <strong>coluna separada</strong> (célula), nunca
+                  combinado em uma única célula.
+                </li>
+                <li>
+                  As colunas são separadas por <strong>vírgula (`,`)</strong>.
+                </li>
+                <li>Campos opcionais podem ser deixados vazios.</li>
+                <li>
+                  Campos de data devem seguir o formato <strong>AAAA-MM-DD</strong> (ex:
+                  1995-05-15).
+                </li>
+                <li>
+                  A linha de cabeçalho deve corresponder <strong>exatamente</strong> aos nomes das
+                  colunas listados abaixo (sensível a maiúsculas/minúsculas).
+                </li>
+                <li>
+                  Colunas extras no arquivo serão <strong>ignoradas</strong>.
+                </li>
+                <li>
+                  O campo <strong>`name`</strong> (Nome) é <strong>obrigatório</strong>. Linhas sem
+                  esse campo serão rejeitadas.
+                </li>
+              </ul>
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-zinc-700 uppercase flex items-center gap-1.5">
+                <FileSpreadsheet className="h-3.5 w-3.5" />
+                Instruções para Excel
+              </h4>
+              <ul className="text-xs text-zinc-600 space-y-1.5 list-disc list-inside">
+                <li>
+                  Ao salvar como CSV no Excel, use a opção{' '}
+                  <strong>"CSV (separado por vírgulas)"</strong>.
+                </li>
+                <li>
+                  Se o Excel estiver em português, o padrão pode usar{' '}
+                  <strong>ponto e vírgula (;)</strong>; substitua por vírgulas ou use a opção
+                  correta de exportação.
+                </li>
+                <li>
+                  Após salvar, abra o arquivo em um editor de texto (Bloco de Notas) para confirmar
+                  que as vírgulas estão corretas.
+                </li>
+              </ul>
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-zinc-700 uppercase">Duplicatas</h4>
+              <p className="text-xs text-zinc-600">
+                Registros duplicados são detectados por <strong>`registration_code`</strong>{' '}
+                (prioridade) ou <strong>`cpf`</strong> (se `registration_code` estiver vazio).
+                Registros duplicados serão <strong>ignorados</strong> com um aviso.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-zinc-700 uppercase">
+                Colunas Esperadas ({fieldList.length} campos)
+              </h4>
+              <div className="flex flex-wrap gap-1.5">
+                {fieldList.map((field, idx) => (
+                  <Badge
+                    key={field.name}
+                    variant={field.required ? 'default' : 'secondary'}
+                    className="text-xs"
+                  >
+                    {idx + 1}. {field.name}
+                    {field.required && <span className="ml-1 text-red-300">*</span>}
+                  </Badge>
+                ))}
+              </div>
+              <p className="text-xs text-zinc-400 mt-1">* Campos obrigatórios</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

@@ -436,9 +436,12 @@ export type Database = {
           avatar: string | null
           birth_city: string | null
           birth_date: string | null
+          contract: string | null
           course: string | null
           cpf: string | null
           created_at: string | null
+          documents: Json | null
+          due_day: string | null
           email: string | null
           enrollment_date: string | null
           father_name: string | null
@@ -447,6 +450,7 @@ export type Database = {
           mother_name: string | null
           name: string
           nationality: string | null
+          observations: string | null
           phone: string | null
           previous_graduation: string | null
           registration_code: string | null
@@ -464,9 +468,12 @@ export type Database = {
           avatar?: string | null
           birth_city?: string | null
           birth_date?: string | null
+          contract?: string | null
           course?: string | null
           cpf?: string | null
           created_at?: string | null
+          documents?: Json | null
+          due_day?: string | null
           email?: string | null
           enrollment_date?: string | null
           father_name?: string | null
@@ -475,6 +482,7 @@ export type Database = {
           mother_name?: string | null
           name: string
           nationality?: string | null
+          observations?: string | null
           phone?: string | null
           previous_graduation?: string | null
           registration_code?: string | null
@@ -492,9 +500,12 @@ export type Database = {
           avatar?: string | null
           birth_city?: string | null
           birth_date?: string | null
+          contract?: string | null
           course?: string | null
           cpf?: string | null
           created_at?: string | null
+          documents?: Json | null
+          due_day?: string | null
           email?: string | null
           enrollment_date?: string | null
           father_name?: string | null
@@ -503,6 +514,7 @@ export type Database = {
           mother_name?: string | null
           name?: string
           nationality?: string | null
+          observations?: string | null
           phone?: string | null
           previous_graduation?: string | null
           registration_code?: string | null
