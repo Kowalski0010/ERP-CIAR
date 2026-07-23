@@ -14,9 +14,24 @@ export interface ImportResult {
 }
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
+const DATE_REGEX = /^\d{2}-\d{2}-\d{4}$/
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const CPF_REGEX = /^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/
+
+function convertDateToISO(value: string): string | null {
+  const match = value.match(/^(\d{2})-(\d{2})-(\d{4})$/)
+  if (!match) return null
+  const day = match[1]
+  const month = match[2]
+  const year = match[3]
+  const dayNum = parseInt(day, 10)
+  const monthNum = parseInt(month, 10)
+  const yearNum = parseInt(year, 10)
+  if (monthNum < 1 || monthNum > 12) return null
+  const maxDay = new Date(yearNum, monthNum, 0).getDate()
+  if (dayNum < 1 || dayNum > maxDay) return null
+  return `${year}-${month}-${day}`
+}
 
 function detectDelimiter(firstLine: string): string {
   const commas = (firstLine.match(/,/g) || []).length
@@ -80,7 +95,9 @@ function validateRow(
       if (field.type === 'uuid' && !UUID_REGEX.test(value))
         return `Linha ${rowNum}: UUID inválido para "${field.name}"`
       if (field.type === 'date' && !DATE_REGEX.test(value))
-        return `Linha ${rowNum}: Data inválida para "${label}" (formato esperado: AAAA-MM-DD)`
+        return `Linha ${rowNum}: Data inválida para "${label}" (formato esperado: DD-MM-AAAA, ex: 15-03-1990). Valor recebido: "${value}"`
+      if (field.type === 'date' && !convertDateToISO(value))
+        return `Linha ${rowNum}: Data fora do intervalo válido para "${label}". Valor recebido: "${value}"`
       if (field.type === 'number' && isNaN(Number(value)))
         return `Linha ${rowNum}: Número inválido para "${field.name}"`
       if (field.validation === 'email' && !EMAIL_REGEX.test(value))
@@ -99,7 +116,12 @@ function mapRow(row: Record<string, any>, entity: ImportEntityType): Record<stri
   for (const field of config.fields) {
     const value = row[field.name]
     if (value === undefined || value === '') continue
-    mapped[field.name] = field.type === 'number' ? Number(value) : value
+    if (field.type === 'date') {
+      const isoDate = convertDateToISO(value)
+      if (isoDate) mapped[field.name] = isoDate
+    } else {
+      mapped[field.name] = field.type === 'number' ? Number(value) : value
+    }
   }
   return mapped
 }

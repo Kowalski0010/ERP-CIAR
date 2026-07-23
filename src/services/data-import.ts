@@ -163,7 +163,7 @@ const EXAMPLE_VALUES: Record<string, string> = {
   nationality: 'Brasileira',
   birth_city: 'São Paulo',
   email: 'joao.silva@email.com',
-  birth_date: '1995-05-15',
+  birth_date: '15-05-1995',
   rg: '12.345.678-9',
   rg_issuer: 'SSP',
   cpf: '123.456.789-00',
@@ -186,10 +186,25 @@ const EXAMPLE_VALUES: Record<string, string> = {
 function templateExample(field: FieldConfig): string {
   if (EXAMPLE_VALUES[field.name]) return EXAMPLE_VALUES[field.name]
   if (field.type === 'number') return '100'
-  if (field.type === 'date') return '2024-01-15'
+  if (field.type === 'date') return '15-01-2024'
   if (field.type === 'uuid') return '00000000-0000-0000-0000-000000000000'
   if (field.name === 'phone') return '11999999999'
   return 'Texto Exemplo'
+}
+
+function convertDateToISO(value: string): string | null {
+  const match = value.match(/^(\d{2})-(\d{2})-(\d{4})$/)
+  if (!match) return null
+  const day = match[1]
+  const month = match[2]
+  const year = match[3]
+  const dayNum = parseInt(day, 10)
+  const monthNum = parseInt(month, 10)
+  const yearNum = parseInt(year, 10)
+  if (monthNum < 1 || monthNum > 12) return null
+  const maxDay = new Date(yearNum, monthNum, 0).getDate()
+  if (dayNum < 1 || dayNum > maxDay) return null
+  return `${year}-${month}-${day}`
 }
 
 function escapeCsvValue(value: string): string {
@@ -213,7 +228,10 @@ export function generateJsonTemplate(entity: ImportEntityType): string {
     if (f.type === 'number') {
       example[f.name] = Number(templateExample(f)) || 100
     } else {
-      example[f.name] = templateExample(f)
+      example[f.name] =
+        f.type === 'date'
+          ? convertDateToISO(templateExample(f)) || templateExample(f)
+          : templateExample(f)
     }
   })
   return JSON.stringify([example], null, 2)
@@ -222,6 +240,8 @@ export function generateJsonTemplate(entity: ImportEntityType): string {
 export function getFieldList(
   entity: ImportEntityType,
 ): { name: string; label: string; required: boolean }[] {
+  // Note: date fields in CSV templates use DD-MM-AAAA format
+  // and are converted to YYYY-MM-DD during import processing
   return ENTITY_CONFIGS[entity].fields.map((f) => ({
     name: f.name,
     label: f.label || f.name,
