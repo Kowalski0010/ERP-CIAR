@@ -106,6 +106,17 @@ export const updateStudent = async (id: string, student: any) => {
   return mapFromDb(data)
 }
 
+export const updateStudentStatus = async (id: string, status: string) => {
+  const { data, error } = await supabase
+    .from('students')
+    .update({ status })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return mapFromDb(data)
+}
+
 export const deleteStudent = async (id: string) => {
   const { error } = await supabase.from('students').delete().eq('id', id)
   if (error) throw error

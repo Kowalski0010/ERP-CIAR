@@ -65,7 +65,15 @@ export type Student = {
   registrationCode?: string
   name: string
   email: string
-  status: 'Ativo' | 'Inativo' | 'Formado'
+  status:
+    | 'Ativo'
+    | 'Inativo'
+    | 'Cancelado'
+    | 'Desistente'
+    | 'Inadimplente'
+    | 'Transferido'
+    | 'Reativado'
+    | 'Formado'
   enrollmentDate: string
   course: string
   previousGraduation?: string

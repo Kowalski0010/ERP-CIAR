@@ -15,6 +15,8 @@ import { Student } from '@/lib/types'
 import { getStudents, deleteStudent } from '@/services/students'
 import { useToast } from '@/hooks/use-toast'
 import { StudentForm } from '@/components/academic/StudentForm'
+import { StudentStatusChanger } from '@/components/academic/StudentStatusChanger'
+import { getStatusStyle } from '@/lib/student-status'
 
 export default function Students() {
   const [students, setStudents] = useState<Student[]>([])
@@ -71,6 +73,10 @@ export default function Students() {
 
   const handleSuccess = () => {
     handleCloseSheet()
+    fetchStudents()
+  }
+
+  const handleStatusChange = () => {
     fetchStudents()
   }
 
@@ -141,11 +147,7 @@ export default function Students() {
                   </TableCell>
                   <TableCell>
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        student.status === 'Ativo'
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                          : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
-                      }`}
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusStyle(student.status)}`}
                     >
                       {student.status}
                     </span>
@@ -170,6 +172,11 @@ export default function Students() {
           <SheetHeader className="mb-6">
             <SheetTitle>{selectedStudent ? 'Editar Aluno' : 'Cadastrar Novo Aluno'}</SheetTitle>
           </SheetHeader>
+          {isSheetOpen && selectedStudent && (
+            <div className="mb-4">
+              <StudentStatusChanger student={selectedStudent} onSuccess={handleStatusChange} />
+            </div>
+          )}
           {isSheetOpen && (
             <StudentForm
               initialData={selectedStudent}
