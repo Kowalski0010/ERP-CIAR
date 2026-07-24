@@ -49,6 +49,8 @@ export default function Login() {
 
     setCurrentUserRole(role)
     login(role)
+    setLoading(false)
+    navigate('/', { replace: true })
   }
 
   if (authLoading) {

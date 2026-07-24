@@ -32,18 +32,21 @@ export function StudentStatusChanger({
   const [confirmOpen, setConfirmOpen] = useState(false)
 
   useEffect(() => {
-    if (!user)
-      return supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-        .then(({ data }) => {
-          if (data?.role && ALLOWED_ROLES.includes(data.role)) {
-            setCanEdit(true)
-          }
-        })
-        .catch(() => {})
+    if (!user) {
+      setCanEdit(false)
+      return
+    }
+    supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.role && ALLOWED_ROLES.includes(data.role)) {
+          setCanEdit(true)
+        }
+      })
+      .catch(() => {})
   }, [user])
 
   const handleStatusSelect = (value: string) => {
