@@ -30,6 +30,9 @@ const teacherSchema = z.object({
   rg: z.string().optional().or(z.literal('')),
   subjects: z.string().optional(),
   workload: z.coerce.number().optional(),
+  degree: z.string().optional().or(z.literal('')),
+  undergraduate_degree: z.string().optional().or(z.literal('')),
+  postgraduate_degree: z.string().optional().or(z.literal('')),
 })
 
 interface AddTeacherDialogProps {
@@ -50,6 +53,9 @@ export function AddTeacherDialog({ open, onOpenChange, onSuccess }: AddTeacherDi
       rg: '',
       subjects: '',
       workload: 20,
+      degree: '',
+      undergraduate_degree: '',
+      postgraduate_degree: '',
     },
   })
 
@@ -75,6 +81,10 @@ export function AddTeacherDialog({ open, onOpenChange, onSuccess }: AddTeacherDi
             subjects: data.subjects === '' ? null : data.subjects,
             workload: data.workload || null,
             status: 'Ativo',
+            degree: data.degree === '' ? null : data.degree,
+            undergraduate_degree:
+              data.undergraduate_degree === '' ? null : data.undergraduate_degree,
+            postgraduate_degree: data.postgraduate_degree === '' ? null : data.postgraduate_degree,
           },
         ])
         .select()
@@ -97,6 +107,9 @@ export function AddTeacherDialog({ open, onOpenChange, onSuccess }: AddTeacherDi
         subjects: data.subjects ? data.subjects.split(',').map((s) => s.trim()) : [],
         workload: data.workload || null,
         status: 'Ativo',
+        degree: data.degree || undefined,
+        undergraduateDegree: data.undergraduate_degree || undefined,
+        postgraduateDegree: data.postgraduate_degree || undefined,
       }
       onSuccess(teacher as any)
       onOpenChange(false)
@@ -205,6 +218,48 @@ export function AddTeacherDialog({ open, onOpenChange, onSuccess }: AddTeacherDi
                 </FormItem>
               )}
             />
+            <div className="grid grid-cols-1 gap-4 pt-2 border-t border-border">
+              <p className="text-sm font-semibold text-muted-foreground">Informações Acadêmicas</p>
+              <FormField
+                control={form.control}
+                name="degree"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Titulação</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Doutorado, Mestrado..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="undergraduate_degree"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Graduação</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Licenciatura em Matemática..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="postgraduate_degree"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Pós-graduação</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: MBA em Gestão Educacional..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <div className="pt-4 flex justify-end gap-2 border-t border-border">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar

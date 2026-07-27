@@ -110,6 +110,9 @@ export type Teacher = {
   workload: number
   status: 'Ativo' | 'Inativo'
   avatar?: string
+  degree?: string
+  undergraduateDegree?: string
+  postgraduateDegree?: string
 }
 
 export type ClassRoom = {

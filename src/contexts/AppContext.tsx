@@ -455,6 +455,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const updateTeacher = (id: string, partial: Partial<Teacher>) => {
     setTeachers((prev) => prev.map((t) => (t.id === id ? { ...t, ...partial } : t)))
+    try {
+      const dbPayload: Record<string, unknown> = {}
+      if (partial.name !== undefined) dbPayload.name = partial.name
+      if (partial.email !== undefined) dbPayload.email = partial.email
+      if (partial.phone !== undefined) dbPayload.phone = partial.phone
+      if (partial.cpf !== undefined) dbPayload.cpf = partial.cpf
+      if (partial.rg !== undefined) dbPayload.rg = partial.rg
+      if (partial.subjects !== undefined)
+        dbPayload.subjects = Array.isArray(partial.subjects)
+          ? partial.subjects.join(', ')
+          : partial.subjects
+      if (partial.workload !== undefined) dbPayload.workload = partial.workload
+      if ((partial as any).degree !== undefined) dbPayload.degree = (partial as any).degree || null
+      if ((partial as any).undergraduateDegree !== undefined)
+        dbPayload.undergraduate_degree = (partial as any).undergraduateDegree || null
+      if ((partial as any).postgraduateDegree !== undefined)
+        dbPayload.postgraduate_degree = (partial as any).postgraduateDegree || null
+      if (Object.keys(dbPayload).length > 0) {
+        supabase
+          .from('teachers')
+          .update(dbPayload)
+          .eq('id', id)
+          .then(({ error }) => {
+            if (error) console.error('Error updating teacher:', error)
+          })
+      }
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   const deleteTeacher = (id: string) => {
