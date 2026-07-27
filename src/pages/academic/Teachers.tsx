@@ -64,7 +64,8 @@ const editTeacherSchema = z.object({
 })
 
 export default function Teachers() {
-  const { teachers, addTeacher, updateTeacher, deleteTeacher } = useAppStore()
+  const { teachers: rawTeachers, addTeacher, updateTeacher, deleteTeacher } = useAppStore()
+  const teachers = Array.isArray(rawTeachers) ? rawTeachers : []
   const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
   const [isAddOpen, setIsAddOpen] = useState(false)
@@ -110,8 +111,8 @@ export default function Teachers() {
       phone: t.phone || '',
       cpf: t.cpf || '',
       rg: t.rg || '',
-      subjects: t.subjects.join(', '),
-      workload: t.workload,
+      subjects: safeSubjects(t.subjects).join(', '),
+      workload: t.workload || 0,
     })
   }
 
@@ -146,10 +147,17 @@ export default function Teachers() {
     )
   }
 
+  const safeSubjects = (subs: unknown): string[] =>
+    Array.isArray(subs)
+      ? subs
+      : typeof subs === 'string' && subs.trim()
+        ? subs.split(',').map((s) => s.trim())
+        : []
+
   const filtered = teachers.filter(
     (t) =>
       t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.subjects.some((s) => s.toLowerCase().includes(searchTerm.toLowerCase())),
+      safeSubjects(t.subjects).some((s) => s.toLowerCase().includes(searchTerm.toLowerCase())),
   )
 
   return (
@@ -209,7 +217,7 @@ export default function Teachers() {
                 Carga Semanal
               </p>
               <p className="text-2xl font-bold">
-                {teachers.reduce((acc, curr) => acc + curr.workload, 0)}h
+                {teachers.reduce((acc, curr) => acc + (curr.workload || 0), 0)}h
               </p>
             </div>
             <div className="p-2 rounded-md bg-muted text-muted-foreground">
@@ -268,7 +276,7 @@ export default function Teachers() {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1 flex-wrap">
-                      {teacher.subjects.map((s) => (
+                      {safeSubjects(teacher.subjects).map((s) => (
                         <Badge
                           key={s}
                           variant="secondary"
